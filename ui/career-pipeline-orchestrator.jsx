@@ -17,7 +17,7 @@ const STAGE_DEFS = [
   },
   {
     id: "stage2",
-    label: "Recruiter Simulation"",
+    label: "Recruiter Simulation",
     title: "Macro Hiring Assessment",
     role: "Executive Recruiter / Risk Analyst",
   },
