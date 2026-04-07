@@ -18,7 +18,7 @@
 ## Post v1.0
 - [ ] Performance review support as Day 1 value proposition
 - [ ] Interview preparation module (diary data already structured for this)
-- [ ] Outcome tracking (ship before Draft/Syphon Labs does)
+- [ ] Outcome tracking 
 - [ ] Cover letter generation (trivial Stage 4 extension)
 - [ ] Chrome extension / job capture mechanism
 - [ ] Application tracking / CRM
