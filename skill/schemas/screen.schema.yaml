@@ -1,13 +1,16 @@
 # screen.yaml — the screening subagent's output (six-second / three-minute
-# stress test). Produced WITHOUT the WHD in context, by construction. The two
+# stress test). Produced WITHOUT the WHD in context, by construction. These are
+# structured approximations of screening behavior, not predictions. The two
 # triggers are the report's most actionable diagnostic (plan section 3).
 type: object
-required: [first_friction_trigger, first_escalation_trigger, escalation_likelihood]
+required: [gate1_verdict, first_friction_trigger, first_escalation_trigger, escalation_likelihood]
 properties:
-  first_friction_trigger: {type: str}    # verbatim, leads the report analysis
-  first_escalation_trigger: {type: str}  # verbatim
-  gate1: {type: str}                     # pass | fail  (recruiter 6-second scan)
-  gate2: {type: str}                     # pass | fail  (hiring-manager 3-minute read)
+  recruiter_persona: {type: str}
+  # Gate 1 — recruiter, 6-second screen:
+  gate1_verdict: {type: str}             # clear-archetype-match | requires-interpretation | immediate-discard-risk
+  # Gate 2 — hiring manager, 3-minute skim (its output IS the two triggers):
+  first_friction_trigger: {type: str}    # where doubt emerges (verbatim, leads the report)
+  first_escalation_trigger: {type: str}  # the metric/brand/scope that compels a call (verbatim)
   elimination_logic: {type: str}
-  hm_acceptance_risk: {type: str}
-  escalation_likelihood: {type: str}     # low | medium | high
+  hm_acceptance_risk: {type: str}        # low | moderate | high
+  escalation_likelihood: {type: str}     # strong | competitive | fragile | unfavorable

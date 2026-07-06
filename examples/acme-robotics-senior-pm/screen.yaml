@@ -1,13 +1,16 @@
+recruiter_persona: >
+  Corporate recruiter, moderate technical depth, decision driver = risk
+  mitigation. Evidence: "safety-critical", "from concept to production".
+gate1_verdict: requires-interpretation
 first_friction_trigger: >
   Resume reads SaaS-analytics-first; a robotics recruiter scanning for six
   seconds sees "data-ingestion platform" before any hardware signal.
 first_escalation_trigger: >
-  No robotics or ROS anywhere; a perception-heavy hiring manager may question
-  domain credibility despite strong hardware-lifecycle evidence.
-gate1: pass
-gate2: pass
+  Shipped a hardware product prototype-to-production (50k units) — a metric and
+  scope that compels a call despite the missing robotics domain.
 elimination_logic: >
   Not eliminated at the six-second scan — PM tenure, platform strategy, and
-  hardware-to-production are all present. Survives to the three-minute read.
-hm_acceptance_risk: medium
-escalation_likelihood: medium
+  hardware-to-production are all present. Survives to the three-minute read; the
+  robotics-domain gap is interpretation, not immediate discard.
+hm_acceptance_risk: moderate
+escalation_likelihood: competitive

@@ -49,9 +49,9 @@ goes through onboarding first (see Build status → not yet built).
 
 ```
 Phase A  INTAKE (orchestrator)         -> requirements.yaml, run folder   [BUILT]
-Phase B  PARALLEL research + fit        -> scd.yaml, gapmap.yaml           [Phase 3]
-Phase C  GATE 1 Gap Brief (3 options)   -> Python tally + trip rules       [helper BUILT; wiring Phase 3]
-Phase D  SCREENING (WHD-blind)          -> screen.yaml                     [Phase 3]
+Phase B  PARALLEL research + fit        -> scd.yaml, gapmap.yaml           [BUILT]
+Phase C  GATE 1 Gap Brief (3 options)   -> Python tally + trip rules       [BUILT]
+Phase D  SCREENING (WHD-blind)          -> screen.yaml                     [BUILT]
 Phase E  SYNTHESIS                       -> report.md + appendix.md         [Phase 4]
 Phase F  GATE 2 user decision                                              [Phase 4]
 Phase G  FINISHING LOOP                  -> resume_final.docx               [Phase 5]
@@ -91,6 +91,72 @@ gate; overflow to a punch list. Routine gaps wait for their designated phase.
    python skill/helpers/validate.py <run>/requirements.yaml requirements
    ```
 
+## Phase B — Parallel research + fit (BUILT)
+
+Dispatch two subagents concurrently on the **cheap/fast model**. Each receives a
+minimal manifest — the fit subagent never sees the SCD; the research subagent
+never sees the resume or WHD.
+
+- **Research subagent** — contract: `contracts/research.md`. Manifest:
+  `requirements.yaml` (company/role) + web search. Writes `scd.yaml`.
+- **Fit subagent** — contract: `contracts/fit.md`. Manifest: `requirements.yaml`
+  + the resume + the WHD. Writes `gapmap.yaml`.
+
+Validate both on return (fail loudly, not silently downstream):
+```bash
+python skill/helpers/validate.py <run>/scd.yaml scd
+python skill/helpers/validate.py <run>/gapmap.yaml gapmap
+```
+
+**Exception-driven interrogation (fire only on FUNDAMENTAL mismatches):**
+- *Fit:* Seeker vs. JD archetype structurally incompatible → ask whether
+  repositioning is intended before screening simulates the wrong candidate.
+- *Research:* SCD contradicts the resume's positioning, or surfaces something
+  that changes whether the user wants the job (layoffs, acquisition, leadership
+  exodus) → surface now, not in the report.
+
+One question round each; overflow to a punch list. Routine gaps wait for their phase.
+
+## Phase C — Gate 1 Gap Brief (BUILT)
+
+A zero-token Python step tallies unrecoverable gaps and evaluates categorical
+trip rules (never a score cutoff):
+```bash
+python skill/helpers/gate1.py <run>/gapmap.yaml
+```
+If `tripped` is true, present the **Gap Brief** as ONE structured question with
+exactly three options (fixed format — plan section 2, Phase C):
+
+- **(a) Stop** — archive the Gap Brief to the run folder and end the run.
+- **(b) Proceed anyway** — gaps acknowledged; record them in the report's Open
+  Questions so the decision is visible.
+- **(c) Contest a gap** ("I have evidence for X") — route immediately into the
+  Phase H micro-interview: capture the evidence, patch the WHD, re-run the fit
+  classification for that requirement, and recompute the tally before proceeding.
+
+For each unrecoverable gap, state what filling it would actually require
+(experience you don't have vs. a credential vs. pure repositioning) and a
+one-line magnitude verdict. The numeric score appears only as a diagnostic line
+— the reasoning is the gate. An override is never a shrug: it is either an
+accepted risk (b) or new evidence on the record (c).
+
+## Phase D — Screening (BUILT, WHD-blind by construction)
+
+Build the screening subagent's input from an explicit manifest that OMITS the
+WHD, and pass a screening-safe gapmap summary:
+```bash
+python skill/helpers/gapmap_summary.py <run>/gapmap.yaml > <run>/gapmap.summary.yaml
+```
+Dispatch the screening subagent (contract: `contracts/screening.md`) on the
+**strong model**, with **no file-read tools** — inputs are: resume,
+`requirements.yaml`, `gapmap.summary.yaml`, `scd.yaml`. It writes `screen.yaml`.
+
+Then validate and run the **canary scan** (fails the run on a blindness leak):
+```bash
+python skill/helpers/validate.py <run>/screen.yaml screen
+python skill/helpers/canary.py <run>/screen.yaml <data-plane>/pipeline/whd/<WHD>.md
+```
+
 ## Deterministic helpers (never spend a token)
 
 All are pure Python, invoked via bash, unit-tested (`tests/`). They own the
@@ -105,10 +171,12 @@ arithmetic and string-matching so the model never does.
 | `ats.py` | Exact-match keyword scan | `ats.py <requirements.yaml> <resume>` |
 | `gate1.py` | Unrecoverable-gap tally + trip rules | `gate1.py <gapmap.yaml>` |
 | `whd_anchors.py` | Resolve a WHD section by anchor id | `whd_anchors.py <whd.md> <anchor>` |
+| `gapmap_summary.py` | Screening-safe gapmap (strips WHD fields) | `gapmap_summary.py <gapmap.yaml>` |
+| `canary.py` | Screening-blindness leak scan | `canary.py <screen.yaml> <whd.md>` |
 
 Schema names for `validate.py`: `requirements`, `scd`, `gapmap`, `screen`.
 
-## Screening-blindness enforcement (design; wired in Phase 3)
+## Screening-blindness enforcement (BUILT)
 
 Enforcement layers, in order of authority:
 1. **Dispatch construction** — the screening subagent's input is built from an
@@ -121,13 +189,15 @@ Enforcement layers, in order of authority:
 
 ## Build status
 
-- **Built (Phases 1–2):** WHD restructure + template; data-plane config;
+- **Built (Phases 1–3):** WHD restructure + template; data-plane config;
   run-folder convention; artifact schemas; all deterministic helpers with tests;
-  synthetic `examples/` fixture; Phase A intake.
-- **Not yet built:** Phase B subagent contracts + parallel dispatch (Phase 3),
-  Gate 1 wiring + interrogation (Phase 3), screening subagent + canary wiring
-  (Phase 3), synthesis + report/appendix templates (Phase 4), finishing loop +
-  docx (Phase 5), WHD reconciliation (Phase 6), onboarding mode for new users
-  (public release backlog).
+  synthetic `examples/` fixture; Phase A intake; the three subagent contracts
+  (`contracts/`) ported from the v1 FINAL prompts with verbatim invariants;
+  Phase B parallel dispatch + exception triggers; Phase C Gate 1 three-option
+  interrogation; Phase D screening with full blindness enforcement (manifest +
+  no file tools + gapmap summary + canary scan).
+- **Not yet built:** synthesis + report/appendix templates (Phase 4), finishing
+  loop + docx (Phase 5), WHD reconciliation (Phase 6), onboarding mode for new
+  users (public release backlog).
 
 See `../TODO.md` and the v2 plan of work for the full sequence.
