@@ -1,0 +1,10 @@
+# Editor / workspace
+*.code-workspace
+.vscode/
+
+# OS cruft
+.DS_Store
+Thumbs.db
+
+# Data plane must never live in the public repo (enforced by construction)
+/pipeline/
