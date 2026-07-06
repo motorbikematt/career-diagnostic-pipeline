@@ -1,0 +1,45 @@
+company: Acme Robotics
+role: Senior Product Manager, Robotics Platform
+source: text
+seniority: lead
+hard_requirements:
+  - id: hr-1
+    text: 5+ years of product management experience
+    keywords: [product management, product manager]
+  - id: hr-2
+    text: Experience shipping robotics or hardware products
+    keywords: [robotics, hardware]
+  - id: hr-3
+    text: Track record owning product strategy and roadmap for a platform
+    keywords: [product strategy, roadmap, platform]
+  - id: hr-4
+    text: Managed hardware product lifecycle from prototype to production
+    keywords: [hardware lifecycle, prototype, production]
+  - id: hr-5
+    text: Experience leading cross-functional engineering teams
+    keywords: [cross-functional, team leadership]
+preferred_requirements:
+  - id: pr-1
+    text: Familiarity with ROS (Robot Operating System)
+    keywords: [ros, robot operating system]
+  - id: pr-2
+    text: Computer vision or ML product experience
+    keywords: [computer vision, machine learning]
+  - id: pr-3
+    text: Early-stage startup experience
+    keywords: [startup]
+ats_keywords:
+  - product management
+  - robotics
+  - product strategy
+  - roadmap
+  - ROS
+  - computer vision
+  - A/B testing
+  - SQL
+  - hardware
+  - cross-functional
+recruiter_persona_cues:
+  - platform thinking
+  - hardware fluency
+  - zero-to-one

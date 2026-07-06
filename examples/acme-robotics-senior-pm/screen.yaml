@@ -1,0 +1,13 @@
+first_friction_trigger: >
+  Resume reads SaaS-analytics-first; a robotics recruiter scanning for six
+  seconds sees "data-ingestion platform" before any hardware signal.
+first_escalation_trigger: >
+  No robotics or ROS anywhere; a perception-heavy hiring manager may question
+  domain credibility despite strong hardware-lifecycle evidence.
+gate1: pass
+gate2: pass
+elimination_logic: >
+  Not eliminated at the six-second scan — PM tenure, platform strategy, and
+  hardware-to-production are all present. Survives to the three-minute read.
+hm_acceptance_risk: medium
+escalation_likelihood: medium

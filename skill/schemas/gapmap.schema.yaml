@@ -1,0 +1,26 @@
+# gapmap.yaml — the fit subagent's output. The pipeline's most differentiated
+# artifact. The model CLASSIFIES each requirement (match/partial/none) and notes
+# resume vs. WHD evidence SEPARATELY (v1 rule); Python computes the score from
+# this map (score.py). "The score derives from the map."
+type: object
+required: [requirements, seeker_archetype, jd_archetype]
+properties:
+  requirements:
+    type: list
+    items:
+      required: [id, kind, weight, classification, recoverable]
+      properties:
+        id: {type: str}               # matches a requirements.yaml id
+        kind: {type: str}             # hard | preferred
+        weight: {type: number}        # relative importance
+        classification: {type: str}   # match | partial | none
+        resume_evidence: {type: str}  # what the resume alone supports (or null)
+        whd_evidence: {type: str}     # separate WHD evidence (or null)
+        recoverable: {type: bool}     # none on resume BUT present in the WHD
+  ats:
+    type: object
+    properties:
+      jd_keywords: {type: list}
+      resume_keywords: {type: list}
+  seeker_archetype: {type: str}
+  jd_archetype: {type: str}

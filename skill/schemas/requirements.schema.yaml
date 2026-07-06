@@ -1,0 +1,27 @@
+# requirements.yaml — the JD parsed once into a canonical schema at intake.
+# Every downstream step consumes this, never the raw JD (plan section 2).
+type: object
+required: [company, role, hard_requirements, preferred_requirements, ats_keywords]
+properties:
+  company: {type: str}
+  role: {type: str}
+  source: {type: str}            # file | text | url
+  seniority: {type: str}         # ic | lead | manager | director | exec
+  hard_requirements:
+    type: list
+    items:
+      required: [id, text]
+      properties:
+        id: {type: str}          # e.g. hr-1
+        text: {type: str}
+        keywords: {type: list}
+  preferred_requirements:
+    type: list
+    items:
+      required: [id, text]
+      properties:
+        id: {type: str}          # e.g. pr-1
+        text: {type: str}
+        keywords: {type: list}
+  ats_keywords: {type: list}     # exact-match terms an ATS/recruiter scans for
+  recruiter_persona_cues: {type: list}

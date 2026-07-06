@@ -1,0 +1,62 @@
+requirements:
+  - id: hr-1
+    kind: hard
+    weight: 2
+    classification: match
+    resume_evidence: "8 years in product management across SaaS and hardware"
+    whd_evidence: "role-1 and role-2 both PM roles"
+    recoverable: false
+  - id: hr-2
+    kind: hard
+    weight: 3
+    classification: partial
+    resume_evidence: "shipped connected hardware (smart cameras), but not robotics"
+    whd_evidence: "role-2 IoT smart-camera hardware"
+    recoverable: false
+  - id: hr-3
+    kind: hard
+    weight: 3
+    classification: match
+    resume_evidence: "owns product strategy and platform roadmap at Nimbus Labs"
+    whd_evidence: "role-1.project-1 Platform Roadmap Overhaul"
+    recoverable: false
+  - id: hr-4
+    kind: hard
+    weight: 2
+    classification: match
+    resume_evidence: "managed a hardware product from prototype to production"
+    whd_evidence: "role-2.project-1 Smart Camera Hardware Lifecycle"
+    recoverable: false
+  - id: hr-5
+    kind: hard
+    weight: 2
+    classification: match
+    resume_evidence: "leads cross-functional engineering teams"
+    whd_evidence: "role-1 relationships: daily with engineering"
+    recoverable: false
+  - id: pr-1
+    kind: preferred
+    weight: 1
+    classification: none
+    resume_evidence: null
+    whd_evidence: null
+    recoverable: false
+  - id: pr-2
+    kind: preferred
+    weight: 1
+    classification: match
+    resume_evidence: "shipped an on-device computer vision feature"
+    whd_evidence: "role-2.project-2 On-Device Computer Vision Feature"
+    recoverable: false
+  - id: pr-3
+    kind: preferred
+    weight: 1
+    classification: match
+    resume_evidence: "Circuit Dynamics (startup); Nimbus Labs Series B"
+    whd_evidence: "role-2 IoT hardware startup"
+    recoverable: false
+ats:
+  jd_keywords: [product management, robotics, product strategy, roadmap, ROS, computer vision, A/B testing, SQL, hardware, cross-functional]
+  resume_keywords: [product management, product strategy, roadmap, computer vision, A/B testing, hardware, cross-functional]
+seeker_archetype: platform-and-hardware product manager
+jd_archetype: robotics platform product manager

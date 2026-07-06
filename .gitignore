@@ -6,5 +6,11 @@
 .DS_Store
 Thumbs.db
 
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
 # Data plane must never live in the public repo (enforced by construction)
 /pipeline/

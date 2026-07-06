@@ -1,0 +1,25 @@
+Acme Robotics — Senior Product Manager, Robotics Platform
+Austin, TX (hybrid)
+
+About the role:
+We're building the software platform that powers Acme's warehouse robots. You'll
+own product strategy and the roadmap for the robotics platform and lead
+cross-functional engineering teams from concept to production.
+
+What you'll do:
+- Own product strategy and the platform roadmap
+- Ship robotics and hardware products from prototype to production
+- Lead cross-functional engineering teams
+- Partner with hardware, firmware, and perception teams
+
+Requirements:
+- 5+ years of product management experience
+- Experience shipping robotics or hardware products
+- Track record owning product strategy and roadmap for a platform
+- Managed hardware product lifecycle from prototype to production
+- Experience leading cross-functional engineering teams
+
+Nice to have:
+- Familiarity with ROS (Robot Operating System)
+- Computer vision or ML product experience
+- Early-stage startup experience

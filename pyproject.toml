@@ -1,0 +1,19 @@
+[project]
+name = "resume-fit"
+version = "0.1.0"
+description = "Deterministic helpers for the /resume-fit career-diagnostic pipeline skill"
+requires-python = ">=3.11"
+# Runtime deps are kept minimal so other job seekers can install the skill
+# without a heavy toolchain. YAML I/O is the only hard requirement.
+dependencies = ["pyyaml>=6"]
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.uv]
+# The helpers are invoked as scripts by the skill, not installed as a package.
+package = false
+
+[tool.pytest.ini_options]
+pythonpath = ["skill/helpers"]
+testpaths = ["tests"]

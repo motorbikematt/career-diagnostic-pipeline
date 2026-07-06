@@ -1,0 +1,18 @@
+company: Acme Robotics
+business_cycle: growth
+buyer_anxiety:
+  - Can this PM translate SaaS/IoT product instincts to physical robots on a deadline?
+  - Warehouse robotics is safety-critical; will they respect hardware failure modes?
+shadow_requirements:
+  - text: Comfort operating in a hardware-paced release cycle, not a weekly SaaS ship cadence
+    covered_by_prescription: false
+  - text: Credibility with a robotics/perception engineering org that values domain depth
+    covered_by_prescription: false
+evidence_confidence: medium
+conservative_default_applied: true
+sources:
+  - "Acme Robotics careers page (synthetic)"
+  - "Recent funding announcement (synthetic)"
+notes: >
+  Synthetic SCD for the fixture. Conservative default applied: robotics-domain
+  depth is treated as unproven from public evidence, not assumed.

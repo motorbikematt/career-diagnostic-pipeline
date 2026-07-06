@@ -1,0 +1,19 @@
+# scd.yaml — Shadow / Company Diagnostic from the research subagent.
+# Employer intelligence with the conservative-evidence default preserved.
+type: object
+required: [company, evidence_confidence, shadow_requirements]
+properties:
+  company: {type: str}
+  business_cycle: {type: str}          # growth | efficiency | turnaround | stable | unknown
+  buyer_anxiety: {type: list}          # what the hiring manager is anxious about
+  shadow_requirements:
+    type: list
+    items:
+      required: [text]
+      properties:
+        text: {type: str}
+        covered_by_prescription: {type: bool}
+  evidence_confidence: {type: str}     # high | medium | low
+  conservative_default_applied: {type: bool}
+  sources: {type: list}
+  notes: {type: str}
