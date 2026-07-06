@@ -27,9 +27,10 @@ def compute(gapmap: dict) -> dict:
     pref = [r for r in reqs if r.get("kind") == "preferred"]
 
     counts = {c: sum(1 for r in reqs if r["classification"] == c) for c in FACTOR}
-    recoverable_gaps = [
-        r["id"] for r in reqs if r["classification"] == "none" and r.get("recoverable")
-    ]
+    # Recoverable gaps = requirements the resume under-shows but the WHD supports
+    # (None/Partial on resume, present in Work History). The fit subagent sets the
+    # `recoverable` flag; trust it as the single source of truth.
+    recoverable_gaps = [r["id"] for r in reqs if r.get("recoverable")]
     unrecoverable_hard = [
         r["id"]
         for r in hard

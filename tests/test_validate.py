@@ -10,6 +10,7 @@ from conftest import RUN
     ("scd.yaml", "scd"),
     ("gapmap.yaml", "gapmap"),
     ("screen.yaml", "screen"),
+    ("prescriptions.yaml", "prescriptions"),
 ])
 def test_fixture_artifacts_validate(filename, schema):
     validate.validate_file(RUN / filename, schema)

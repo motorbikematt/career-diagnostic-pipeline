@@ -1,0 +1,30 @@
+prescriptions:
+  - type: reorder
+    target: "Top fold — lead with hardware/platform, not analytics"
+    why: >
+      Resume reads SaaS-analytics-first; a robotics recruiter's six-second scan
+      misses the hardware signal. Move Circuit Dynamics hardware-to-production
+      above the analytics narrative.
+    closes: [first_friction_trigger]
+    source: role-2
+  - type: reframe
+    target: "Summary line"
+    why: >
+      Currently signals a SaaS analytics PM; needs to signal platform +
+      connected-hardware breadth relevant to a robotics platform.
+    closes: [hr-2]
+    source: role-2
+  - type: add
+    target: "Surface the 50k-units prototype-to-production metric in the top third"
+    why: >
+      This scope and metric is the first escalation trigger; make it impossible
+      to miss on the three-minute read.
+    closes: [first_escalation_trigger]
+    source: role-2.project-1
+  - type: reframe
+    target: "On-device computer vision bullet"
+    why: >
+      Signals a consumer-camera feature; reframe as edge-inference/perception
+      work adjacent to robotics perception.
+    closes: [hr-2, pr-2]
+    source: role-2.project-2

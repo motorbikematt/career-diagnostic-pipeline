@@ -52,8 +52,8 @@ Phase A  INTAKE (orchestrator)         -> requirements.yaml, run folder   [BUILT
 Phase B  PARALLEL research + fit        -> scd.yaml, gapmap.yaml           [BUILT]
 Phase C  GATE 1 Gap Brief (3 options)   -> Python tally + trip rules       [BUILT]
 Phase D  SCREENING (WHD-blind)          -> screen.yaml                     [BUILT]
-Phase E  SYNTHESIS                       -> report.md + appendix.md         [Phase 4]
-Phase F  GATE 2 user decision                                              [Phase 4]
+Phase E  SYNTHESIS                       -> report.md + appendix.md         [BUILT]
+Phase F  GATE 2 user decision                                              [BUILT]
 Phase G  FINISHING LOOP                  -> resume_final.docx               [Phase 5]
 Phase H  WHD RECONCILIATION              -> WHD patched                     [Phase 6]
 ```
@@ -157,6 +157,39 @@ python skill/helpers/validate.py <run>/screen.yaml screen
 python skill/helpers/canary.py <run>/screen.yaml <data-plane>/pipeline/whd/<WHD>.md
 ```
 
+## Phase E — Synthesis (BUILT)
+
+The convergence step: the orchestrator, on the **strong model**, reads all
+artifacts + the WHD and produces the report. Spec + verbatim Stage 3 invariants:
+`contracts/synthesis.md`. Steps:
+
+1. Produce `prescriptions.yaml` (validated against `schemas/prescriptions.schema.yaml`),
+   then enforce the mandatory rule — every Recoverable Gap has a covering Add
+   prescription with a WHD source:
+   ```bash
+   python skill/helpers/prescriptions.py <run>/prescriptions.yaml <run>/gapmap.yaml
+   ```
+2. Assemble the headline numbers deterministically (do not hand-transcribe):
+   ```bash
+   python skill/helpers/numbers_strip.py <run>
+   ```
+3. Write `report.md` from `templates/report.md` — verdict-first, ~600–900 words.
+   The two triggers are quoted **verbatim** from `screen.yaml`. Write everything
+   auditable-but-not-headline (score math, full Gap Map, persona reasoning,
+   competitive comparison) to `appendix.md` from `templates/appendix.md`.
+
+**Exception-driven interrogation (synthesis):** if the honesty check finds a
+load-bearing stretch — a claim that, if withdrawn, flips the Worth-It verdict —
+confront it with the user in one question round BEFORE writing the report.
+
+## Phase F — Gate 2 (BUILT)
+
+Present `report.md`, then `AskUserQuestion`:
+- **Proceed to draft** — enter the finishing loop (Phase G).
+- **Stop** — archive the run; done.
+- **Resolve information gaps first** — answer the report's Open Questions, patch
+  the WHD where durable (Phase H), and re-synthesize the affected sections.
+
 ## Deterministic helpers (never spend a token)
 
 All are pure Python, invoked via bash, unit-tested (`tests/`). They own the
@@ -173,8 +206,10 @@ arithmetic and string-matching so the model never does.
 | `whd_anchors.py` | Resolve a WHD section by anchor id | `whd_anchors.py <whd.md> <anchor>` |
 | `gapmap_summary.py` | Screening-safe gapmap (strips WHD fields) | `gapmap_summary.py <gapmap.yaml>` |
 | `canary.py` | Screening-blindness leak scan | `canary.py <screen.yaml> <whd.md>` |
+| `numbers_strip.py` | Deterministic report headline numbers | `numbers_strip.py <run>` |
+| `prescriptions.py` | Enforce every recoverable gap has an Add row | `prescriptions.py <prescriptions.yaml> <gapmap.yaml>` |
 
-Schema names for `validate.py`: `requirements`, `scd`, `gapmap`, `screen`.
+Schema names for `validate.py`: `requirements`, `scd`, `gapmap`, `screen`, `prescriptions`.
 
 ## Screening-blindness enforcement (BUILT)
 
@@ -189,15 +224,16 @@ Enforcement layers, in order of authority:
 
 ## Build status
 
-- **Built (Phases 1–3):** WHD restructure + template; data-plane config;
+- **Built (Phases 1–4):** WHD restructure + template; data-plane config;
   run-folder convention; artifact schemas; all deterministic helpers with tests;
-  synthetic `examples/` fixture; Phase A intake; the three subagent contracts
-  (`contracts/`) ported from the v1 FINAL prompts with verbatim invariants;
-  Phase B parallel dispatch + exception triggers; Phase C Gate 1 three-option
-  interrogation; Phase D screening with full blindness enforcement (manifest +
-  no file tools + gapmap summary + canary scan).
-- **Not yet built:** synthesis + report/appendix templates (Phase 4), finishing
-  loop + docx (Phase 5), WHD reconciliation (Phase 6), onboarding mode for new
-  users (public release backlog).
+  synthetic `examples/` fixture (now a complete end-to-end run incl.
+  prescriptions/report/appendix); Phase A intake; the four contracts
+  (`contracts/` — research, fit, screening, synthesis) ported from the v1 FINAL
+  prompts with verbatim invariants; Phase B parallel dispatch + exception
+  triggers; Phase C Gate 1 three-option interrogation; Phase D screening with
+  full blindness enforcement; Phase E synthesis (prescriptions coverage +
+  deterministic numbers strip + report/appendix templates); Phase F Gate 2.
+- **Not yet built:** finishing loop + docx (Phase 5), WHD reconciliation
+  (Phase 6), onboarding mode for new users (public release backlog).
 
 See `../TODO.md` and the v2 plan of work for the full sequence.

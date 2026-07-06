@@ -15,6 +15,9 @@ against, so real candidate data is never needed to develop the skill.
   - `scd.yaml` — research subagent output (Phase B)
   - `gapmap.yaml` — fit subagent output (Phase B)
   - `screen.yaml` — screening subagent output (Phase D)
+  - `prescriptions.yaml` — synthesis prescriptions (Phase E)
+  - `report.md` — the unified verdict report (Phase E)
+  - `appendix.md` — auditable score math, full Gap Map, screening reasoning (Phase E)
 
 The scenario: a SaaS + IoT product manager applying to a robotics platform role.
 A realistic "apply with edits" case — strong on platform strategy and

@@ -1,0 +1,17 @@
+# prescriptions.yaml — synthesis output. Diagnose / prescribe / validate only;
+# never draft candidate language. Rendered as the report's prescriptions table
+# (Edit | Why | Source). Every Recoverable Gap must have a covering Add
+# prescription with a WHD source (enforced by prescriptions.py).
+type: object
+required: [prescriptions]
+properties:
+  prescriptions:
+    type: list
+    items:
+      required: [type, target, why]
+      properties:
+        type: {type: str}     # reframe | add | remove | reorder
+        target: {type: str}   # the bullet/line/section to change (the "what")
+        why: {type: str}      # what it currently signals -> what it needs to signal (the "why")
+        closes: {type: list}  # gap-map ids or screen trigger refs this closes
+        source: {type: str}   # WHD anchor id (required for an Add closing a recoverable gap)

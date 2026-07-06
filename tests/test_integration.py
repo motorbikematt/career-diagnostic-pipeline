@@ -50,3 +50,19 @@ def test_screening_input_is_whd_blind():
 def test_canary_scan_passes_on_clean_run():
     result = canary.check(RUN / "screen.yaml", WHD)
     assert result["leaked"] is False
+
+
+def test_prescriptions_cover_recoverable_gaps():
+    import prescriptions
+    result = prescriptions.check_files(RUN / "prescriptions.yaml", RUN / "gapmap.yaml")
+    assert result["ok"] is True
+
+
+def test_example_report_numbers_match_computed():
+    # The committed example report must not drift from what numbers_strip computes.
+    import numbers_strip
+    n = numbers_strip.assemble(RUN)
+    report = (RUN / "report.md").read_text(encoding="utf-8")
+    assert f"{n['paper_score']}/100" in report
+    assert n["escalation_likelihood"] in report
+    assert n["evidence_confidence"] in report
