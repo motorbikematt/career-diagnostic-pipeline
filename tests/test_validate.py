@@ -11,6 +11,7 @@ from conftest import RUN
     ("gapmap.yaml", "gapmap"),
     ("screen.yaml", "screen"),
     ("prescriptions.yaml", "prescriptions"),
+    ("patches.yaml", "patches"),
 ])
 def test_fixture_artifacts_validate(filename, schema):
     validate.validate_file(RUN / filename, schema)

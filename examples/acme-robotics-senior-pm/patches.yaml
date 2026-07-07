@@ -1,0 +1,23 @@
+# Example Phase H reconciliation patch queue for the synthetic run.
+patches:
+  - kind: evidence
+    target_anchor: role-2
+    content: "- Ran an on-device inference A/B test that cut false alerts 60% (evidence for the perception/CV reframe)."
+    whd_worthy: true
+    status: approved
+    note: "captured CV A/B evidence surfaced during finishing (acme-robotics run)"
+    prompted_by: acme-robotics-senior-pm-2026-07-06
+  - kind: correction
+    target_anchor: role-1
+    content: "- (application-specific: leading with 'platform roadmap' framing for robotics readers)"
+    whd_worthy: false
+    status: approved
+    note: "employer-specific framing — not a durable WHD fact"
+    prompted_by: acme-robotics-senior-pm-2026-07-06
+  - kind: hard-no
+    target_anchor: role-2
+    content: "- hard-no: ROS / robotics-framework experience (confirmed 2026-07-06)"
+    whd_worthy: true
+    status: proposed
+    note: "record ROS hard-no so future runs don't re-litigate it"
+    prompted_by: acme-robotics-senior-pm-2026-07-06

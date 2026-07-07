@@ -55,7 +55,7 @@ Phase D  SCREENING (WHD-blind)          -> screen.yaml                     [BUIL
 Phase E  SYNTHESIS                       -> report.md + appendix.md         [BUILT]
 Phase F  GATE 2 user decision                                              [BUILT]
 Phase G  FINISHING LOOP                  -> resume_final.docx               [BUILT]
-Phase H  WHD RECONCILIATION              -> WHD patched                     [Phase 6]
+Phase H  WHD RECONCILIATION              -> WHD patched                     [BUILT]
 ```
 
 ### Model routing (orchestrator parameter, not a per-stage ritual)
@@ -211,6 +211,27 @@ Only after Gate 2 "proceed to draft". Contract + verbatim ghost-editor invariant
    ```
    Deliverables: `resume_final.docx` + `resume_final.md`.
 
+## Phase H — WHD reconciliation (BUILT)
+
+Interactive; makes each run improve the standing WHD. Contract:
+`contracts/reconciliation.md`.
+
+1. Accumulate a patch queue during synthesis + finishing (new facts, corrections,
+   evidence for Partials, information-gap answers).
+2. Classify each: WHD-worthy (durable) vs. application-specific. Only durable
+   items become proposed patches.
+3. Micro-interview each Stretch / Hard No: "Do you have real evidence for X?" —
+   yes → capture as evidence (may upgrade Stretch→Genuine next run); no → write a
+   `hard-no: X (confirmed <date>)` marker so future runs don't re-litigate it.
+4. Write `patches.yaml` (validated against `schemas/patches.schema.yaml`), present
+   each as a diff (AskUserQuestion per patch or batch-approve), then apply only
+   the approved + durable ones:
+   ```bash
+   python skill/helpers/whd_patch.py <data-plane>/pipeline/whd/<WHD>.md <run>/patches.yaml
+   ```
+   Appends to anchored sections + writes changelog entries. The Voice Sample is
+   never edited; the user ratifies every patch.
+
 ## Deterministic helpers (never spend a token)
 
 All are pure Python, invoked via bash, unit-tested (`tests/`). They own the
@@ -231,8 +252,9 @@ arithmetic and string-matching so the model never does.
 | `prescriptions.py` | Enforce every recoverable gap has an Add row | `prescriptions.py <prescriptions.yaml> <gapmap.yaml>` |
 | `tags.py` | Finishing-loop tag scan + exit check | `tags.py <resume_draft.md>` |
 | `render_docx.py` | Render clean markdown to an ATS-safe docx | `render_docx.py <resume_final.md> <out.docx>` |
+| `whd_patch.py` | Apply approved WHD patches + changelog | `whd_patch.py <whd.md> <patches.yaml>` |
 
-Schema names for `validate.py`: `requirements`, `scd`, `gapmap`, `screen`, `prescriptions`.
+Schema names for `validate.py`: `requirements`, `scd`, `gapmap`, `screen`, `prescriptions`, `patches`.
 
 ## Screening-blindness enforcement (BUILT)
 
@@ -259,7 +281,11 @@ Enforcement layers, in order of authority:
 - **Also built (Phase 5):** finishing-loop contract (`contracts/finishing.md`)
   with verbatim ghost-editor invariants; Phase G loop mechanics; `tags.py` exit
   gate; `render_docx.py` ATS-safe render.
-- **Not yet built:** WHD reconciliation (Phase 6), onboarding mode for new users
-  (public release backlog).
+- **Also built (Phase 6):** reconciliation contract (`contracts/reconciliation.md`);
+  Phase H loop; `patches.yaml` schema; `whd_patch.py` (propose/dispose apply +
+  changelog; Voice Sample never edited).
+- **All eight phases (A–H) are built.** Remaining: Phase 7 validation replay and
+  the public-release backlog (onboarding mode for new users, README rewrite,
+  strip incidental personal references from docs) — see `../TODO.md`.
 
 See `../TODO.md` and the v2 plan of work for the full sequence.

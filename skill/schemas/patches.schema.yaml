@@ -1,0 +1,19 @@
+# patches.yaml — the WHD reconciliation patch queue (plan section 6).
+# The loop PROPOSES; the user DISPOSES. Only status: approved AND whd_worthy: true
+# patches are applied to the WHD (whd_patch.py). Application-specific framing
+# (whd_worthy: false) is never written to the standing asset.
+type: object
+required: [patches]
+properties:
+  patches:
+    type: list
+    items:
+      required: [kind, target_anchor, content, whd_worthy, status]
+      properties:
+        kind: {type: str}          # fact | correction | evidence | hard-no
+        target_anchor: {type: str} # WHD anchor id the patch attaches to
+        content: {type: str}       # text appended to the anchored section
+        whd_worthy: {type: bool}   # durable fact (true) vs application-specific (false)
+        status: {type: str}        # proposed | approved | rejected
+        note: {type: str}          # changelog note (what changed + why)
+        prompted_by: {type: str}   # run id that surfaced this patch
