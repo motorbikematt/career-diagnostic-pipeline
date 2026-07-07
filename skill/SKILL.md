@@ -54,7 +54,7 @@ Phase C  GATE 1 Gap Brief (3 options)   -> Python tally + trip rules       [BUIL
 Phase D  SCREENING (WHD-blind)          -> screen.yaml                     [BUILT]
 Phase E  SYNTHESIS                       -> report.md + appendix.md         [BUILT]
 Phase F  GATE 2 user decision                                              [BUILT]
-Phase G  FINISHING LOOP                  -> resume_final.docx               [Phase 5]
+Phase G  FINISHING LOOP                  -> resume_final.docx               [BUILT]
 Phase H  WHD RECONCILIATION              -> WHD patched                     [Phase 6]
 ```
 
@@ -190,6 +190,27 @@ Present `report.md`, then `AskUserQuestion`:
 - **Resolve information gaps first** — answer the report's Open Questions, patch
   the WHD where durable (Phase H), and re-synthesize the affected sections.
 
+## Phase G — Finishing loop (BUILT)
+
+Only after Gate 2 "proceed to draft". Contract + verbatim ghost-editor invariants:
+`contracts/finishing.md`. The tagged draft is a **worklist, never the deliverable**.
+
+1. Generate the silent tagged draft (`resume_draft.md`) applying only the
+   `prescriptions.yaml` edits, in the candidate's voice (WHD `voice-sample`).
+2. Run the finishing loop: batched AskUserQuestion rounds (Supply / Keyword /
+   Voice / Stretch), highest-stakes first, ~3 per type.
+3. Gate on the tag exit-check every pass:
+   ```bash
+   python skill/helpers/tags.py <run>/resume_draft.md
+   ```
+   Loop until it reports `clean` (zero blocking tags). If the user stalls, save
+   with a NOT SUBMITTABLE banner — never render a tagged draft.
+4. On clean, write `resume_final.md` and render an ATS-safe docx:
+   ```bash
+   python skill/helpers/render_docx.py <run>/resume_final.md <run>/resume_final.docx
+   ```
+   Deliverables: `resume_final.docx` + `resume_final.md`.
+
 ## Deterministic helpers (never spend a token)
 
 All are pure Python, invoked via bash, unit-tested (`tests/`). They own the
@@ -208,6 +229,8 @@ arithmetic and string-matching so the model never does.
 | `canary.py` | Screening-blindness leak scan | `canary.py <screen.yaml> <whd.md>` |
 | `numbers_strip.py` | Deterministic report headline numbers | `numbers_strip.py <run>` |
 | `prescriptions.py` | Enforce every recoverable gap has an Add row | `prescriptions.py <prescriptions.yaml> <gapmap.yaml>` |
+| `tags.py` | Finishing-loop tag scan + exit check | `tags.py <resume_draft.md>` |
+| `render_docx.py` | Render clean markdown to an ATS-safe docx | `render_docx.py <resume_final.md> <out.docx>` |
 
 Schema names for `validate.py`: `requirements`, `scd`, `gapmap`, `screen`, `prescriptions`.
 
@@ -233,7 +256,10 @@ Enforcement layers, in order of authority:
   triggers; Phase C Gate 1 three-option interrogation; Phase D screening with
   full blindness enforcement; Phase E synthesis (prescriptions coverage +
   deterministic numbers strip + report/appendix templates); Phase F Gate 2.
-- **Not yet built:** finishing loop + docx (Phase 5), WHD reconciliation
-  (Phase 6), onboarding mode for new users (public release backlog).
+- **Also built (Phase 5):** finishing-loop contract (`contracts/finishing.md`)
+  with verbatim ghost-editor invariants; Phase G loop mechanics; `tags.py` exit
+  gate; `render_docx.py` ATS-safe render.
+- **Not yet built:** WHD reconciliation (Phase 6), onboarding mode for new users
+  (public release backlog).
 
 See `../TODO.md` and the v2 plan of work for the full sequence.

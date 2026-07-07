@@ -4,8 +4,12 @@ version = "0.1.0"
 description = "Deterministic helpers for the /resume-fit career-diagnostic pipeline skill"
 requires-python = ">=3.11"
 # Runtime deps are kept minimal so other job seekers can install the skill
-# without a heavy toolchain. YAML I/O is the only hard requirement.
-dependencies = ["pyyaml>=6"]
+# without a heavy toolchain: pyyaml for artifact I/O (every phase) and
+# python-docx only for the final resume render (Phase G).
+dependencies = [
+    "python-docx>=1.2.0",
+    "pyyaml>=6",
+]
 
 [dependency-groups]
 dev = ["pytest>=8"]
