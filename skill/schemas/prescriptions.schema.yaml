@@ -10,8 +10,13 @@ properties:
     items:
       required: [type, target, why]
       properties:
-        type: {type: str}     # reframe | add | remove | reorder
+        type: {type: str}     # reframe | add | remove | reorder | compress | cut
         target: {type: str}   # the bullet/line/section to change (the "what")
         why: {type: str}      # what it currently signals -> what it needs to signal (the "why")
         closes: {type: list}  # gap-map ids or screen trigger refs this closes
         source: {type: str}   # WHD anchor id (required for an Add closing a recoverable gap)
+        # compress | cut are SUBTRACTIVE (length prescriptions). They exist so the
+        # resume can hit its page budget without arbitrary truncation. Optional
+        # fields below apply to them:
+        frees_lines: {type: number}   # est. rendered lines reclaimed (advisory)
+        relevance: {type: str}     # jd-linked | tangential | none — protects value

@@ -37,10 +37,13 @@ The WHD (voice sample + cited sections), the current resume, `prescriptions.yaml
 `gapmap.yaml` (honesty: which items are Stretch/Hard No), `scd.yaml`.
 
 ## 4. Silent draft (worklist, never the deliverable)
-Generate the full resume as clean markdown with inline tags:
+Generate the resume as clean markdown with inline tags:
 `[CHANGED]`, `[REMOVED]`, `[CANDIDATE TO SUPPLY: ...]`, `[NOT INTEGRATED]`, and
 `VOICE NOTE: ...`. Save as `resume_draft.md` in the run folder. Do NOT present it
-as the deliverable.
+as the deliverable. **Target 2 pages** (the 2026 default for a senior IC); apply
+any Compress/Cut prescriptions from synthesis as you draft. The draft may still
+overflow — the length round (§5) resolves it with the user; never pre-truncate
+silently to hit the budget.
 
 ## 5. The finishing loop (plan section 4)
 Interview the user until the draft is clean, highest-stakes first, via
@@ -54,12 +57,31 @@ AskUserQuestion, batched by tag type:
   vs. rewrite; user picks or dictates a third phrasing.
 - **Stretch confrontations** — any prescription touching a Stage-3 stretch: the
   user explicitly accepts the honest framing or drops the line. No silent softening.
+- **Length round** — run `length_budget.py <draft.md> --max-pages 2` (margin 0.6).
+  If it reports **over budget**, present the overflow to the user with BOTH
+  signals side by side, then let them decide — never auto-cut:
+  - **Cost** — the per-section `height_in` / `rendered_lines` from the helper
+    (which section is eating the pages). The helper is value-blind; it only meters
+    inches and never recommends what to cut.
+  - **Value** — JD-linkage per section from `gapmap.yaml`/`screen.yaml`: which
+    content is JD-relevant and recruiter-weighted (protect) vs. tangential (cheap
+    to cut). Recent in-demand-domain work is protected even when it's the largest
+    section — size is a cost signal, not a cut signal.
+  Recommend cutting the *cheap, low-value inches first* (oldest unlinked roles,
+  tail sections, redundant summary paragraph) via `AskUserQuestion`, but the user
+  makes every call — recency-vs-tenure-gap tradeoffs are theirs. **Override:** if
+  the user chooses to exceed 2 pages, capture their stated reason and write it to
+  the run as `length_override.md` (reason + final page estimate). Re-run the
+  helper after edits until it reports fits OR an override reason is recorded.
 
 Cap ~3 rounds per type; overflow to a punch list.
 
 ## 6. Exit criteria + render
 - The loop does not terminate until `tags.py` reports **clean** (zero blocking
-  tags) AND the voice audit passes.
+  tags) AND the voice audit passes AND the length round (§5) is resolved —
+  `length_budget.py` reports **fits** at 2 pages, OR the user recorded an override
+  reason in `length_override.md`. Length is a *default*, not a hard block: unlike
+  the tags gate, a justified override lets the render proceed past 2 pages.
 - If the user stalls, save with an explicit **NOT SUBMITTABLE** banner and the
   list of what remains — never render a tagged draft as final.
 - On clean: strip informational tags, write `resume_final.md` (source of truth),

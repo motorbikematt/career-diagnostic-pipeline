@@ -28,3 +28,16 @@ prescriptions:
       work adjacent to robotics perception.
     closes: [hr-2, pr-2]
     source: role-2.project-2
+  - type: compress
+    target: "Early role — 'Analyst, DataCorp' (2011–2013), five bullets"
+    why: >
+      Pre-PM analyst work, no JD linkage; condense five bullets to a single line
+      to reclaim space for the robotics-relevant recent roles.
+    relevance: none
+    frees_lines: 4
+  - type: cut
+    target: "'Interests' section (cycling, homebrewing, board games)"
+    why: >
+      Zero JD linkage and pure filler on a senior IC resume; remove entirely.
+    relevance: none
+    frees_lines: 2

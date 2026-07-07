@@ -14,10 +14,11 @@ import re
 from pathlib import Path
 
 from docx import Document
-from docx.shared import Pt
+from docx.shared import Pt, Inches
 
 FONT = "Calibri"
 BODY_PT = 11
+MARGIN_IN = 0.6  # tightened from python-docx's 1in default; ATS-safe, compact.
 
 
 def _add_runs(paragraph, text: str):
@@ -37,6 +38,17 @@ def render(md_path, out_path):
     normal = doc.styles["Normal"].font
     normal.name = FONT
     normal.size = Pt(BODY_PT)
+
+    # Tighten margins (all four) and default paragraph spacing so a genuinely
+    # 2-page-worth of content renders to 2 pages. Still single-column, no tables.
+    for section in doc.sections:
+        section.top_margin = Inches(MARGIN_IN)
+        section.bottom_margin = Inches(MARGIN_IN)
+        section.left_margin = Inches(MARGIN_IN)
+        section.right_margin = Inches(MARGIN_IN)
+    normal_para = doc.styles["Normal"].paragraph_format
+    normal_para.space_after = Pt(2)
+    normal_para.line_spacing = 1.05
 
     for raw in Path(md_path).read_text(encoding="utf-8").splitlines():
         line = raw.rstrip()

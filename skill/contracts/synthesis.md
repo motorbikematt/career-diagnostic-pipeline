@@ -24,7 +24,10 @@ Senior Resume Strategist: diagnose, prescribe, validate. This is the report.
   what it signals now → what it needs to signal → which gap/risk it closes); Add
   (missing content type → gap/trigger it closes → cite the WHD section; do not
   write the content); Remove/De-emphasize (content → risk it creates); Reorder
-  (what moves to top-fold → why, per Gate 1 verdict).
+  (what moves to top-fold → why, per Gate 1 verdict); **Compress** (verbose
+  content → condense to fewer lines, preserving the JD-relevant signal — the
+  *what*, not a rewrite); **Cut** (low-relevance content → remove entirely to
+  reclaim space). Compress/Cut are *subtractive* prescriptions; see §6.
 - **Honesty Check:** Genuine Alignment (WHD confirms real depth, not keyword
   proximity); Stretch Claims (reframing would present partial experience as
   stronger than it is — flag explicitly); Hard No (not in resume or WHD — cannot
@@ -50,6 +53,28 @@ All run artifacts + the WHD: `requirements.yaml`, `scd.yaml`, `gapmap.yaml`,
 - **`appendix.md`** from `templates/appendix.md` — score math, full Gap Map,
   persona/screening reasoning, competitive comparison. Never rendered in the
   report; auditable in the run folder.
+
+## 5b. Length budget (2-page default, user decides cuts)
+The finished resume targets **2 pages** — the 2026 default for a senior IC (the
+old one-page rule is dead for this level; past 3 pages ATS pass-rate drops ~17%).
+This is a **default, not a hard cap**: a run may exceed 2 pages when the *user*
+records a reason (e.g. federal/research CV with publications). Synthesis never
+decides length unilaterally.
+
+When the base resume is long, synthesis MAY propose **Compress/Cut** prescriptions
+to reclaim space, ranked by **value-per-inch, not inch alone**:
+- **Cost** = rendered height, from `length_budget.py` (a pure inch meter — it is
+  value-blind by design and never names what to cut).
+- **Value** = JD-linkage, from `gapmap.yaml` + `screen.yaml`. Content tied to a
+  JD requirement, and recent in-demand-domain work a recruiter weights, is
+  **protected** regardless of its size. Size is a cost signal, not a cut signal.
+- Propose cuts against the *cheap, low-value* inches first: oldest roles with no
+  JD linkage, tail sections (speaking/civic/over-long skills), redundant summary
+  paragraphs — before any high-relevance recent role loses depth.
+- Every Compress/Cut carries a `why` (what signal is lost/kept) and optional
+  `relevance:` (jd-linked | tangential | none). Recency-vs-tenure-gap tradeoffs
+  are the user's call, resolved in the Phase G length round — synthesis only
+  surfaces the options with both cost and value attached.
 
 ## 5. Exception-driven interrogation trigger (before writing the report)
 If the Honesty Check finds a **load-bearing stretch** — a claim that, if

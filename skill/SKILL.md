@@ -197,15 +197,27 @@ Only after Gate 2 "proceed to draft". Contract + verbatim ghost-editor invariant
 
 1. Generate the silent tagged draft (`resume_draft.md`) applying only the
    `prescriptions.yaml` edits, in the candidate's voice (WHD `voice-sample`).
+   Target 2 pages; apply any Compress/Cut prescriptions as you draft.
 2. Run the finishing loop: batched AskUserQuestion rounds (Supply / Keyword /
-   Voice / Stretch), highest-stakes first, ~3 per type.
+   Voice / Stretch / **Length**), highest-stakes first, ~3 per type.
 3. Gate on the tag exit-check every pass:
    ```bash
    python skill/helpers/tags.py <run>/resume_draft.md
    ```
    Loop until it reports `clean` (zero blocking tags). If the user stalls, save
    with a NOT SUBMITTABLE banner — never render a tagged draft.
-4. On clean, write `resume_final.md` and render an ATS-safe docx:
+4. Length round — check the page budget (advisory, 2-page default):
+   ```bash
+   python skill/helpers/length_budget.py <run>/resume_draft.md --max-pages 2
+   ```
+   If over budget, show the user the per-section **cost** (from this helper) beside
+   the per-section **value** (JD-linkage from `gapmap.yaml`/`screen.yaml`) and let
+   them decide cuts — protect JD-relevant/recent-in-demand work, cut cheap inches
+   first (oldest unlinked roles, tail sections). Never auto-truncate. If they
+   choose to exceed 2 pages, record the reason in `<run>/length_override.md`.
+   Re-run until it reports `fits` OR an override reason is recorded.
+5. On clean + length-resolved, write `resume_final.md` and render an ATS-safe docx
+   (0.6in margins, single column, no tables):
    ```bash
    python skill/helpers/render_docx.py <run>/resume_final.md <run>/resume_final.docx
    ```
@@ -251,7 +263,8 @@ arithmetic and string-matching so the model never does.
 | `numbers_strip.py` | Deterministic report headline numbers | `numbers_strip.py <run>` |
 | `prescriptions.py` | Enforce every recoverable gap has an Add row | `prescriptions.py <prescriptions.yaml> <gapmap.yaml>` |
 | `tags.py` | Finishing-loop tag scan + exit check | `tags.py <resume_draft.md>` |
-| `render_docx.py` | Render clean markdown to an ATS-safe docx | `render_docx.py <resume_final.md> <out.docx>` |
+| `length_budget.py` | Advisory 2-page estimator + per-section cost breakdown | `length_budget.py <resume.md> --max-pages 2` |
+| `render_docx.py` | Render clean markdown to an ATS-safe docx (0.6in) | `render_docx.py <resume_final.md> <out.docx>` |
 | `whd_patch.py` | Apply approved WHD patches + changelog | `whd_patch.py <whd.md> <patches.yaml>` |
 
 Schema names for `validate.py`: `requirements`, `scd`, `gapmap`, `screen`, `prescriptions`, `patches`.
