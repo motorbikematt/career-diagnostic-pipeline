@@ -27,3 +27,20 @@ def test_hyphenated_and_multiword():
 
 def test_empty_keywords():
     assert ats.scan([], "anything")["coverage"] == 0
+
+
+def test_synonym_abbreviation_in_resume():
+    # JD keyword is the canonical term; resume uses the abbreviation.
+    r = ats.scan(["Kubernetes"], "ran workloads on k8s clusters")
+    assert r["present"] == ["Kubernetes"]
+
+
+def test_synonym_canonical_in_resume():
+    # JD keyword is the abbreviation; resume uses the canonical term.
+    r = ats.scan(["k8s"], "ran workloads on kubernetes clusters")
+    assert r["present"] == ["k8s"]
+
+
+def test_synonym_no_false_positive():
+    r = ats.scan(["Kubernetes"], "worked with docker containers")
+    assert r["missing"] == ["Kubernetes"]

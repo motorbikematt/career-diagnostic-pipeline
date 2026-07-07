@@ -1,0 +1,47 @@
+# Skill Taxonomy and Synonym Mapping
+# Maps various resume abbreviations and alternate spellings to a canonical skill name.
+# Format is: "synonym": "canonical name"
+
+# Languages
+js: javascript
+ecmascript: javascript
+ts: typescript
+golang: go
+py: python
+
+# Cloud & Infra
+aws: amazon web services
+gcp: google cloud platform
+azure: microsoft azure
+k8s: kubernetes
+k3s: kubernetes
+
+# Frameworks & Libraries
+reactjs: react
+react.js: react
+rn: react native
+vue: vue.js
+node: node.js
+angularjs: angular
+angular.js: angular
+
+# Databases
+postgres: postgresql
+mssql: microsoft sql server
+sql server: microsoft sql server
+mongo: mongodb
+
+# Concepts, Domains & Roles
+ml: machine learning
+ai: artificial intelligence
+nlp: natural language processing
+llm: large language model
+genai: generative ai
+ui: user interface
+ux: user experience
+pm: project management
+qa: quality assurance
+sre: site reliability engineering
+api: application programming interface
+rest: rest api
+gql: graphql

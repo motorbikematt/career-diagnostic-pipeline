@@ -243,7 +243,7 @@ arithmetic and string-matching so the model never does.
 | `runfolder.py` | Create a run folder | `runfolder.py "<Company>" "<Role>"` |
 | `validate.py` | Validate an artifact against a schema | `validate.py <file.yaml> <schema>` |
 | `score.py` | Weighted score from gapmap | `score.py <gapmap.yaml>` |
-| `ats.py` | Exact-match keyword scan | `ats.py <requirements.yaml> <resume>` |
+| `ats.py` | Exact-match keyword scan (synonym-aware) | `ats.py <requirements.yaml> <resume>` |
 | `gate1.py` | Unrecoverable-gap tally + trip rules | `gate1.py <gapmap.yaml>` |
 | `whd_anchors.py` | Resolve a WHD section by anchor id | `whd_anchors.py <whd.md> <anchor>` |
 | `gapmap_summary.py` | Screening-safe gapmap (strips WHD fields) | `gapmap_summary.py <gapmap.yaml>` |
