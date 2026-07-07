@@ -28,11 +28,17 @@ from pathlib import Path
 PAGE_WIDTH_IN = 8.5
 PAGE_HEIGHT_IN = 11.0
 
-# render_docx.py font metrics (Calibri). Average character advance width and line
-# height are expressed in inches per point of font size, empirically typical for
-# Calibri: ~0.46 * pt for avg char width, ~1.18 line-height factor.
+# render_docx.py font metrics (Calibri). Average character advance width is
+# empirically typical for Calibri: ~0.46 * pt for avg char width.
 CHAR_W_PER_PT = 0.0064   # inches of horizontal advance per char, per body pt
-LINE_H_PER_PT = 0.0167   # inches of line height per font pt (~1.15x at 72pt/in)
+
+# Line height DERIVED from render_docx.py's actual line_spacing (1.05), not a
+# separate empirical guess -- these two numbers drifted out of sync once before
+# (line-spacing was tightened in render_docx.py without updating this constant,
+# causing a ~13%-per-line overshoot that compounded into a 38% total-height
+# miscalibration, caught by comparing against a real confirmed page count).
+RENDER_LINE_SPACING = 1.05  # must match render_docx.py's normal_para.line_spacing
+LINE_H_PER_PT = RENDER_LINE_SPACING / 72  # inches of line height per font pt
 
 BODY_PT = 11
 H1_PT = 20
@@ -46,20 +52,23 @@ SPACE_BEFORE = {"h1": 0.02, "h2": 10 / 72, "h3": 6 / 72, "para": 0.02, "bullet":
 # Bullets are indented, so their usable text width is narrower than body.
 BULLET_INDENT_IN = 0.25
 
-# Calibrated so Anthropic resume_final.md -> ~4.0 pages at 0.5in margins.
-# (Back-fit ground truth: user observed 4 pages at Narrow/0.5in on the render
-# BEFORE the template was tightened -- total est. height 28.16in / 4 pages =
-# 7.04 usable in/page. The ~3in/page shortfall vs the 10in physical usable height
-# was Word's default per-paragraph "space after" + line spacing on every bullet.)
+# Calibrated against a SECOND, independent real ground-truth point: the
+# Anthropic resume_candidate.md (rev8) is a user-confirmed real 2-page document
+# in Word, rendered with the CURRENT (tightened) render_docx.py template --
+# 0.6in margins, 2pt space_after, 1.05 line spacing. With the corrected
+# LINE_H_PER_PT above (previously stale after the template was tightened, which
+# caused a 38% total-height overshoot caught by comparing against this same
+# ground truth), total modeled height is 17.07in for a real 2-page doc:
+# 17.07 / 2 = 8.535 usable in/page. The ~1.5in/page overhead vs the 10in
+# physical usable height (at 0.6in margins) is heading gaps + paragraph spacing,
+# which the element model deliberately keeps simple rather than replicating
+# Word's layout engine exactly.
 #
-# NOTE ON THE TIGHTENED TEMPLATE: render_docx.py now uses 0.6in margins, 2pt
-# space_after, and 1.05 line spacing -- materially tighter than the render this
-# was calibrated against. So the estimate now runs CONSERVATIVE (slightly OVER)
-# for the current template, which is the safe direction for a length WARNING: it
-# will nudge toward cutting rather than let an over-long resume slip through. The
-# estimator intentionally models a generic compact render, not the exact new
-# spacing -- treat its page number as "<= this many pages," not gospel.
-USABLE_PAGE_HEIGHT_IN = 7.0
+# History: the ORIGINAL calibration point (Anthropic resume_final.md, the pre-
+# tightening 4-page seed at 0.5in margins) is kept as a regression check in
+# tests -- see test_length_budget.py -- but is no longer the fitted constant,
+# since it was calibrated against a render template that no longer exists.
+USABLE_PAGE_HEIGHT_IN = 8.535
 
 
 def _char_w(pt: int) -> float:

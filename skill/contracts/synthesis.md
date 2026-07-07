@@ -105,6 +105,40 @@ round (Phase G length round hosts it) before any Compress/Cut is applied. This r
 reverse. **Conditional:** if `relevance.py` reports no `none`-linkage claims, this
 step produces nothing and asks nothing.
 
+## 5d. Density / whitespace check (catch it BEFORE the ghost-editor writes full prose)
+Length and relevance are *content* checks; this is a *readability* check — grounded
+in research, not house style: whitespace measurably affects reading comprehension
+(Wichita State research: whitespace around text blocks improved comprehension up to
+20%), and cluttered/dense layout is named in the literature as what recruiters find
+hardest to scan. A resume can pass length and relevance and still read as a wall of
+text.
+
+```bash
+python skill/helpers/whitespace_check.py <resume.md> --margin 0.6
+```
+
+Reports a per-page fullness ratio (dense / balanced / sparse) plus raw word/char
+counts per page. **The per-page boundary is APPROXIMATE** (a derived model, not
+Word's real layout engine) — the helper says so loudly in its own output; treat
+page-level assignment as illustrative, sanity-check the real rendered docx by eye,
+and trust the raw word/char counts (independently verifiable) over the derived
+ratio for anything you're not sure of.
+
+**Explicitly NOT a bullet-length-uniformity check.** AI-text-detection research
+shows *uniform* sentence/bullet length is itself a signal of machine-generated
+writing (low "burstiness"); human writing has natural length variance. So this
+check never nudges bullet lengths toward this resume's own median or average —
+that would push the text toward *less* authentic, not more readable. It only
+flags overall page density, a layout property, not a style-uniformity property.
+
+**Why this runs during synthesis, not only at the end (Phase G):** every other
+length/relevance fix in this pipeline runs as a gate on the *finished* draft —
+reactive, "hit the wall, then hunt for what to cut." Running density awareness
+during synthesis, before the ghost-editor commits to full prose for every
+prescription, lets edits be tighter and more elegant from the start instead of
+brute-force cuts after the fact. If the base resume already reads dense here,
+synthesis's prescriptions should favor tighter phrasing over additive detail.
+
 ## 5. Exception-driven interrogation trigger (before writing the report)
 If the Honesty Check finds a **load-bearing stretch** — a claim that, if
 withdrawn, flips the Worth-It verdict — confront it with the user in one question

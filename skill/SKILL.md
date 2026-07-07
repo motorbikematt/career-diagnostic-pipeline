@@ -54,7 +54,7 @@ Phase C  GATE 1 Gap Brief (3 options)   -> Python tally + trip rules       [BUIL
 Phase D  SCREENING (WHD-blind)          -> screen.yaml                     [BUILT]
 Phase E  SYNTHESIS                       -> report.md + appendix.md         [BUILT]
 Phase F  GATE 2 user decision                                              [BUILT]
-Phase G  FINISHING LOOP                  -> resume_final.docx               [BUILT]
+Phase G  FINISHING LOOP                  -> resume_candidate.docx (then final)  [BUILT]
 Phase H  WHD RECONCILIATION              -> WHD patched                     [BUILT]
 ```
 
@@ -186,6 +186,16 @@ artifacts + the WHD and produces the report. Spec + verbatim Stage 3 invariants:
    structural (`contracts/synthesis.md` §5c); the user ratifies before any
    Compress/Cut. Prune for value here, before the Phase G length round. Conditional
    — if nothing flags `none`, this asks nothing.
+5. **Density check (before writing full prose):** run the readability check so
+   synthesis can favor tighter phrasing from the start instead of brute-force
+   cuts later (`contracts/synthesis.md` §5d):
+   ```bash
+   python skill/helpers/whitespace_check.py <resume.md> --margin 0.6
+   ```
+   Per-page fullness is approximate (verify the real docx by eye) but the raw
+   word/char counts are independently checkable. This is a layout/readability
+   signal, NOT a bullet-length-uniformity nudge — uniform length is itself an
+   AI-writing tell, so never normalize bullets toward this resume's own median.
 
 **Exception-driven interrogation (synthesis):** if the honesty check finds a
 load-bearing stretch — a claim that, if withdrawn, flips the Worth-It verdict —
@@ -222,24 +232,37 @@ Only after Gate 2 "proceed to draft". Contract + verbatim ghost-editor invariant
    If over budget, show the user the per-section **cost** (from this helper) beside
    the per-section **value** (JD-linkage from `gapmap.yaml`/`screen.yaml`) and let
    them decide cuts — protect JD-relevant/recent-in-demand work, cut cheap inches
-   first (oldest unlinked roles, tail sections). Never auto-truncate. If they
-   choose to exceed 2 pages, record the reason in `<run>/length_override.md`.
-   Re-run until it reports `fits` OR an override reason is recorded.
-5. Closed-loop re-eval (ONE pass, before render) — validate the finished resume on
-   the same three axes as the seed (`contracts/finishing.md` §6b):
+   first (oldest unlinked roles, tail sections). Never auto-truncate. Prefer
+   compression over cutting: `python skill/helpers/compress_candidates.py
+   <run>/resume_draft.md` finds 3+ item lists mechanically; the model proposes an
+   accurate count+category phrase and the user ratifies before it's applied. If
+   the user chooses to exceed 2 pages, record the reason in
+   `<run>/length_override.md`. Re-run until it reports `fits` OR an override
+   reason is recorded.
+5. Closed-loop re-eval (ONE pass, before promoting the draft) — validate the clean
+   tagged draft on the same axes as the seed (`contracts/finishing.md` §6b):
    ```bash
-   python skill/helpers/ats.py <run>/requirements.yaml <run>/resume_final.md
-   python skill/helpers/relevance.py <run>/resume_final.md <run>/requirements.yaml <run>/gapmap.yaml
+   python skill/helpers/ats.py <run>/requirements.yaml <run>/resume_draft.md
+   python skill/helpers/relevance.py <run>/resume_draft.md <run>/requirements.yaml <run>/gapmap.yaml
+   python skill/helpers/ats_chars.py <run>/resume_draft.md
    ```
    Confirm ATS coverage didn't regress vs seed, no NEW `none`-linkage claim was
-   introduced, and the voice check passed. Write `reeval.md`. No recursion — a
-   regression surfaces as one yes/no, not a new trim loop.
-6. On clean + length-resolved + re-eval clean, write `resume_final.md` and render an
-   ATS-safe docx (0.6in margins, single column, no tables):
+   introduced, the voice check passed, and `ats_chars.py` reports **clean** (fixed
+   rule — em/en dashes, curly quotes, decorative bullets, emoji; never tolerated,
+   not just a regression check). Write `reeval.md`. No recursion — any issue
+   surfaces as one yes/no, not a new trim loop.
+6. On clean + length-resolved + re-eval clean, write `resume_candidate.md` and
+   render an ATS-safe docx (0.6in margins, single column, no tables):
    ```bash
-   python skill/helpers/render_docx.py <run>/resume_final.md <run>/resume_final.docx
+   python skill/helpers/render_docx.py <run>/resume_candidate.md <run>/resume_candidate.docx
    ```
-   Deliverables: `resume_final.docx` + `resume_final.md`.
+   Deliverables: `resume_candidate.docx` + `resume_candidate.md`. **Not yet
+   "final"** — see Phase G §7 in `contracts/finishing.md`: the user reads it
+   aloud and explicitly approves before a true final is named. The input resume
+   is never renamed regardless of what the user originally called it. On
+   approval, the true final deliverable is rendered as
+   `<LASTNAME>_<FIRSTNAME>_<COMPANY>_<DATE>.docx` — the one filename in the
+   pipeline meant for a human, not another pipeline step.
 
 ## Phase H — WHD reconciliation (BUILT)
 
@@ -283,7 +306,10 @@ arithmetic and string-matching so the model never does.
 | `tags.py` | Finishing-loop tag scan + exit check | `tags.py <resume_draft.md>` |
 | `length_budget.py` | Advisory 2-page estimator + per-section cost breakdown | `length_budget.py <resume.md> --max-pages 2` |
 | `relevance.py` | Line-level JD-relevance meter (per-JD, value-blind); flags `none`-linkage claims | `relevance.py <resume.md> <requirements.yaml> <gapmap.yaml>` |
-| `render_docx.py` | Render clean markdown to an ATS-safe docx (0.6in) | `render_docx.py <resume_final.md> <out.docx>` |
+| `ats_chars.py` | Scans for ATS-unsafe characters (em/en dash, curly quotes, decorative bullets, emoji, prose "&") | `ats_chars.py <resume.md>` |
+| `compress_candidates.py` | Finds 3+ item lists as compression candidates (pattern only, no category-word suggestion) | `compress_candidates.py <resume.md>` |
+| `whitespace_check.py` | Per-page fullness/density check (research-grounded readability, not bullet-uniformity) | `whitespace_check.py <resume.md> --margin 0.6` |
+| `render_docx.py` | Render clean markdown to an ATS-safe docx (0.6in) | `render_docx.py <resume_candidate.md> <out.docx>` |
 | `whd_patch.py` | Apply approved WHD patches + changelog | `whd_patch.py <whd.md> <patches.yaml>` |
 
 Schema names for `validate.py`: `requirements`, `scd`, `gapmap`, `screen`, `prescriptions`, `patches`.

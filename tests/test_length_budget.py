@@ -91,17 +91,22 @@ def test_estimator_is_value_blind():
 
 
 def test_calibration_against_observed_ground_truth():
-    """Anthropic resume_final.md was observed at ~4 pages / 0.5in margins. The
-    estimator must reproduce that within tolerance (this pins the calibration
-    constant so a future edit can't silently drift it)."""
+    """Anthropic resume_candidate.md (rev8) is a user-confirmed real 2-page
+    document in Word, rendered with the CURRENT render_docx.py template (0.6in
+    margins, 2pt space_after, 1.05 line spacing). The estimator must reproduce
+    that within tight tolerance -- this pins USABLE_PAGE_HEIGHT_IN and
+    LINE_H_PER_PT together so a future template change (e.g. re-tightening
+    render_docx.py without updating this model) can't silently drift them out of
+    sync again, which previously caused a 38% total-height miscalibration that
+    went undetected until checked against this exact ground truth."""
     from pathlib import Path
 
     p = Path(
         "D:/vibe/resume-pipeline-data/pipeline/runs/"
-        "anthropic-product-manager-api-growth-2026-07-06/resume_final.md"
+        "anthropic-product-manager-api-growth-2026-07-06/resume_candidate.md"
     )
     if not p.exists():
         import pytest
         pytest.skip("data-plane Anthropic run not present")
-    est = length_budget.check_file(p, max_pages=2, margin_in=0.5)
-    assert 3.6 <= est["estimated_pages"] <= 4.4
+    est = length_budget.check_file(p, max_pages=2, margin_in=0.6)
+    assert 1.85 <= est["estimated_pages"] <= 2.15

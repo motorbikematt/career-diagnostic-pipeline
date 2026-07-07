@@ -73,6 +73,16 @@ AskUserQuestion, batched by tag type:
   the user chooses to exceed 2 pages, capture their stated reason and write it to
   the run as `length_override.md` (reason + final page estimate). Re-run the
   helper after edits until it reports fits OR an override reason is recorded.
+  - **Compression candidates (before cutting content):** run
+    `python skill/helpers/compress_candidates.py <draft.md>`. It finds claim lines
+    with a 3+ item comma/and-separated list mechanically (pattern only — no
+    semantic understanding of the items). For each candidate, the MODEL proposes
+    an accurate count + category phrase (e.g. "China, Australia, and
+    US/Europe/Korea" → "3 trans-continental"; "Aerospace, Automotive, and Toys"
+    → "3 verticals") and the user ratifies — a wrong or vague category word is
+    worse than the line it would have saved, so this is never auto-applied. Prefer
+    compression candidates over cutting content: compressing a true list preserves
+    the full claim; cutting a role/bullet loses signal outright.
 
 Cap ~3 rounds per type; overflow to a punch list.
 
@@ -85,32 +95,58 @@ Cap ~3 rounds per type; overflow to a punch list.
 - If the user stalls, save with an explicit **NOT SUBMITTABLE** banner and the
   list of what remains — never render a tagged draft as final.
 
-## 6b. Closed-loop re-eval (ONE pass, before final render)
-Before rendering, run the finished `resume_final.md` back through the **same three
-axes the seed resume was judged on** — the tailoring must not have degraded them.
-This is exactly ONE pass; it reports, it does not auto-edit or re-enter any loop.
+## 6b. Closed-loop re-eval (ONE pass, before promoting the draft to a candidate)
+Before writing `resume_candidate.md` (§6), run the clean tagged draft back through
+the **same axes the seed resume was judged on** — the tailoring must not have
+degraded them. This is exactly ONE pass; it reports, it does not auto-edit or
+re-enter any loop.
 
-1. **ATS** — `python skill/helpers/ats.py <requirements.yaml> <resume_final.md>`.
+1. **ATS** — `python skill/helpers/ats.py <requirements.yaml> <resume_draft.md>`.
    Assert keyword coverage did not regress below the seed resume's coverage.
-2. **JD-relevance** — `python skill/helpers/relevance.py <resume_final.md>
+2. **JD-relevance** — `python skill/helpers/relevance.py <resume_draft.md>
    <requirements.yaml> <gapmap.yaml>`. Assert no NEW `none`-linkage claim was
    introduced by the edits, and every retained `none` claim is one the user already
    ratified as a differentiator (§5c) or is structural (contact/education).
 3. **Voice** — confirm the §2 Voice Integrity Check passed on the final text.
+4. **ATS-unsafe characters** — `python skill/helpers/ats_chars.py <resume_draft.md>`.
+   Fixed, JD-independent rule (not a style preference): em/en dashes, curly
+   quotes, decorative bullets/arrows, and emoji are documented ATS parsing failure
+   points. Must report **clean** before render — this is deterministic, so unlike
+   the other three axes there is no "regression tolerance," only clean or not.
+   Fixing a violation may require rephrasing (e.g. an em-dash clause becomes two
+   sentences) — that judgment belongs to the model/user, not an auto-replace.
 
-Write a short `reeval.md` to the run folder: the three axis verdicts + any
+Write a short `reeval.md` to the run folder: the axis verdicts + any
 regression. **No recursion** — if it flags a regression, surface it to the user as a
 single yes/no ("keep as-is or make this one fix?"), never as a new trim cycle. If
 clean, proceed to render. If the draft already passed cleanly (no dead-weight, fits
 2 pages) this step is a quick confirmation, not an interrogation.
 
 - On clean (tags clean + length resolved + re-eval clean): strip informational
-  tags, write `resume_final.md` (source of truth), then render:
-  `python skill/helpers/render_docx.py <run>/resume_final.md <run>/resume_final.docx`
+  tags, write `resume_candidate.md` (source of truth), then render:
+  `python skill/helpers/render_docx.py <run>/resume_candidate.md <run>/resume_candidate.docx`
   (ATS-safe: single column, standard font, no tables/text-boxes/headers).
-  Deliverables: `resume_final.docx` + `resume_final.md` + `reeval.md`.
+  Deliverables: `resume_candidate.docx` + `resume_candidate.md` + `reeval.md`.
+  **This is NOT "final."** It has passed every automated gate but still needs the
+  user's own read-aloud pass and explicit sign-off (§7). "Final" is reserved for
+  the artifact the user actually approves to submit — using it earlier is exactly
+  the ambiguity that caused confusion in practice: multiple pipeline runs each
+  wrote a file called "final" before the user had actually finished editing.
 
-## 7. Refusal conditions
+## 7. Sign-off and final naming (only after the user approves)
+- The candidate is never auto-promoted to "final." The user reads it aloud and
+  explicitly approves it as ready to submit.
+- **The input resume is never renamed.** Whatever file the user provided (any
+  name, any location their config points to) stays as-is — the pipeline reads it,
+  never rewrites or renames the source.
+- On approval, render the true final deliverable using a stable, professional
+  naming convention independent of internal revision scratch files:
+  `<LASTNAME>_<FIRSTNAME>_<COMPANY>_<DATE>.docx` (e.g.
+  `Reyes_Matthew_Anthropic_2026-07-06.docx`), built from the approved
+  `resume_candidate.md`. This is the one file named without a pipeline-internal
+  suffix — it is meant to be handed to a human, not read by another pipeline step.
+
+## 8. Refusal conditions
 - No fabrication. Every added claim traces to the resume or a cited WHD anchor.
 - Never render while blocking tags remain.
 - The report carries the standing reminder: read the final draft aloud before submitting.
