@@ -84,10 +84,31 @@ Cap ~3 rounds per type; overflow to a punch list.
   the tags gate, a justified override lets the render proceed past 2 pages.
 - If the user stalls, save with an explicit **NOT SUBMITTABLE** banner and the
   list of what remains — never render a tagged draft as final.
-- On clean: strip informational tags, write `resume_final.md` (source of truth),
-  then render: `python skill/helpers/render_docx.py <run>/resume_final.md
-  <run>/resume_final.docx` (ATS-safe: single column, standard font, no
-  tables/text-boxes/headers). Deliverables: `resume_final.docx` + `resume_final.md`.
+
+## 6b. Closed-loop re-eval (ONE pass, before final render)
+Before rendering, run the finished `resume_final.md` back through the **same three
+axes the seed resume was judged on** — the tailoring must not have degraded them.
+This is exactly ONE pass; it reports, it does not auto-edit or re-enter any loop.
+
+1. **ATS** — `python skill/helpers/ats.py <requirements.yaml> <resume_final.md>`.
+   Assert keyword coverage did not regress below the seed resume's coverage.
+2. **JD-relevance** — `python skill/helpers/relevance.py <resume_final.md>
+   <requirements.yaml> <gapmap.yaml>`. Assert no NEW `none`-linkage claim was
+   introduced by the edits, and every retained `none` claim is one the user already
+   ratified as a differentiator (§5c) or is structural (contact/education).
+3. **Voice** — confirm the §2 Voice Integrity Check passed on the final text.
+
+Write a short `reeval.md` to the run folder: the three axis verdicts + any
+regression. **No recursion** — if it flags a regression, surface it to the user as a
+single yes/no ("keep as-is or make this one fix?"), never as a new trim cycle. If
+clean, proceed to render. If the draft already passed cleanly (no dead-weight, fits
+2 pages) this step is a quick confirmation, not an interrogation.
+
+- On clean (tags clean + length resolved + re-eval clean): strip informational
+  tags, write `resume_final.md` (source of truth), then render:
+  `python skill/helpers/render_docx.py <run>/resume_final.md <run>/resume_final.docx`
+  (ATS-safe: single column, standard font, no tables/text-boxes/headers).
+  Deliverables: `resume_final.docx` + `resume_final.md` + `reeval.md`.
 
 ## 7. Refusal conditions
 - No fabrication. Every added claim traces to the resume or a cited WHD anchor.

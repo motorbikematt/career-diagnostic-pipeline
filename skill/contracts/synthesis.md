@@ -76,6 +76,35 @@ to reclaim space, ranked by **value-per-inch, not inch alone**:
   are the user's call, resolved in the Phase G length round — synthesis only
   surfaces the options with both cost and value attached.
 
+## 5c. Relevance coverage (line-level, before length)
+The pipeline scores whether the JD's asks have evidence (`gapmap.yaml`), but never
+asks the inverse: does each line the resume ALREADY has earn its place against this
+JD? A line with zero JD linkage is otherwise structurally invisible — it is nobody's
+evidence, so nothing flags it. Run the inverse meter:
+
+```bash
+python skill/helpers/relevance.py <resume.md> <requirements.yaml> <gapmap.yaml>
+```
+
+It classifies each resume claim `strong | weak | none` where `none` = zero JD
+keyword hits AND not referenced by any requirement's `resume_evidence`. **Per-JD by
+construction** — the linkage vocabulary comes only from this run's files; there is no
+universal "usually irrelevant" list. **Value-blind** — it flags, it never says cut.
+
+Then the MODEL reviews only the `none`-linkage set and proposes a three-way split:
+- **Dead weight** — off-target for this JD, no personality value → propose a
+  Compress or Cut prescription (uses the `compress`/`cut` types + `relevance: none`).
+- **Differentiator / voice** — low JD-linkage but carries personality, brand, or a
+  0-to-1 signal the reader remembers → KEEP; never auto-cut. This is per-person and
+  per-JD; the tool must not assume which content is the differentiator.
+- **Structural / expected** — contact, education, etc. → keep, not a decision.
+
+**The user ratifies** the dead-weight vs differentiator split in one AskUserQuestion
+round (Phase G length round hosts it) before any Compress/Cut is applied. This runs
+**before** length trimming so we prune for value first, then trim inches — not the
+reverse. **Conditional:** if `relevance.py` reports no `none`-linkage claims, this
+step produces nothing and asks nothing.
+
 ## 5. Exception-driven interrogation trigger (before writing the report)
 If the Honesty Check finds a **load-bearing stretch** — a claim that, if
 withdrawn, flips the Worth-It verdict — confront it with the user in one question

@@ -177,6 +177,15 @@ artifacts + the WHD and produces the report. Spec + verbatim Stage 3 invariants:
    The two triggers are quoted **verbatim** from `screen.yaml`. Write everything
    auditable-but-not-headline (score math, full Gap Map, persona reasoning,
    competitive comparison) to `appendix.md` from `templates/appendix.md`.
+4. **Relevance coverage (before length):** run the inverse meter to flag resume
+   claims with zero linkage to THIS JD (per-JD, value-blind):
+   ```bash
+   python skill/helpers/relevance.py <resume.md> <run>/requirements.yaml <run>/gapmap.yaml
+   ```
+   The model splits the `none`-linkage set into dead-weight vs differentiator vs
+   structural (`contracts/synthesis.md` §5c); the user ratifies before any
+   Compress/Cut. Prune for value here, before the Phase G length round. Conditional
+   — if nothing flags `none`, this asks nothing.
 
 **Exception-driven interrogation (synthesis):** if the honesty check finds a
 load-bearing stretch — a claim that, if withdrawn, flips the Worth-It verdict —
@@ -216,8 +225,17 @@ Only after Gate 2 "proceed to draft". Contract + verbatim ghost-editor invariant
    first (oldest unlinked roles, tail sections). Never auto-truncate. If they
    choose to exceed 2 pages, record the reason in `<run>/length_override.md`.
    Re-run until it reports `fits` OR an override reason is recorded.
-5. On clean + length-resolved, write `resume_final.md` and render an ATS-safe docx
-   (0.6in margins, single column, no tables):
+5. Closed-loop re-eval (ONE pass, before render) — validate the finished resume on
+   the same three axes as the seed (`contracts/finishing.md` §6b):
+   ```bash
+   python skill/helpers/ats.py <run>/requirements.yaml <run>/resume_final.md
+   python skill/helpers/relevance.py <run>/resume_final.md <run>/requirements.yaml <run>/gapmap.yaml
+   ```
+   Confirm ATS coverage didn't regress vs seed, no NEW `none`-linkage claim was
+   introduced, and the voice check passed. Write `reeval.md`. No recursion — a
+   regression surfaces as one yes/no, not a new trim loop.
+6. On clean + length-resolved + re-eval clean, write `resume_final.md` and render an
+   ATS-safe docx (0.6in margins, single column, no tables):
    ```bash
    python skill/helpers/render_docx.py <run>/resume_final.md <run>/resume_final.docx
    ```
@@ -264,6 +282,7 @@ arithmetic and string-matching so the model never does.
 | `prescriptions.py` | Enforce every recoverable gap has an Add row | `prescriptions.py <prescriptions.yaml> <gapmap.yaml>` |
 | `tags.py` | Finishing-loop tag scan + exit check | `tags.py <resume_draft.md>` |
 | `length_budget.py` | Advisory 2-page estimator + per-section cost breakdown | `length_budget.py <resume.md> --max-pages 2` |
+| `relevance.py` | Line-level JD-relevance meter (per-JD, value-blind); flags `none`-linkage claims | `relevance.py <resume.md> <requirements.yaml> <gapmap.yaml>` |
 | `render_docx.py` | Render clean markdown to an ATS-safe docx (0.6in) | `render_docx.py <resume_final.md> <out.docx>` |
 | `whd_patch.py` | Apply approved WHD patches + changelog | `whd_patch.py <whd.md> <patches.yaml>` |
 
