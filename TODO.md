@@ -16,7 +16,7 @@ Folded into the v2 WHD restructure (front-matter index, stable anchors,
 changelog) and the in-workflow reconciliation loop. Kept for historical context.
 - [x] ~~Define canonical output schema~~ — v2 WHD schema (§5 of the v2 plan)
 - [x] ~~Enforce schema in career-documentarian.md prompt~~ — becomes the v2 onboarding mode (see v2 public release)
-- [x] ~~Create `work-history-template.md`~~ — v2 ships `skill/templates/whd-template.md`
+- [x] ~~Create `work-history-template.md`~~ — v2 ships `.claude/skills/resume-fit/templates/whd-template.md`
 - [x] ~~Restructure existing work history document~~ — v2 Phase 1
 
 ## v2 public release

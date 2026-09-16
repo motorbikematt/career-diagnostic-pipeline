@@ -83,7 +83,7 @@ JD? A line with zero JD linkage is otherwise structurally invisible — it is no
 evidence, so nothing flags it. Run the inverse meter:
 
 ```bash
-python skill/helpers/relevance.py <resume.md> <requirements.yaml> <gapmap.yaml>
+python .claude/skills/resume-fit/helpers/relevance.py <resume.md> <requirements.yaml> <gapmap.yaml>
 ```
 
 It classifies each resume claim `strong | weak | none` where `none` = zero JD
@@ -114,7 +114,7 @@ hardest to scan. A resume can pass length and relevance and still read as a wall
 text.
 
 ```bash
-python skill/helpers/whitespace_check.py <resume.md> --margin 0.6
+python .claude/skills/resume-fit/helpers/whitespace_check.py <resume.md> --margin 0.6
 ```
 
 Reports a per-page fullness ratio (dense / balanced / sparse) plus raw word/char

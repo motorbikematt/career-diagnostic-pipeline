@@ -39,7 +39,7 @@ corrections, evidence surfaced for Partials, information-gap answers), the
   {kind, target_anchor, content, whd_worthy, status, note, prompted_by}.
 - After the user disposes each patch, apply the approved+durable ones:
   ```bash
-  python skill/helpers/whd_patch.py <data-plane>/pipeline/whd/<WHD>.md <run>/patches.yaml
+  python .claude/skills/resume-fit/helpers/whd_patch.py <data-plane>/pipeline/whd/<WHD>.md <run>/patches.yaml
   ```
   This appends content to the anchored sections and writes date-stamped changelog
   entries naming the run. Rejected / application-specific patches are never written.
