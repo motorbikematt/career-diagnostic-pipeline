@@ -1,6 +1,6 @@
 # Synthesis (orchestrator step, not a subagent)
 
-Ported from `prompts/optimization-strategist` (v1 Stage 3 Triage). Run by the
+Ported from `archive/prompts/optimization-strategist` (v1 Stage 3 Triage). Run by the
 **orchestrator on the STRONG model** (it is the convergence step — the first to
 see all artifacts + the WHD simultaneously). Produces `report.md` (+ the
 structured `prescriptions.yaml`) and `appendix.md`. Compress ritual only.

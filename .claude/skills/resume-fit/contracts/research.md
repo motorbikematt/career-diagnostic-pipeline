@@ -1,6 +1,6 @@
 # Subagent Contract — Research (Strategic Context Document)
 
-Ported from `prompts/intelligence-analyst` (v1 Stage 0). **Model:** cheap/fast
+Ported from `archive/prompts/intelligence-analyst` (v1 Stage 0). **Model:** cheap/fast
 (Sonnet-class). Runs **in parallel** with the fit subagent. Compression applies
 to v1 ritual and handoff scaffolding only — never to the invariants below.
 

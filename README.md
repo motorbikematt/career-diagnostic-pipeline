@@ -1,14 +1,20 @@
 # Career Diagnostic Pipeline
 
-A multi-stage AI pipeline that finds experience you already have but haven't put on your resume — and tells you whether applying is worth your time before you spend hours tailoring.
+A Claude Code skill that finds experience you already have but haven't put on
+your resume — and tells you whether applying is worth your time before you
+spend hours tailoring.
 
-Built by [Matthew F Reyes](https://linkedin.com/in/motorbikematt) while navigating his own job search.
+Built by [Matthew F Reyes](https://linkedin.com/in/motorbikematt) while
+navigating his own job search.
 
 ---
 
 ## The Problem This Solves
 
-Most qualified candidates don't fail to get callbacks because they lack experience. They fail because their resume triggers elimination patterns in a screening process they never see — and because they've forgotten, undersold, or never surfaced work they actually did.
+Most qualified candidates don't fail to get callbacks because they lack
+experience. They fail because their resume triggers elimination patterns in a
+screening process they never see — and because they've forgotten, undersold,
+or never surfaced work they actually did.
 
 This pipeline addresses both problems before you apply.
 
@@ -16,19 +22,25 @@ This pipeline addresses both problems before you apply.
 
 ## What It Does
 
-You paste in your work history, your current resume, and a job description. The pipeline runs six diagnostic stages:
+Point the skill at a job description and it runs eight phases end to end:
+parses the JD, researches the employer, maps your fit against your resume and
+private work history, simulates how a recruiter would actually screen you,
+synthesizes a verdict report, and — only once you say go — drafts an ATS-safe
+resume and folds anything durable it learned back into your work history for
+next time.
 
-1. **Career Documentarian** — Builds a comprehensive private work history that serves as the source of truth for everything downstream. This is the document you never send to employers.
+- **Phases A–D (diagnostic)** — intake, employer research + fit mapping run in
+  parallel, a Gap Brief gate on unrecoverable gaps, and a recruiter-screening
+  simulation that never sees your full work history.
+- **Phase E (synthesis)** — one concise report: Apply / Apply with edits / Do
+  not pursue, with the reasoning and the score math both shown, never just the
+  score.
+- **Phases F–H (only if you proceed)** — a finishing loop that drafts a
+  tailored resume with you approving every non-mechanical change, and a
+  reconciliation step that improves your standing work history document as a
+  side effect of the run.
 
-2. **Intelligence Analyst** — Researches the target employer and produces a strategic brief: what business cycle they're in, what the hiring manager is actually afraid of, and what kind of hire they really need right now.
-
-3. **Resume Auditor** — Maps every JD requirement against your resume and your work history. Finds recoverable gaps — experience you have but haven't surfaced — and scores your fit on transparent weighted math.
-
-4. **Recruiter Simulation** — Stress-tests your resume against a modeled screening process. Identifies exactly where a recruiter loses interest and where something compels them to call.
-
-5. **Optimization Strategist** — Synthesizes everything into a specific action plan: what to reframe, what to add, what to remove, and what you can honestly claim versus what you cannot.
-
-6. **Ghost Editor** *(optional)* — Produces a voice-calibrated resume draft under time pressure. Tagged so you can see every change. Treat as a draft, not a submission.
+Full phase-by-phase detail: [`docs/Pipeline_Users_Guide_v2.md`](docs/Pipeline_Users_Guide_v2.md).
 
 ---
 
@@ -36,18 +48,27 @@ You paste in your work history, your current resume, and a job description. The 
 
 - Tell you that you are a great fit when you are not
 - Invent experience you do not have
-- Guarantee a callback
-- Replace your judgment about whether a role is right for you
+- Let the screening step see your full work history
+- Auto-cut or auto-rewrite your resume without asking first
+- Guarantee a callback, or replace your own judgment about a role
 
 ---
 
 ## How to Use It
 
-### Claude Pro subscribers
-Use the orchestrator in `ui/career-pipeline-orchestrator.jsx` — paste it into a Claude Artifact and run the full pipeline in one session with streaming output per stage.
+This runs as a Claude Code skill, not a set of prompts you paste by hand.
 
-### Claude Free tier
-Run each stage manually by pasting the prompt files from `prompts/` into Claude in sequence. Each stage directory contains the prompt, a handoff template showing what to carry forward, and an example output so you know what to expect.
+1. Clone this repo, and from a Claude Code session rooted at (or under) it,
+   invoke:
+   ```
+   /resume-fit
+   ```
+2. On first run, you'll be asked where your **data plane** lives — a private
+   folder, kept outside this repo, holding your Work History Document (WHD)
+   and every run's artifacts. This repo never contains your personal data.
+3. Supply a job description (file path, pasted text, or URL) and follow the
+   pipeline through the phases above. It pauses for your input exactly where
+   a judgment call — not a mechanical check — needs to be made.
 
 ---
 
@@ -55,38 +76,33 @@ Run each stage manually by pasting the prompt files from `prompts/` into Claude 
 
 ```
 career-diagnostic-pipeline/
-├── prompts/
-│   ├── career-documentarian/     ← Start here. Build this once, maintain it.
-│   ├── intelligence-analyst/     ← Run per application with employer sources
-│   ├── resume-auditor/           ← Run per application (parallel with above)
-│   ├── recruiter-simulation/     ← Requires resume-auditor output
-│   ├── optimization-strategist/  ← Convergence stage, requires all prior outputs
-│   └── ghost-editor/             ← Optional. Use only under time pressure.
-├── ui/
-│   └── career-pipeline-orchestrator.jsx
-└── docs/
-    ├── pipeline-system-summary.md
-    └── pipeline-users-guide.md
+├── .claude/skills/resume-fit/   ← the skill: SKILL.md, subagent contracts,
+│                                   deterministic helpers, schemas, templates
+├── docs/
+│   └── Pipeline_Users_Guide_v2.md   ← start here for the full walkthrough
+├── examples/                    ← a complete synthetic end-to-end run
+├── tests/                       ← pytest suite for the deterministic helpers
+├── archive/                     ← superseded v1 prompt-orchestrator + docs
+└── TODO.md                      ← open work, including the public-release backlog
 ```
 
 ---
 
-## Where to Start
+## Two-Plane Model
 
-Read `docs/pipeline-users-guide.md` first. Then build your Career Documentarian file before running any other stage — every downstream stage depends on it.
+- **Code plane** (this repo) — skill logic, helpers, schemas, templates, and a
+  synthetic example fixture. User-agnostic. No personal data, ever.
+- **Data plane** (private, yours) — your WHD and per-run folders, located via
+  configuration and never hardcoded. See
+  [`docs/Pipeline_Users_Guide_v2.md`](docs/Pipeline_Users_Guide_v2.md#3-the-two-plane-model).
 
 ---
 
 ## Model Requirements
 
-| Stage | Recommended Model |
-|---|---|
-| Career Documentarian | Claude Sonnet |
-| Intelligence Analyst | Claude Sonnet |
-| Resume Auditor | Claude Sonnet |
-| Recruiter Simulation | Claude Opus |
-| Optimization Strategist | Claude Opus |
-| Ghost Editor | Claude Opus |
+The skill routes models per phase rather than requiring you to pick one:
+cheap/fast for research and fit extraction, a strong model for screening
+simulation and synthesis, where reasoning quality matters most.
 
 ---
 
@@ -98,4 +114,14 @@ MIT — use freely, attribution appreciated.
 
 ## Contributing
 
-This is a v1.0 community release. Issues and PRs welcome. See `TODO.md` for known gaps and planned improvements.
+This is the v2 rebuild, in active use. Issues and PRs welcome. See
+[`TODO.md`](TODO.md) for known gaps and planned improvements, including the
+onboarding mode still needed for a first-time user with no existing WHD.
+
+---
+
+## History
+
+v1 was a six-prompt, copy-paste-between-Claude-conversations system. It's
+archived at [`archive/`](archive) — see `archive/README.md` for what changed
+and why.

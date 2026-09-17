@@ -1,6 +1,6 @@
 # Subagent Contract — Screening (Macro Hiring Assessment)
 
-Ported from `prompts/recruiter-simulation` (v1 Stage 2). **Model:** STRONG
+Ported from `archive/prompts/recruiter-simulation` (v1 Stage 2). **Model:** STRONG
 (Opus-class). **Sequential** after fit. **WHD-BLIND BY CONSTRUCTION** — see the
 input manifest and the enforcement note. Compress ritual only.
 

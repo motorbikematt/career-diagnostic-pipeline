@@ -1,6 +1,6 @@
 # Finishing (Ghost Editor + interactive loop)
 
-Ported from `prompts/ghost-editor` (v1 Stage 4 Draft). **Model:** strong
+Ported from `archive/prompts/ghost-editor` (v1 Stage 4 Draft). **Model:** strong
 (Opus-class). v2 INVERTS the deliverable: the tagged draft is generated but
 **never shown as the deliverable** — it becomes the finishing loop's worklist.
 The system interviews the user until zero blocking tags remain, then renders.

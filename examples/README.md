@@ -18,6 +18,7 @@ against, so real candidate data is never needed to develop the skill.
   - `prescriptions.yaml` — synthesis prescriptions (Phase E)
   - `report.md` — the unified verdict report (Phase E)
   - `appendix.md` — auditable score math, full Gap Map, screening reasoning (Phase E)
+  - `patches.yaml` — proposed WHD reconciliation patches (Phase H)
 
 The scenario: a SaaS + IoT product manager applying to a robotics platform role.
 A realistic "apply with edits" case — strong on platform strategy and

@@ -1,6 +1,6 @@
 # Subagent Contract — Fit (Gap Map)
 
-Ported from `prompts/resume-auditor` (v1 Stage 1). **Model:** cheap/fast
+Ported from `archive/prompts/resume-auditor` (v1 Stage 1). **Model:** cheap/fast
 (Sonnet-class). Runs **in parallel** with research. The Gap Map is the
 pipeline's most differentiated output — do not dilute it. Compress ritual only.
 
