@@ -7,13 +7,13 @@ structure_updated: 2026-01-15
 schema_version: 1
 canary: "WHD-CANARY-SYNTHETIC-0000-DO-NOT-OUTPUT"
 roles:
-  - id: role-1
+  - id: nimbus-labs
     company: "Nimbus Labs"
     title: "Senior Product Manager"
     dates: "2021-03 to present"
     location: "Austin, TX"
     tags: [product-strategy, saas-analytics, roadmap, cross-functional, experimentation]
-  - id: role-2
+  - id: circuit-dynamics
     company: "Circuit Dynamics"
     title: "Product Manager"
     dates: "2018-01 to 2021-02"
@@ -34,7 +34,7 @@ alex@example.com  •  555-0100  •  linkedin.com/in/alex-rivera-synthetic
 
 *Source of truth for all downstream resume stages. Not for external distribution.*
 
-<!-- anchor: role-1 -->
+<!-- anchor: nimbus-labs -->
 # Nimbus Labs  |  Senior Product Manager
 
 March 2021 – Present  |  Austin, TX
@@ -55,14 +55,14 @@ March 2021 – Present  |  Austin, TX
 
 ## Work — Projects & Initiatives
 
-<!-- anchor: role-1.project-1 -->
+<!-- anchor: nimbus-labs.p1 -->
 **1. Platform Roadmap Overhaul**
 
 - Problem: fragmented roadmap with no clear platform thesis
 - Action: defined a product strategy and consolidated three roadmaps into one
 - Outcome: cut time-to-integration for new data sources by 40%
 
-<!-- anchor: role-1.project-2 -->
+<!-- anchor: nimbus-labs.p2 -->
 **2. Experimentation Program**
 
 - Problem: teams shipped without measurement
@@ -85,7 +85,7 @@ March 2021 – Present  |  Austin, TX
 
 - Platform product strategy, experimentation, cross-functional leadership
 
-<!-- anchor: role-2 -->
+<!-- anchor: circuit-dynamics -->
 # Circuit Dynamics  |  Product Manager
 
 January 2018 – February 2021  (3 years 2 months)  |  San Jose, CA
@@ -102,14 +102,14 @@ January 2018 – February 2021  (3 years 2 months)  |  San Jose, CA
 
 ## Work — Projects & Initiatives
 
-<!-- anchor: role-2.project-1 -->
+<!-- anchor: circuit-dynamics.p1 -->
 **1. Smart Camera Hardware Lifecycle**
 
 - Problem: prototype had no path to manufacturable production
 - Action: managed the hardware product lifecycle from prototype to production, coordinating firmware, optics, and contract manufacturing
 - Outcome: shipped 50k units in year one
 
-<!-- anchor: role-2.project-2 -->
+<!-- anchor: circuit-dynamics.p2 -->
 **2. On-Device Computer Vision Feature**
 
 - Problem: cloud round-trips made motion detection slow

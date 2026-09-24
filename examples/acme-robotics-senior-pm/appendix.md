@@ -10,14 +10,14 @@
 
 | ID | Requirement | Type | Weight | Status | Resume evidence | WHD evidence | Recoverable |
 |---|---|---|---|---|---|---|---|
-| hr-1 | 5+ years product management | hard | 2 | match | 8 years PM across SaaS + hardware | role-1, role-2 | no |
-| hr-2 | Robotics or hardware products | hard | 3 | partial | connected hardware, not robotics | role-2 IoT cameras | no |
-| hr-3 | Product strategy + platform roadmap | hard | 3 | match | owns platform roadmap at Nimbus | role-1.project-1 | no |
-| hr-4 | Hardware lifecycle prototype→production | hard | 2 | match | prototype to production | role-2.project-1 | no |
-| hr-5 | Lead cross-functional eng teams | hard | 2 | match | leads cross-functional eng | role-1 | no |
+| hr-1 | 5+ years product management | hard | 2 | match | 8 years PM across SaaS + hardware | nimbus-labs, circuit-dynamics | no |
+| hr-2 | Robotics or hardware products | hard | 3 | partial | connected hardware, not robotics | circuit-dynamics IoT cameras | no |
+| hr-3 | Product strategy + platform roadmap | hard | 3 | match | owns platform roadmap at Nimbus | nimbus-labs.p1 | no |
+| hr-4 | Hardware lifecycle prototype→production | hard | 2 | match | prototype to production | circuit-dynamics.p1 | no |
+| hr-5 | Lead cross-functional eng teams | hard | 2 | match | leads cross-functional eng | nimbus-labs | no |
 | pr-1 | ROS familiarity | preferred | 1 | none | — | — | no |
-| pr-2 | Computer vision / ML product | preferred | 1 | match | on-device CV feature | role-2.project-2 | no |
-| pr-3 | Early-stage startup | preferred | 1 | match | Circuit Dynamics; Nimbus Series B | role-2 | no |
+| pr-2 | Computer vision / ML product | preferred | 1 | match | on-device CV feature | circuit-dynamics.p2 | no |
+| pr-3 | Early-stage startup | preferred | 1 | match | Circuit Dynamics; Nimbus Series B | circuit-dynamics | no |
 
 ## Archetypes
 - Seeker archetype: platform-and-hardware product manager

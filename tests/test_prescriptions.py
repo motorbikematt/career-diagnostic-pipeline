@@ -16,7 +16,7 @@ def test_covered_recoverable_gap_passes():
     gm = _gapmap_with_recoverable()
     pres = {"prescriptions": [
         {"type": "add", "target": "Role X", "why": "closes budget ownership",
-         "closes": ["hr-9"], "source": "role-2.project-2"},
+         "closes": ["hr-9"], "source": "circuit-dynamics.p2"},
     ]}
     result = prescriptions.check_coverage(pres, gm)
     assert result["ok"] is True

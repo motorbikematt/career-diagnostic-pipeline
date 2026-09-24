@@ -41,8 +41,8 @@ def test_correct_upgrade_passes_and_leaves_tally():
     import gate1
     gm = {"requirements": [
         {"id": "hr-1", "kind": "hard", "classification": "none", "recoverable": True,
-         "whd_evidence": "role-2.project-1: shipped X", "weight": 1,
-         "review": {"decision": "new-evidence", "anchor": "role-2.project-1"}},
+         "whd_evidence": "circuit-dynamics.p1: shipped X", "weight": 1,
+         "review": {"decision": "new-evidence", "anchor": "circuit-dynamics.p1"}},
     ]}
     assert gap_review.review_violations(gm) == []
     assert gate1.evaluate(gm)["weighted_unrecoverable"] == 0
@@ -51,7 +51,7 @@ def test_correct_upgrade_passes_and_leaves_tally():
 def test_review_outcome_never_reaches_screening(gapmap):
     # A WHD-based upgrade records review + whd_evidence, never classification.
     row = gapmap["requirements"][0]
-    row["review"] = {"decision": "reframe", "anchor": "role-2.project-1"}
+    row["review"] = {"decision": "reframe", "anchor": "circuit-dynamics.p1"}
     summary = gapmap_summary.summarize(gapmap)
     assert "review" not in summary["requirements"][0]
-    assert "role-2.project-1" not in str(summary)
+    assert "circuit-dynamics.p1" not in str(summary)

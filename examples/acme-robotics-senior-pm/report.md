@@ -20,10 +20,10 @@ SaaS-analytics-first resume to lead with hardware for a robotics reader.
 
 | Edit | Why | Source (WHD) |
 |---|---|---|
-| Reorder: lead with hardware/platform, not analytics | 6-second scan misses hardware; move Circuit Dynamics up | role-2 |
-| Reframe: summary line | Signals SaaS analytics; needs platform + connected-hardware breadth | role-2 |
-| Add: surface 50k-units prototype-to-production in the top third | It is the escalation trigger; make it unmissable | role-2.project-1 |
-| Reframe: on-device computer vision bullet | Reframe as edge perception adjacent to robotics | role-2.project-2 |
+| Reorder: lead with hardware/platform, not analytics | 6-second scan misses hardware; move Circuit Dynamics up | circuit-dynamics |
+| Reframe: summary line | Signals SaaS analytics; needs platform + connected-hardware breadth | circuit-dynamics |
+| Add: surface 50k-units prototype-to-production in the top third | It is the escalation trigger; make it unmissable | circuit-dynamics.p1 |
+| Reframe: on-device computer vision bullet | Reframe as edge perception adjacent to robotics | circuit-dynamics.p2 |
 
 ## Honesty
 You can honestly present as: a platform + connected-hardware PM who has taken a

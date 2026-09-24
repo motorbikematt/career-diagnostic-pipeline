@@ -45,6 +45,16 @@ python .claude/skills/resume-fit/helpers/config.py set "/path/to/data-plane"
 The data plane must contain `pipeline/whd/<the WHD>.md`. A new user with no WHD
 goes through onboarding first (see Build status → not yet built).
 
+A **legacy WHD without anchors** (e.g. an older Word export) must be migrated
+once, or no tool can address its sections. The migration adds stable slug
+anchors, orders roles newest-first, fixes export artifacts, and proves no
+wording changed (it writes a new file and never overwrites):
+```bash
+python .claude/skills/resume-fit/helpers/whd_migrate.py <old-whd.md> <new-whd.md>
+python .claude/skills/resume-fit/helpers/whd_migrate.py --check <old-whd.md> <new-whd.md>
+```
+Keep exactly one WHD in `pipeline/whd/`; archive the old one after review.
+
 The WHD needs a unique canary token for the screening leak check. Generate it
 once (safe to re-run; an existing real token is kept):
 
@@ -418,6 +428,7 @@ arithmetic and string-matching so the model never does.
 | `gap_review.py` | Rows for the Phase B.5 gap review (every None + weak Partials) | `gap_review.py <gapmap.yaml> [<requirements.yaml>]` |
 | `hard_nos.py` | List hard-no markers with age; `mark-reviewed` records a full review | `hard_nos.py <whd.md>` / `hard_nos.py mark-reviewed <whd.md>` |
 | `whd_anchors.py` | Resolve a WHD section by anchor id | `whd_anchors.py <whd.md> <anchor>` |
+| `whd_migrate.py` | One-time legacy WHD -> anchored layout, with a wording-preservation proof | `whd_migrate.py [--check] <old.md> <new.md>` |
 | `gapmap_summary.py` | Screening-safe gapmap (strips WHD fields, resume-only archetype) | `gapmap_summary.py <gapmap.yaml> --out <file>` |
 | `canary.py` | Screening-blindness leak scan; `init` writes a unique token | `canary.py <screen.yaml> <whd.md>` / `canary.py init <whd.md>` |
 | `numbers_strip.py` | Deterministic report headline numbers | `numbers_strip.py <run>` |

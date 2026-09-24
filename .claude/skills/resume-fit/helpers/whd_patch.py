@@ -14,8 +14,8 @@ Two ways a patch lands:
   After a replace, any remaining copies of `old` elsewhere in the WHD are
   reported so the user can correct them too.
 
-A section runs from its anchor to the NEXT anchor, so `role-1` ends where
-`role-1.project-1` begins. The Voice Sample and the changelog are never
+A section runs from its anchor to the NEXT anchor, so `nimbus-labs` ends where
+`nimbus-labs.p1` begins. The Voice Sample and the changelog are never
 patch targets.
 """
 from __future__ import annotations

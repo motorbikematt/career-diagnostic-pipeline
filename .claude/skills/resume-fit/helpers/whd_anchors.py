@@ -1,8 +1,10 @@
 """WHD anchor resolution.
 
-Anchors are HTML comments the WHD restructure inserts:
-    <!-- anchor: role-2 -->
-    <!-- anchor: role-2.project-1 -->
+Anchors are one-line marker lines in the markdown WHD (markdown comment syntax,
+so viewers hide them), with stable slug ids that never renumber:
+    <!-- anchor: circuit-dynamics -->        a role (company slug)
+    <!-- anchor: circuit-dynamics.scope -->  a role subsection
+    <!-- anchor: circuit-dynamics.p1 -->     a project (its existing number)
     <!-- anchor: voice-sample -->
 Lets subagents and patches retrieve a section by id without reading the whole
 document, and lets prescriptions cite machine-resolvable locations.

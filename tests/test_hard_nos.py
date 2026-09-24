@@ -9,7 +9,7 @@ canary: "x"
 hard_no_reviewed: "2026-01-01"
 ---
 
-<!-- anchor: role-1 -->
+<!-- anchor: nimbus-labs -->
 # Acme
 
 - hard-no: people management of 5+ reports (confirmed 2025-06-01)
@@ -29,7 +29,7 @@ def test_lists_markers_with_age_and_anchor():
     assert r["marker_count"] == 2
     first = r["markers"][0]
     assert first["what"] == "people management of 5+ reports"
-    assert first["anchor"] == "role-1"
+    assert first["anchor"] == "nimbus-labs"
     assert first["age_days"] == (TODAY - date(2025, 6, 1)).days
     assert [m["what"] for m in r["stale"]] == ["people management of 5+ reports"]
 
