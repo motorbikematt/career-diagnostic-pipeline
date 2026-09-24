@@ -21,6 +21,11 @@ roles:
     title: "Your Title (or 'Title A to Title B' if promoted)"
     dates: "YYYY-MM to present"
     location: "City, ST"
+    # include: normal resume entry | context-only: may shape the summary or
+    # origin story, never a dated resume line (old roles, age signal) |
+    # omit: left off unless a JD makes it relevant, then only with confirmation
+    resume_default: include
+    resume_note: ""
     tags: [capability-one, capability-two, capability-three]
   # - id: earlier-company
   #   company: "..."

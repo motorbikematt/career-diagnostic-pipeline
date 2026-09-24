@@ -40,6 +40,13 @@ voice, applying ONLY the synthesis prescriptions.
   exits non-zero and names each entry that is newer than the one above it. Run it
   after drafting (§4) and in the re-eval (§6b).
 
+## 2b-2. Resume defaults (v2 addition)
+The WHD roles index sets each role's `resume_default`. Drafting never creates a
+dated entry for a `context-only` role (it may shape the summary only) and never
+includes an `omit` role unless the user explicitly confirmed it for this
+application. If the seed resume already contains such a role, keep it (the
+user put it there) but raise it once in the Stretch round.
+
 ## 2c. Word edits are real edits (v2 addition)
 Once `resume_candidate.docx` exists, the user may edit it directly in Word. The
 `.md` is then stale, and working from it loses their edits. Before ANY further

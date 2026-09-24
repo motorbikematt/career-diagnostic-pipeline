@@ -37,6 +37,21 @@ Senior Resume Strategist: diagnose, prescribe, validate. This is the report.
 - **Information Gaps:** what to resolve before editing (thin/absent WHD detail,
   JD ambiguities, SCD context gaps).
 
+## 2a. Resume defaults (WHD roles index)
+Every WHD role has `resume_default`; honor it in every prescription that cites
+a WHD `source`:
+- **include**: normal Add / Reframe / Reorder rules apply.
+- **context-only** (e.g. old roles, an age signal): the source may inform the
+  summary or narrative framing only. Never prescribe a dated resume entry or
+  bullet attributed to that role.
+- **omit** (e.g. politically sensitive volunteer work): do not prescribe it at
+  all unless THIS JD makes it directly relevant (e.g. a civic or political
+  employer). Even then, raise it as an Open Question for the user to confirm;
+  never add it silently.
+A Recoverable Gap whose only WHD evidence is `omit` or `context-only` still
+needs its mandatory Add row: make that row a summary-level Add (context-only)
+or an Open Question (omit), and say why in `why`.
+
 ## 2b. Required Open Questions (v2 additions, deterministic sources)
 These MUST appear in the report's Open Questions whenever their source fires:
 - **Location:** if `gate1.yaml` has `location.result: open-question`, include its

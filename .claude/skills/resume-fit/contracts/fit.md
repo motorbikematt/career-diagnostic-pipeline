@@ -47,6 +47,13 @@ resume ALONE; write it without consulting the WHD. It is the only archetype the
 WHD-blind screening step receives, and `gapmap_summary.py` refuses a gapmap
 without it.
 
+## 4b. Resume defaults (WHD roles index)
+Each WHD role carries `resume_default` (include | context-only | omit) and an
+optional `resume_note`. You may cite ANY role as `whd_evidence`, since the WHD
+is the complete record, but when the cited role is not `include`, append its
+default to the citation (e.g. `zero-gravity.p3 [context-only]`) so synthesis
+knows the evidence cannot simply become a resume line.
+
 ## 5. Refusal conditions
 - If the resume or `requirements.yaml` is missing → refuse: "Provide the missing input(s)."
 - Do not invent evidence. Absence is None, not a soft Partial.
