@@ -88,17 +88,42 @@ gate; overflow to a punch list. Routine gaps wait for their designated phase.
    `schemas/requirements.schema.yaml`). Every downstream step consumes this
    schema, never the raw JD. Extract: company, role, seniority, hard vs.
    preferred requirements (each with an id and keywords), ATS keywords, and
-   recruiter-persona cues.
+   recruiter-persona cues. Also extract the **location facts exactly as the JD
+   states them**: `location`, `work_arrangement` (remote | hybrid | onsite |
+   unstated), `hybrid_days` if stated, `relocation_support` (offered |
+   not-offered | unstated), and `source_url` when the JD came from a URL. No
+   candidate-side judgment goes in `requirements.yaml`: the screening subagent
+   receives it.
 3. **Create the run folder:**
    ```bash
    python .claude/skills/resume-fit/helpers/runfolder.py "<Company>" "<Role>"
    # -> <data-plane>/pipeline/runs/<company>-<role>-<date>/
    ```
-   Write `requirements.yaml` into it.
-4. **Validate before proceeding** (structural drift fails loudly here):
+   Write `requirements.yaml` into it. The helper also snapshots
+   `<data-plane>/pipeline/whd/preferences.yaml` (the candidate's deal-breaker
+   rules; template: `templates/preferences-template.yaml`) into the run as
+   `preferences.snapshot.yaml`.
+4. **Location assessment** (skip for a remote role): judge the geography and
+   write `<run>/location.yaml` (`schemas/location.schema.yaml`):
+   `drive_minutes_from_home` (from the preferences `home`), `nearest_metro` (an
+   exact name from the preferences `relocation.metros`, or null),
+   `metro_minutes` (drive from that metro's core), `borderline` (true for a
+   genuine edge case), and a one-line `notes`. Estimate drive times from
+   general knowledge; no maps API. Thresholds are NOT applied here: Gate 1
+   applies them from the preferences file.
+5. **Validate before proceeding** (structural drift fails loudly here):
    ```bash
    python .claude/skills/resume-fit/helpers/validate.py <run>/requirements.yaml requirements
+   python .claude/skills/resume-fit/helpers/validate.py <run>/location.yaml location
    ```
+6. **Hard-no reminder** (one line, never blocks):
+   ```bash
+   python .claude/skills/resume-fit/helpers/hard_nos.py <data-plane>/pipeline/whd/<WHD>.md
+   ```
+   If `review_due` is true, say once: "Your hard-no list was last reviewed
+   <last_review or never> (<marker_count> markers). Run the hard-no review now
+   or skip?" See **Hard-no review mode** below. Keep the `stale` list for
+   synthesis.
 
 ## Phase B — Parallel research + fit (BUILT)
 
@@ -126,22 +151,61 @@ python .claude/skills/resume-fit/helpers/validate.py <run>/gapmap.yaml gapmap
 
 One question round each; overflow to a punch list. Routine gaps wait for their phase.
 
+## Phase B.5: Gap review (before Gate 1)
+
+The WHD only knows what the user remembered to write down; a requirement can
+jog a memory, or show that something already in the WHD answers it once
+reframed. List the rows to review:
+```bash
+python .claude/skills/resume-fit/helpers/gap_review.py <run>/gapmap.yaml <run>/requirements.yaml
+```
+It returns EVERY None (recoverable or not) and every non-recoverable Partial,
+hard requirements first. Ask in batched AskUserQuestion rounds (hard first),
+one of four answers per row, and record it on the row as
+`review: {decision, anchor, note}`:
+
+- **real-gap**: the gap is real. Queue a `hard-no` candidate for Phase H.
+- **confirm** (recoverable None only): the WHD evidence stands; the mandatory
+  Add prescription applies.
+- **new-evidence**: short micro-interview, then propose a WHD patch, get the
+  user's approval, and apply it NOW with `whd_patch.py` (not deferred to Phase
+  H: synthesis's Add prescription must cite WHD text that already exists).
+- **reframe**: the user points at existing WHD experience; cite that anchor.
+
+**How an answer changes the row (invariant: `classification` is resume-only).**
+`classification` reaches the WHD-blind screen, so WHD-based evidence never
+changes it. For new-evidence or reframe, set `whd_evidence` (citing the anchor)
+and `recoverable: true`; the row then gets a mandatory Add prescription and
+leaves the Gate 1 tally. Change `classification` only when the user shows the
+fit step misread evidence that is ON THE RESUME. Synthesis's honesty check can
+still label any upgrade a Stretch. Re-validate the gapmap, then run Gate 1.
+
 ## Phase C — Gate 1 Gap Brief (BUILT)
 
-A zero-token Python step tallies unrecoverable gaps and evaluates categorical
-trip rules (never a score cutoff):
+A zero-token Python step tallies unrecoverable gaps, checks location, and
+evaluates categorical trip rules (never a score cutoff):
 ```bash
-python .claude/skills/resume-fit/helpers/gate1.py <run>/gapmap.yaml
+python .claude/skills/resume-fit/helpers/gate1.py <run>/gapmap.yaml --requirements <run>/requirements.yaml --location <run>/location.yaml --preferences <run>/preferences.snapshot.yaml --out <run>/gate1.yaml
 ```
-If `tripped` is true, present the **Gap Brief** as ONE structured question with
-exactly three options (fixed format — plan section 2, Phase C):
+(Omit `--location` for a remote role.) The tally counts each hard None that is
+not recoverable as 1 and each hard Partial that is not recoverable as 0.5; the
+Gap Brief lists the two separately. The `location` result is pass,
+open-question, trip, or not-evaluated (no preferences file). A location **trip**
+trips Gate 1 on its own. A location **open-question** never trips, but
+synthesis must carry it into the report's Open Questions (it reads
+`gate1.yaml`). If `tripped` is true, present the **Gap Brief** as ONE
+structured question with exactly three options (fixed format: plan section 2,
+Phase C). For a location trip, "contest" means "I would make an exception for
+this role":
 
 - **(a) Stop** — archive the Gap Brief to the run folder and end the run.
 - **(b) Proceed anyway** — gaps acknowledged; record them in the report's Open
   Questions so the decision is visible.
 - **(c) Contest a gap** ("I have evidence for X") — route immediately into the
-  Phase H micro-interview: capture the evidence, patch the WHD, re-run the fit
-  classification for that requirement, and recompute the tally before proceeding.
+  Phase H micro-interview: capture the evidence, patch the WHD, then update that
+  row the Phase B.5 way (set `whd_evidence` + `recoverable: true`; never change
+  the resume-only `classification` for WHD evidence), and recompute the tally
+  before proceeding.
 
 For each unrecoverable gap, state what filling it would actually require
 (experience you don't have vs. a credential vs. pure repositioning) and a
@@ -310,8 +374,32 @@ Interactive; makes each run improve the standing WHD. Contract:
    ```bash
    python .claude/skills/resume-fit/helpers/whd_patch.py <data-plane>/pipeline/whd/<WHD>.md <run>/patches.yaml
    ```
-   Appends to anchored sections + writes changelog entries. The Voice Sample is
-   never edited; the user ratifies every patch.
+   Appends to anchored sections + writes changelog entries. A `correction`
+   patch instead REPLACES its `old` text (which must occur exactly once in the
+   target section) with `content`, logging old and new in the changelog; the
+   helper reports other sections that still hold the old text, so propose
+   corrections there too. The Voice Sample and changelog are never patch
+   targets; the user ratifies every patch.
+
+## Hard-no review mode
+
+Invoked on demand (e.g. `/resume-fit review-hard-nos`) or from the Phase A
+reminder. Nobody can be expected to remember every hard-no, so the helper lists
+them:
+```bash
+python .claude/skills/resume-fit/helpers/hard_nos.py <data-plane>/pipeline/whd/<WHD>.md
+```
+Walk every marker (oldest first) in batched AskUserQuestion rounds:
+- **Still true**: a `correction` patch refreshes its `(confirmed <date>)`.
+- **Now have evidence**: capture it and propose an evidence patch plus a
+  `correction` that removes the marker line's claim.
+- **Remove**: a `correction` that replaces the marker line with nothing.
+Fix any `unparsed` lines first (they are markers a typo hid). Apply approved
+patches with `whd_patch.py`, then record the review:
+```bash
+python .claude/skills/resume-fit/helpers/hard_nos.py mark-reviewed <data-plane>/pipeline/whd/<WHD>.md
+```
+Also run this review as part of a full WHD rebuild after a major life change.
 
 ## Deterministic helpers (never spend a token)
 
@@ -325,7 +413,10 @@ arithmetic and string-matching so the model never does.
 | `validate.py` | Validate an artifact against a schema | `validate.py <file.yaml> <schema>` |
 | `score.py` | Weighted score from gapmap | `score.py <gapmap.yaml>` |
 | `ats.py` | Exact-match keyword scan (synonym-aware) | `ats.py <requirements.yaml> <resume>` |
-| `gate1.py` | Unrecoverable-gap tally + trip rules | `gate1.py <gapmap.yaml>` |
+| `gate1.py` | Weighted gap tally (weak Partial = 0.5) + location check + trip rules | `gate1.py <gapmap.yaml> [--requirements R --location L --preferences P] [--out F]` |
+| `location_gate.py` | Location rules: JD facts x model geography x preferences thresholds | (called by `gate1.py`) |
+| `gap_review.py` | Rows for the Phase B.5 gap review (every None + weak Partials) | `gap_review.py <gapmap.yaml> [<requirements.yaml>]` |
+| `hard_nos.py` | List hard-no markers with age; `mark-reviewed` records a full review | `hard_nos.py <whd.md>` / `hard_nos.py mark-reviewed <whd.md>` |
 | `whd_anchors.py` | Resolve a WHD section by anchor id | `whd_anchors.py <whd.md> <anchor>` |
 | `gapmap_summary.py` | Screening-safe gapmap (strips WHD fields, resume-only archetype) | `gapmap_summary.py <gapmap.yaml> --out <file>` |
 | `canary.py` | Screening-blindness leak scan; `init` writes a unique token | `canary.py <screen.yaml> <whd.md>` / `canary.py init <whd.md>` |
@@ -340,9 +431,9 @@ arithmetic and string-matching so the model never does.
 | `compress_candidates.py` | Finds 3+ item lists as compression candidates (pattern only, no category-word suggestion) | `compress_candidates.py <resume.md>` |
 | `whitespace_check.py` | Per-page fullness/density check (research-grounded readability, not bullet-uniformity) | `whitespace_check.py <resume.md> --margin 0.6` |
 | `render_docx.py` | Render clean markdown to an ATS-safe docx (0.6in) | `render_docx.py <resume_candidate.md> <out.docx>` |
-| `whd_patch.py` | Apply approved WHD patches + changelog | `whd_patch.py <whd.md> <patches.yaml>` |
+| `whd_patch.py` | Apply approved WHD patches (append, or `correction` = replace) + changelog | `whd_patch.py <whd.md> <patches.yaml>` |
 
-Schema names for `validate.py`: `requirements`, `scd`, `gapmap`, `screen`, `prescriptions`, `patches`.
+Schema names for `validate.py`: `requirements`, `location`, `preferences`, `scd`, `gapmap`, `screen`, `prescriptions`, `patches`.
 
 ## Screening-blindness enforcement (BUILT)
 

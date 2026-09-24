@@ -6,6 +6,13 @@ properties:
   company: {type: str}
   role: {type: str}
   source: {type: str}            # file | text | url
+  source_url: {type: str}        # the posting URL when known
+  # Location facts, exactly as the JD states them (no candidate-side judgment
+  # here; that lives in location.yaml). location_gate.py rejects unknown values.
+  location: {type: str}          # e.g. "New York, NY"; null if the JD states none
+  work_arrangement: {type: str}  # remote | hybrid | onsite | unstated
+  hybrid_days: {type: number}    # office days per week, if stated
+  relocation_support: {type: str}  # offered | not-offered | unstated
   seniority: {type: str}         # ic | lead | manager | director | exec
   hard_requirements:
     type: list

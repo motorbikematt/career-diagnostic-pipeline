@@ -37,9 +37,21 @@ Senior Resume Strategist: diagnose, prescribe, validate. This is the report.
 - **Information Gaps:** what to resolve before editing (thin/absent WHD detail,
   JD ambiguities, SCD context gaps).
 
+## 2b. Required Open Questions (v2 additions, deterministic sources)
+These MUST appear in the report's Open Questions whenever their source fires:
+- **Location:** if `gate1.yaml` has `location.result: open-question`, include its
+  `reason` (e.g. "JD is silent on relocation support, ask the recruiter"). If
+  the user chose (b) proceed anyway on a location trip, record that too.
+- **Stale hard-no:** for each marker in `hard_nos.py`'s `stale` list (older
+  than 12 months) that THIS JD's requirements touch, ask: "You marked
+  '<what>' a hard no <N> months ago. Still true?" Markers the JD does not touch
+  are not mentioned.
+- **Gate 1 accepted risk:** gaps the user proceeded past at Gate 1 (option b).
+
 ## 3. Input manifest
 All run artifacts + the WHD: `requirements.yaml`, `scd.yaml`, `gapmap.yaml`,
-`screen.yaml`, the resume, and the WHD (use `whd_anchors.py` to cite sources).
+`screen.yaml`, `gate1.yaml`, the resume, and the WHD (use `whd_anchors.py` to
+cite sources).
 
 ## 4. Outputs
 - **`prescriptions.yaml`** (validated against `schemas/prescriptions.schema.yaml`;

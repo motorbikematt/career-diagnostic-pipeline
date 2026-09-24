@@ -32,7 +32,7 @@ def test_apply_patches_respects_status_and_worthiness(synthetic_whd):
         {"kind": "correction", "target_anchor": "role-2", "content": "- app-specific framing",
          "whd_worthy": False, "status": "approved", "note": "C"},
     ]
-    out, applied = whd_patch.apply_patches(synthetic_whd, patches, on="2026-07-06")
+    out, applied, _ = whd_patch.apply_patches(synthetic_whd, patches, on="2026-07-06")
     assert applied == ["role-1"]  # only the approved + whd_worthy one
     assert "durable fact A" in out
     assert "proposed only" not in out       # not approved

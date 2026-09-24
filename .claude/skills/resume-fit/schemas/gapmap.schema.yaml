@@ -16,7 +16,14 @@ properties:
         classification: {type: str}   # match | partial | none
         resume_evidence: {type: str}  # what the resume alone supports (or null)
         whd_evidence: {type: str}     # separate WHD evidence (or null)
-        recoverable: {type: bool}     # none on resume BUT present in the WHD
+        recoverable: {type: bool}     # none/partial on resume AND the WHD holds stronger evidence
+        review:                       # Phase B.5 gap review outcome (optional)
+          type: object
+          required: [decision]
+          properties:
+            decision: {type: str}     # real-gap | new-evidence | reframe | confirm
+            anchor: {type: str}       # WHD anchor cited by new-evidence / reframe
+            note: {type: str}
   ats:
     type: object
     properties:

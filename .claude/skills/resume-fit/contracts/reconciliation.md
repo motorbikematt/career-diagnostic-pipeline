@@ -25,9 +25,21 @@ improvements, the user ratifies each, apply with changelog entries.
   Stretch to Genuine in future runs. If no, a `hard-no: X (confirmed <date>)`
   marker is written so future runs don't re-litigate it. This is the honesty
   check compounding instead of repeating.
-- **The Voice Sample is never edited** (anchor `voice-sample`).
+- **Corrections replace, they do not append.** When a WHD fact is wrong (a
+  count, a stale title), propose `kind: correction` with `old` (the exact wrong
+  text, occurring once in the target section) and `content` (the right text).
+  The WHD body then holds only current facts; the changelog keeps the old text.
+  Never add the right fact next to the wrong one: every later run reads both.
+  If the helper reports the old text in other sections, propose corrections
+  there as well.
+- **Hard-no markers** use exactly `- hard-no: <what> (confirmed YYYY-MM-DD)` so
+  `hard_nos.py` can list and age them. Candidates queued by the Phase B.5 gap
+  review ("real gap") are confirmed here.
+- **The Voice Sample is never edited** (anchor `voice-sample`); `whd_patch.py`
+  refuses it and the changelog as targets.
 - **Full Pre-Stage retained** for genuinely new roles or major life changes —
-  reconciliation handles increments, not rebuilds.
+  reconciliation handles increments, not rebuilds. Run the hard-no review mode
+  (SKILL.md) as part of any rebuild.
 
 ## 3. Input manifest
 The run's patch queue accumulated during synthesis + finishing (new facts,
@@ -36,7 +48,8 @@ corrections, evidence surfaced for Partials, information-gap answers), the
 
 ## 4. Output
 - **`patches.yaml`** (validated against `schemas/patches.schema.yaml`): each item
-  {kind, target_anchor, content, whd_worthy, status, note, prompted_by}.
+  {kind, target_anchor, content, whd_worthy, status, note, prompted_by}, plus
+  `old` for a correction.
 - After the user disposes each patch, apply the approved+durable ones:
   ```bash
   python .claude/skills/resume-fit/helpers/whd_patch.py <data-plane>/pipeline/whd/<WHD>.md <run>/patches.yaml

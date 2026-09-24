@@ -40,7 +40,9 @@ You cannot claim: **{{hard-no items}}**.
 - {{shadow requirement}}
 
 ## Open questions
-<!-- Information gaps blocking editing, if any. Omit the section if none. -->
+<!-- Information gaps blocking editing, if any. Omit the section if none.
+     REQUIRED when present (contracts/synthesis.md 2b): gate1.yaml location
+     open-question, stale hard-no markers this JD touches, Gate 1 accepted risks. -->
 - {{information gap to resolve before editing}}
 
 ---

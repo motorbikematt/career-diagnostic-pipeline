@@ -13,32 +13,21 @@ place, because a shared, published placeholder proves nothing.
 """
 from __future__ import annotations
 
-import re
 import secrets
 from pathlib import Path
 
-import yaml
+from whd_io import read_front_matter, read_whd, set_front_matter_key, write_whd
 
 # The template's placeholder (templates/whd-template.md). Never a valid canary.
 PLACEHOLDER_PREFIX = "WHD-CANARY-REPLACE"
 
-_CANARY_LINE = re.compile(r"^canary:.*$", re.MULTILINE)
-
-
-def _front_matter_bounds(lines):
-    if not lines or lines[0].strip() != "---":
-        raise ValueError("WHD has no front-matter; cannot read canary")
-    try:
-        end = lines.index("---", 1)
-    except ValueError as e:
-        raise ValueError("WHD front-matter is not closed") from e
-    return end
-
 
 def read_canary(whd_path) -> str:
-    lines = Path(whd_path).read_text(encoding="utf-8").splitlines()
-    end = _front_matter_bounds(lines)
-    fm = yaml.safe_load("\n".join(lines[1:end])) or {}
+    text, _ = read_whd(whd_path)
+    try:
+        fm = read_front_matter(text)
+    except ValueError as e:
+        raise ValueError(f"{e}; cannot read canary") from e
     token = fm.get("canary")
     if not token:
         raise ValueError("WHD front-matter has no 'canary' token")
@@ -59,27 +48,14 @@ def init_canary(whd_path, force: bool = False) -> dict:
 
     Replaces a missing or placeholder token. An existing real token is kept
     unless `force` is set, so re-running init never silently rotates it.
+    Line endings and the rest of the front-matter are preserved (whd_io).
     """
-    path = Path(whd_path)
-    text = path.read_text(encoding="utf-8")
-    lines = text.splitlines()
-    end = _front_matter_bounds(lines)
-    fm = yaml.safe_load("\n".join(lines[1:end])) or {}
-    current = fm.get("canary")
+    text, eol = read_whd(whd_path)
+    current = read_front_matter(text).get("canary")
     if current and not str(current).startswith(PLACEHOLDER_PREFIX) and not force:
         return {"changed": False, "canary": current}
-
     token = new_token()
-    new_line = f'canary: "{token}"'
-    fm_text = "\n".join(lines[1:end])
-    if _CANARY_LINE.search(fm_text):
-        fm_text = _CANARY_LINE.sub(new_line, fm_text, count=1)
-    else:
-        fm_text = f"{fm_text}\n{new_line}" if fm_text else new_line
-    rebuilt = "\n".join(["---", fm_text, *lines[end:]])
-    if text.endswith("\n"):
-        rebuilt += "\n"
-    path.write_text(rebuilt, encoding="utf-8")
+    write_whd(whd_path, set_front_matter_key(text, "canary", token), eol)
     return {"changed": True, "canary": token}
 
 

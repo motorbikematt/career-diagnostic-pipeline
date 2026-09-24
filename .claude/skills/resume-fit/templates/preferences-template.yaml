@@ -1,0 +1,17 @@
+# preferences.yaml: the candidate's deal-breaker rules. Lives in the data plane
+# next to the WHD (pipeline/whd/preferences.yaml) but is a separate file: these
+# are preferences, not work history, and the fit subagent never needs them.
+# Phase A snapshots it into each run folder so an old verdict stays explainable
+# after the rules change. Every threshold gate1 applies comes from here.
+home: "City, ST"
+
+commute:
+  onsite_max_minutes: 60         # one-way drive for a daily on-site role
+  hybrid_max_minutes: 90         # one-way drive for a hybrid role...
+  hybrid_max_days_per_week: 3    # ...with at most this many office days
+
+relocation:
+  open: false                    # true: the metros below pass (see package rule)
+  requires_paid_package: true    # a listed metro passes only with employer-paid relocation
+  metro_reach_minutes: 60        # a metro covers anywhere within this drive of its core
+  metros: []                     # exact names; location assessments must use these spellings

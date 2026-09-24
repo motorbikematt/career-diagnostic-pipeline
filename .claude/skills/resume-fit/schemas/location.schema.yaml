@@ -1,0 +1,14 @@
+# location.yaml: the candidate-side location assessment (Phase A, orchestrator).
+# Kept OUT of requirements.yaml on purpose: requirements.yaml holds only facts
+# from the JD and is sent to the screening subagent, while this file measures
+# the JD's location against the candidate's home and preferred metros.
+# The model supplies geography (drive times, which metro); location_gate.py
+# applies the thresholds from preferences.yaml. Not needed for a remote role.
+type: object
+required: [borderline]
+properties:
+  drive_minutes_from_home: {type: number}  # one-way drive from preferences.home (null if not drivable)
+  nearest_metro: {type: str}               # exact name from preferences.relocation.metros, or null
+  metro_minutes: {type: number}            # drive from that metro's core to the job (null if no metro)
+  borderline: {type: bool}                 # the model judges this an edge case -> Open Question
+  notes: {type: str}                       # one line of reasoning, e.g. "Columbia MD, ~40 min from DC core"

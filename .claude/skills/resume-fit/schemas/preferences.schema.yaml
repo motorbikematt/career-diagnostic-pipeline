@@ -1,0 +1,21 @@
+# preferences.yaml: candidate deal-breaker rules (data plane, next to the WHD).
+# See templates/preferences-template.yaml for the annotated layout.
+type: object
+required: [home, commute, relocation]
+properties:
+  home: {type: str}
+  commute:
+    type: object
+    required: [onsite_max_minutes, hybrid_max_minutes, hybrid_max_days_per_week]
+    properties:
+      onsite_max_minutes: {type: number}
+      hybrid_max_minutes: {type: number}
+      hybrid_max_days_per_week: {type: number}
+  relocation:
+    type: object
+    required: [open, requires_paid_package, metro_reach_minutes, metros]
+    properties:
+      open: {type: bool}
+      requires_paid_package: {type: bool}
+      metro_reach_minutes: {type: number}
+      metros: {type: list, items: {type: str}}

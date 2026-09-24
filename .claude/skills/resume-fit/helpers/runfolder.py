@@ -20,9 +20,19 @@ def run_folder_name(company: str, role: str, on: str | None = None) -> str:
     return f"{slugify(company)}-{slugify(role)}-{on}"
 
 
+PREFERENCES_REL = Path("pipeline") / "whd" / "preferences.yaml"
+PREFERENCES_SNAPSHOT = "preferences.snapshot.yaml"
+
+
 def create_run_folder(data_plane, company: str, role: str, on: str | None = None) -> Path:
     path = Path(data_plane) / "pipeline" / "runs" / run_folder_name(company, role, on)
     path.mkdir(parents=True, exist_ok=True)
+    # Snapshot the candidate's preferences so this run's Gate 1 verdict stays
+    # explainable after the rules change. Never overwrite an existing snapshot.
+    prefs = Path(data_plane) / PREFERENCES_REL
+    snap = path / PREFERENCES_SNAPSHOT
+    if prefs.exists() and not snap.exists():
+        snap.write_bytes(prefs.read_bytes())
     return path
 
 

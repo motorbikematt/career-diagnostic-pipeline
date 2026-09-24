@@ -20,7 +20,9 @@ Map. **Do not assess recruiter perception or risk** — that is screening's job.
   Work History match indicates recoverable gaps the candidate can address."
 - **Recoverable Gaps** = "items that are None/Partial on resume but present in
   Work History." Set `recoverable: true` for a requirement whose resume status is
-  None but which the WHD supports.
+  None **or Partial** and for which the WHD holds stronger evidence than the
+  resume shows. (A Partial the WHD cannot strengthen stays `recoverable: false`;
+  Gate 1 counts it as half an unrecoverable gap.)
 - **Flag missing Hard requirements** explicitly.
 - **Role Alignment:** Seeker Archetype (from resume AND Work History); JD
   Archetype (from JD).
