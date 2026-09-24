@@ -15,6 +15,6 @@ properties:
         content: {type: str}       # appended text; for a correction, the replacement text
         old: {type: str}           # correction only: exact text to replace (must occur once in the section)
         whd_worthy: {type: bool}   # durable fact (true) vs application-specific (false)
-        status: {type: str}        # proposed | approved | rejected
+        status: {type: str}        # proposed | approved | rejected | applied (set by whd_patch.py; never re-applied)
         note: {type: str}          # changelog note (what changed + why)
         prompted_by: {type: str}   # run id that surfaced this patch

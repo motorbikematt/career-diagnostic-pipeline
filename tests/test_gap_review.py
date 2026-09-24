@@ -23,6 +23,31 @@ def test_requirement_text_attached(requirements, gapmap):
         assert r["requirement"]
 
 
+def test_upgrade_via_classification_is_rejected_by_gate1():
+    import pytest
+    import gate1
+    gm = {"requirements": [
+        # Model wrongly upgraded classification instead of recording WHD evidence.
+        {"id": "hr-1", "kind": "hard", "classification": "match", "recoverable": False,
+         "review": {"decision": "reframe"}},
+    ]}
+    assert gap_review.review_violations(gm)[0]["missing"] == [
+        "recoverable: true", "whd_evidence", "review.anchor"]
+    with pytest.raises(ValueError, match="never change classification"):
+        gate1.evaluate(gm)
+
+
+def test_correct_upgrade_passes_and_leaves_tally():
+    import gate1
+    gm = {"requirements": [
+        {"id": "hr-1", "kind": "hard", "classification": "none", "recoverable": True,
+         "whd_evidence": "role-2.project-1: shipped X", "weight": 1,
+         "review": {"decision": "new-evidence", "anchor": "role-2.project-1"}},
+    ]}
+    assert gap_review.review_violations(gm) == []
+    assert gate1.evaluate(gm)["weighted_unrecoverable"] == 0
+
+
 def test_review_outcome_never_reaches_screening(gapmap):
     # A WHD-based upgrade records review + whd_evidence, never classification.
     row = gapmap["requirements"][0]

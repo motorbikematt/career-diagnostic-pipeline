@@ -126,7 +126,9 @@ def apply_correction(text: str, anchor_id: str, old: str, new: str,
 def apply_patches(text: str, patches: list, on: str | None = None):
     """Apply approved + durable patches. Returns (text, applied, leftovers) where
     leftovers maps a correction's target anchor to other anchors still holding
-    its old text."""
+    its old text. Each applied patch dict is marked `status: applied` in place,
+    so a later pass (Phase B.5 / Gate 1 apply immediately, Phase H applies the
+    whole queue) never writes it twice."""
     applied, leftovers = [], {}
     for p in patches:
         if p.get("status") != "approved" or not p.get("whd_worthy"):
@@ -142,6 +144,9 @@ def apply_patches(text: str, patches: list, on: str | None = None):
         else:
             text = apply_patch(text, p["target_anchor"], p["content"], note, on)
         applied.append(p["target_anchor"])
+    for p in patches:
+        if p.get("status") == "approved" and p.get("whd_worthy"):
+            p["status"] = "applied"
     return text, applied, leftovers
 
 
@@ -150,9 +155,15 @@ def apply_file(whd_path, patches_path, on: str | None = None):
     from pathlib import Path
 
     text, eol = read_whd(whd_path)
-    patches = (yaml.safe_load(Path(patches_path).read_text(encoding="utf-8")) or {}).get("patches", [])
+    doc = yaml.safe_load(Path(patches_path).read_text(encoding="utf-8")) or {}
+    patches = doc.get("patches", [])
     new_text, applied, leftovers = apply_patches(text, patches, on)
+    if not applied:
+        return applied, leftovers
     write_whd(whd_path, new_text + ("\n" if text.endswith("\n") else ""), eol)
+    # Only after the WHD write succeeds: record which patches landed.
+    Path(patches_path).write_text(
+        yaml.safe_dump(doc, sort_keys=False, allow_unicode=True), encoding="utf-8")
     return applied, leftovers
 
 

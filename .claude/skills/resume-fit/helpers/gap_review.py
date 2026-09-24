@@ -48,6 +48,32 @@ def rows(gapmap: dict, requirements: dict | None = None) -> list:
     ]
 
 
+def review_violations(gapmap: dict) -> list:
+    """Rows whose recorded review broke the resume-only invariant.
+
+    A new-evidence or reframe answer is WHD evidence, so it must show up as
+    `whd_evidence` + `recoverable: true` + a cited `review.anchor`, never as a
+    changed `classification`. A row missing those is the signature of an
+    upgrade that went into `classification` instead (which the WHD-blind screen
+    would then see).
+    """
+    bad = []
+    for r in gapmap.get("requirements", []):
+        review = r.get("review") or {}
+        if review.get("decision") not in ("new-evidence", "reframe"):
+            continue
+        missing = [
+            f for f, ok in (
+                ("recoverable: true", r.get("recoverable") is True),
+                ("whd_evidence", bool(r.get("whd_evidence"))),
+                ("review.anchor", bool(review.get("anchor"))),
+            ) if not ok
+        ]
+        if missing:
+            bad.append({"id": r["id"], "decision": review["decision"], "missing": missing})
+    return bad
+
+
 def rows_files(gapmap_path, requirements_path=None) -> list:
     gm = yaml.safe_load(Path(gapmap_path).read_text(encoding="utf-8"))
     req = (yaml.safe_load(Path(requirements_path).read_text(encoding="utf-8"))

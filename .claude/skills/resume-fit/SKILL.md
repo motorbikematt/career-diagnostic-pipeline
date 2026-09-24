@@ -114,7 +114,7 @@ gate; overflow to a punch list. Routine gaps wait for their designated phase.
 5. **Validate before proceeding** (structural drift fails loudly here):
    ```bash
    python .claude/skills/resume-fit/helpers/validate.py <run>/requirements.yaml requirements
-   python .claude/skills/resume-fit/helpers/validate.py <run>/location.yaml location
+   python .claude/skills/resume-fit/helpers/validate.py <run>/location.yaml location   # non-remote roles only
    ```
 6. **Hard-no reminder** (one line, never blocks):
    ```bash

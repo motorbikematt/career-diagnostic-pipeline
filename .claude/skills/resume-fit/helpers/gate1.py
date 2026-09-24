@@ -29,6 +29,14 @@ WEAK_PARTIAL_WEIGHT = 0.5
 
 def evaluate(gapmap: dict, trip_rules: dict | None = None, location: dict | None = None) -> dict:
     rules = {**DEFAULT_TRIP_RULES, **(trip_rules or {})}
+    from gap_review import review_violations
+
+    violations = review_violations(gapmap)
+    if violations:
+        raise ValueError(
+            "gap-review upgrades must set whd_evidence + recoverable + review.anchor, "
+            f"never change classification: {violations}"
+        )
     reqs = gapmap.get("requirements", [])
     hard = [r for r in reqs if r.get("kind") == "hard"]
     unrecoverable = [

@@ -76,3 +76,20 @@ def test_apply_file_preserves_crlf(tmp_path):
     assert raw.count(b"\n") == raw.count(b"\r\n")  # every line still CRLF
     assert raw.endswith(b"\r\n")
     assert leftovers == {}
+    assert yaml.safe_load(patches.read_text(encoding="utf-8"))["patches"][0]["status"] == "applied"
+
+
+def test_apply_file_twice_is_idempotent(tmp_path):
+    whd = tmp_path / "whd.md"
+    whd.write_text(WHD, encoding="utf-8")
+    patches = tmp_path / "patches.yaml"
+    patches.write_text(yaml.safe_dump({"patches": [
+        {"kind": "evidence", "target_anchor": "role-1", "content": "- new evidence",
+         "whd_worthy": True, "status": "approved", "note": "ev"},
+        {"kind": "correction", "target_anchor": "role-1", "old": "Holds 3", "content": "Holds 2",
+         "whd_worthy": True, "status": "approved", "note": "fix"}]}), encoding="utf-8")
+    whd_patch.apply_file(whd, patches, on="2026-09-24")
+    after_first = whd.read_bytes()
+    applied, _ = whd_patch.apply_file(whd, patches, on="2026-09-24")  # Phase H re-run
+    assert applied == []
+    assert whd.read_bytes() == after_first

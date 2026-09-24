@@ -76,6 +76,13 @@ Phase B.5 gap review, hard-no review mode. Real preferences written to
 Endless (hybrid NY) and Quidient (hybrid Columbia MD) both give a location
 open-question; Quidient hr-7 is a weak Partial (tally 0.5); no run trips Gate 1,
 but the gap review now surfaces 4 rows (Endless) and 3 (Quidient).
+Follow-ups in the same pass: `whd_patch.py apply_file` marks written patches
+`status: applied` (Phase B.5 / Gate 1 apply immediately and Phase H re-applies
+the queue, so without this a patch landed twice); `gate1.py` rejects a gap-review
+upgrade that skipped `whd_evidence` / `recoverable` / `review.anchor`.
+
+- [ ] **14. The real WHD has no anchors.** Found while checking #11 against real data: `Reyes_WorkHistory_v4.md` contains zero `<!-- anchor: ... -->` markers (it predates the anchored template). Every `whd_patch.py` target, every `whd_anchors.py` citation, and every prescription `source` therefore fails to resolve on real data; the 4 proposed Endless patches already note "ANCHOR DOES NOT YET EXIST". Needs a one-time migration: add `role-N` / `role-N.project-M` / `beyond-employment` / `voice-sample` / `changelog` anchors and the front-matter `roles:` index, reviewed by the user. Blocks applying the pending WHD corrections (patent count, stale committee title, MOS figure, GoPro claim).
+- [ ] **15. Existing run gapmaps predate `seeker_archetype_resume`.** All 3 real `gapmap.yaml` files lack it, so `validate.py` and `gapmap_summary.py` now fail on them by design. Resuming the Endless run needs that one field added (resume-only archetype). Old `requirements.yaml` files lack location facts and simply yield a location open-question.
 
 - [x] **10. Job location and remote/hybrid status are never captured.**
   The job-description parse (`schemas/requirements.schema.yaml`) has no field for location or work arrangement, and none for the source URL. A hybrid New York role was evaluated without ever considering that you are based in Ohio, so the "stop or proceed" gate (Gate 1) could not flag it.
