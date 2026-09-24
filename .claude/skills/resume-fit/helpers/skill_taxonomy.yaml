@@ -39,7 +39,8 @@ llm: large language model
 genai: generative ai
 ui: user interface
 ux: user experience
-pm: project management
+# "pm" is deliberately absent: it means product OR project management, and
+# mapping it to either one credits the wrong discipline.
 qa: quality assurance
 sre: site reliability engineering
 api: application programming interface

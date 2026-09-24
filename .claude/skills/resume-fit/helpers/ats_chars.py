@@ -133,6 +133,9 @@ if __name__ == "__main__":
     import json
     import sys
 
+    from console import utf8_stdout
+
+    utf8_stdout()
     result = scan_file(sys.argv[1])
     print(json.dumps(result, indent=2, ensure_ascii=False))
     if not result["clean"]:

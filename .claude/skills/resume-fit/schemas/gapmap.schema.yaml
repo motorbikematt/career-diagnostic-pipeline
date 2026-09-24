@@ -3,7 +3,7 @@
 # resume vs. WHD evidence SEPARATELY (v1 rule); Python computes the score from
 # this map (score.py). "The score derives from the map."
 type: object
-required: [requirements, seeker_archetype, jd_archetype]
+required: [requirements, seeker_archetype, seeker_archetype_resume, jd_archetype]
 properties:
   requirements:
     type: list
@@ -22,5 +22,6 @@ properties:
     properties:
       jd_keywords: {type: list}
       resume_keywords: {type: list}
-  seeker_archetype: {type: str}
+  seeker_archetype: {type: str}          # from resume AND WHD (synthesis only)
+  seeker_archetype_resume: {type: str}   # from the resume ALONE (the only one screening sees)
   jd_archetype: {type: str}

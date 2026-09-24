@@ -36,8 +36,14 @@ One entry per requirement in `requirements.yaml`: `id`, `kind` (hard | preferred
 `weight` (relative importance — hard requirements weighted higher than
 preferred), `classification` (match | partial | none), `resume_evidence`
 (resume-only, or null), `whd_evidence` (separate, or null), `recoverable` (bool).
-Plus `seeker_archetype`, `jd_archetype`, and `ats: {jd_keywords,
-resume_keywords}`. **Do not compute or report a final score.**
+Plus `seeker_archetype`, `seeker_archetype_resume`, `jd_archetype`, and
+`ats: {jd_keywords, resume_keywords}`. **Do not compute or report a final score.**
+
+`seeker_archetype` reads the resume AND the WHD (synthesis uses it).
+`seeker_archetype_resume` is the archetype a recruiter would infer from the
+resume ALONE; write it without consulting the WHD. It is the only archetype the
+WHD-blind screening step receives, and `gapmap_summary.py` refuses a gapmap
+without it.
 
 ## 5. Refusal conditions
 - If the resume or `requirements.yaml` is missing → refuse: "Provide the missing input(s)."

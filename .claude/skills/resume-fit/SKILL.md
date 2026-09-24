@@ -45,6 +45,15 @@ python .claude/skills/resume-fit/helpers/config.py set "/path/to/data-plane"
 The data plane must contain `pipeline/whd/<the WHD>.md`. A new user with no WHD
 goes through onboarding first (see Build status → not yet built).
 
+The WHD needs a unique canary token for the screening leak check. Generate it
+once (safe to re-run; an existing real token is kept):
+
+```bash
+python .claude/skills/resume-fit/helpers/canary.py init <data-plane>/pipeline/whd/<WHD>.md
+```
+
+`canary.py` refuses to scan while the template placeholder is still in place.
+
 ## Architecture (plan section 2)
 
 ```
@@ -145,8 +154,11 @@ accepted risk (b) or new evidence on the record (c).
 Build the screening subagent's input from an explicit manifest that OMITS the
 WHD, and pass a screening-safe gapmap summary:
 ```bash
-python .claude/skills/resume-fit/helpers/gapmap_summary.py <run>/gapmap.yaml > <run>/gapmap.summary.yaml
+python .claude/skills/resume-fit/helpers/gapmap_summary.py <run>/gapmap.yaml --out <run>/gapmap.summary.yaml
 ```
+Always use `--out`, never a shell `>` redirect (on Windows the redirect can write
+a non-UTF-8 file). The summary forwards only the resume-only
+`seeker_archetype_resume`; it fails if the gapmap lacks that field.
 Dispatch the screening subagent (contract: `contracts/screening.md`) on the
 **strong model**, with **no file-read tools** — inputs are: resume,
 `requirements.yaml`, `gapmap.summary.yaml`, `scd.yaml`. It writes `screen.yaml`.
@@ -216,7 +228,11 @@ Only after Gate 2 "proceed to draft". Contract + verbatim ghost-editor invariant
 
 1. Generate the silent tagged draft (`resume_draft.md`) applying only the
    `prescriptions.yaml` edits, in the candidate's voice (WHD `voice-sample`).
-   Target 2 pages; apply any Compress/Cut prescriptions as you draft.
+   Target 2 pages; apply any Compress/Cut prescriptions as you draft. Keep every
+   section newest-first, then confirm (`contracts/finishing.md` §2b):
+   ```bash
+   python .claude/skills/resume-fit/helpers/chrono_check.py <run>/resume_draft.md
+   ```
 2. Run the finishing loop: batched AskUserQuestion rounds (Supply / Keyword /
    Voice / Stretch / **Length**), highest-stakes first, ~3 per type.
 3. Gate on the tag exit-check every pass:
@@ -232,7 +248,11 @@ Only after Gate 2 "proceed to draft". Contract + verbatim ghost-editor invariant
    If over budget, show the user the per-section **cost** (from this helper) beside
    the per-section **value** (JD-linkage from `gapmap.yaml`/`screen.yaml`) and let
    them decide cuts — protect JD-relevant/recent-in-demand work, cut cheap inches
-   first (oldest unlinked roles, tail sections). Never auto-truncate. Prefer
+   first (oldest unlinked roles, tail sections). Never auto-truncate. Survey EVERY
+   section: record keep / compress / cut for each heading in the helper's
+   `review_checklist` into `<run>/length_review.yaml`, and re-run with
+   `--review <run>/length_review.yaml` until `review.complete` is true before
+   cutting or overriding. Prefer
    compression over cutting: `python .claude/skills/resume-fit/helpers/compress_candidates.py
    <run>/resume_draft.md` finds 3+ item lists mechanically; the model proposes an
    accurate count+category phrase and the user ratifies before it's applied. If
@@ -245,11 +265,12 @@ Only after Gate 2 "proceed to draft". Contract + verbatim ghost-editor invariant
    python .claude/skills/resume-fit/helpers/ats.py <run>/requirements.yaml <run>/resume_draft.md
    python .claude/skills/resume-fit/helpers/relevance.py <run>/resume_draft.md <run>/requirements.yaml <run>/gapmap.yaml
    python .claude/skills/resume-fit/helpers/ats_chars.py <run>/resume_draft.md
+   python .claude/skills/resume-fit/helpers/chrono_check.py <run>/resume_draft.md
    ```
    Confirm ATS coverage didn't regress vs seed, no NEW `none`-linkage claim was
-   introduced, the voice check passed, and `ats_chars.py` reports **clean** (fixed
+   introduced, the voice check passed, `ats_chars.py` reports **clean** (fixed
    rule — em/en dashes, curly quotes, decorative bullets, emoji; never tolerated,
-   not just a regression check). Write `reeval.md`. No recursion — any issue
+   not just a regression check), and `chrono_check.py` reports `ordered`. Write `reeval.md`. No recursion: any issue
    surfaces as one yes/no, not a new trim loop.
 6. On clean + length-resolved + re-eval clean, write `resume_candidate.md` and
    render an ATS-safe docx (0.6in margins, single column, no tables):
@@ -263,6 +284,13 @@ Only after Gate 2 "proceed to draft". Contract + verbatim ghost-editor invariant
    approval, the true final deliverable is rendered as
    `<LASTNAME>_<FIRSTNAME>_<COMPANY>_<DATE>.docx` — the one filename in the
    pipeline meant for a human, not another pipeline step.
+7. **The user may edit the `.docx` directly.** Before any further edit pass and
+   before the final render, check for drift (`contracts/finishing.md` §2c):
+   ```bash
+   python .claude/skills/resume-fit/helpers/docx_drift.py <run>/resume_candidate.md <run>/resume_candidate.docx
+   ```
+   On DRIFT, rebuild with `--pull <run>/resume_candidate.pulled.md`, show the user
+   the diff, and on confirmation make it the new `resume_candidate.md`.
 
 ## Phase H — WHD reconciliation (BUILT)
 
@@ -299,12 +327,14 @@ arithmetic and string-matching so the model never does.
 | `ats.py` | Exact-match keyword scan (synonym-aware) | `ats.py <requirements.yaml> <resume>` |
 | `gate1.py` | Unrecoverable-gap tally + trip rules | `gate1.py <gapmap.yaml>` |
 | `whd_anchors.py` | Resolve a WHD section by anchor id | `whd_anchors.py <whd.md> <anchor>` |
-| `gapmap_summary.py` | Screening-safe gapmap (strips WHD fields) | `gapmap_summary.py <gapmap.yaml>` |
-| `canary.py` | Screening-blindness leak scan | `canary.py <screen.yaml> <whd.md>` |
+| `gapmap_summary.py` | Screening-safe gapmap (strips WHD fields, resume-only archetype) | `gapmap_summary.py <gapmap.yaml> --out <file>` |
+| `canary.py` | Screening-blindness leak scan; `init` writes a unique token | `canary.py <screen.yaml> <whd.md>` / `canary.py init <whd.md>` |
 | `numbers_strip.py` | Deterministic report headline numbers | `numbers_strip.py <run>` |
-| `prescriptions.py` | Enforce every recoverable gap has an Add row | `prescriptions.py <prescriptions.yaml> <gapmap.yaml>` |
+| `prescriptions.py` | Enforce every recoverable gap has an Add row; reject "X or Y" targets | `prescriptions.py <prescriptions.yaml> <gapmap.yaml>` |
 | `tags.py` | Finishing-loop tag scan + exit check | `tags.py <resume_draft.md>` |
-| `length_budget.py` | Advisory 2-page estimator + per-section cost breakdown | `length_budget.py <resume.md> --max-pages 2` |
+| `length_budget.py` | Advisory 2-page estimator + per-section cost breakdown + review completeness | `length_budget.py <resume.md> --max-pages 2 [--review <length_review.yaml>]` |
+| `chrono_check.py` | Newest-first ordering check per section | `chrono_check.py <resume.md>` |
+| `docx_drift.py` | Detect hand edits in the `.docx` the `.md` lacks; `--pull` rebuilds md | `docx_drift.py <resume.md> <resume.docx> [--pull <out.md>]` |
 | `relevance.py` | Line-level JD-relevance meter (per-JD, value-blind); flags `none`-linkage claims | `relevance.py <resume.md> <requirements.yaml> <gapmap.yaml>` |
 | `ats_chars.py` | Scans for ATS-unsafe characters (em/en dash, curly quotes, decorative bullets, emoji, prose "&") | `ats_chars.py <resume.md>` |
 | `compress_candidates.py` | Finds 3+ item lists as compression candidates (pattern only, no category-word suggestion) | `compress_candidates.py <resume.md>` |

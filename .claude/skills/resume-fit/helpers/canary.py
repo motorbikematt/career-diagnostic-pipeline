@@ -6,28 +6,81 @@ blindness guarantee was violated by construction and the run must fail.
 
 An LLM instruction is a request; a missing capability is a guarantee — this scan
 is the guarantee's tripwire (plan section 9).
+
+The token must be unique per WHD. `init` writes a random one into the WHD
+front-matter; the scan refuses to run while the template placeholder is still in
+place, because a shared, published placeholder proves nothing.
 """
 from __future__ import annotations
 
+import re
+import secrets
 from pathlib import Path
 
 import yaml
 
+# The template's placeholder (templates/whd-template.md). Never a valid canary.
+PLACEHOLDER_PREFIX = "WHD-CANARY-REPLACE"
 
-def read_canary(whd_path) -> str:
-    text = Path(whd_path).read_text(encoding="utf-8")
-    lines = text.splitlines()
+_CANARY_LINE = re.compile(r"^canary:.*$", re.MULTILINE)
+
+
+def _front_matter_bounds(lines):
     if not lines or lines[0].strip() != "---":
         raise ValueError("WHD has no front-matter; cannot read canary")
     try:
         end = lines.index("---", 1)
     except ValueError as e:
         raise ValueError("WHD front-matter is not closed") from e
+    return end
+
+
+def read_canary(whd_path) -> str:
+    lines = Path(whd_path).read_text(encoding="utf-8").splitlines()
+    end = _front_matter_bounds(lines)
     fm = yaml.safe_load("\n".join(lines[1:end])) or {}
     token = fm.get("canary")
     if not token:
         raise ValueError("WHD front-matter has no 'canary' token")
+    if str(token).startswith(PLACEHOLDER_PREFIX):
+        raise ValueError(
+            "WHD canary is still the template placeholder; run "
+            "`canary.py init <whd.md>` to generate a unique token"
+        )
     return token
+
+
+def new_token() -> str:
+    return f"WHD-CANARY-{secrets.token_hex(8).upper()}-DO-NOT-OUTPUT"
+
+
+def init_canary(whd_path, force: bool = False) -> dict:
+    """Write a fresh random canary into the WHD front-matter.
+
+    Replaces a missing or placeholder token. An existing real token is kept
+    unless `force` is set, so re-running init never silently rotates it.
+    """
+    path = Path(whd_path)
+    text = path.read_text(encoding="utf-8")
+    lines = text.splitlines()
+    end = _front_matter_bounds(lines)
+    fm = yaml.safe_load("\n".join(lines[1:end])) or {}
+    current = fm.get("canary")
+    if current and not str(current).startswith(PLACEHOLDER_PREFIX) and not force:
+        return {"changed": False, "canary": current}
+
+    token = new_token()
+    new_line = f'canary: "{token}"'
+    fm_text = "\n".join(lines[1:end])
+    if _CANARY_LINE.search(fm_text):
+        fm_text = _CANARY_LINE.sub(new_line, fm_text, count=1)
+    else:
+        fm_text = f"{fm_text}\n{new_line}" if fm_text else new_line
+    rebuilt = "\n".join(["---", fm_text, *lines[end:]])
+    if text.endswith("\n"):
+        rebuilt += "\n"
+    path.write_text(rebuilt, encoding="utf-8")
+    return {"changed": True, "canary": token}
 
 
 def scan_text(text: str, canary: str) -> bool:
@@ -43,6 +96,12 @@ def check(screen_path, whd_path) -> dict:
 
 if __name__ == "__main__":
     import sys
+
+    if sys.argv[1] == "init":
+        result = init_canary(sys.argv[2], force="--force" in sys.argv[3:])
+        state = "generated" if result["changed"] else "kept existing"
+        print(f"{state} canary in {sys.argv[2]}")
+        sys.exit(0)
 
     result = check(sys.argv[1], sys.argv[2])
     if result["leaked"]:

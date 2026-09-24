@@ -11,7 +11,7 @@ properties:
       required: [type, target, why]
       properties:
         type: {type: str}     # reframe | add | remove | reorder | compress | cut
-        target: {type: str}   # the bullet/line/section to change (the "what")
+        target: {type: str}   # the ONE bullet/line/section to change (the "what"); no "X or Y" alternatives (prescriptions.py rejects them)
         why: {type: str}      # what it currently signals -> what it needs to signal (the "why")
         closes: {type: list}  # gap-map ids or screen trigger refs this closes
         source: {type: str}   # WHD anchor id (required for an Add closing a recoverable gap)

@@ -7,6 +7,12 @@ mismatches separately (e.g. "Product Ops" vs. "Program Management").
 Synonym/abbreviation pairs (e.g. "K8s" / "Kubernetes") are still exact-match
 string equivalence, not semantic judgment, so they stay in this deterministic
 layer via skill_taxonomy.yaml.
+
+Matching is case-insensitive EXCEPT for the short terms in CASE_SENSITIVE, which
+are also ordinary English words or names ("go", "rest", "node", "Ai"). Those
+match only in their written technical form, so "we go to market" no longer
+counts as the Go language and "the rest of the team" no longer counts as a REST
+API.
 """
 from __future__ import annotations
 
@@ -16,6 +22,20 @@ from pathlib import Path
 import yaml
 
 TAXONOMY_PATH = Path(__file__).resolve().parent / "skill_taxonomy.yaml"
+
+# lowercase term -> the only spelling that counts as a match.
+CASE_SENSITIVE = {
+    "go": "Go",
+    "rest": "REST",
+    "node": "Node",
+    "ai": "AI",
+    "ml": "ML",
+    "ts": "TS",
+    "rn": "RN",
+}
+
+# Case-sensitive terms whose hyphen compounds are a different word.
+HYPHEN_EXCLUDED = {"go"}
 
 
 def _load_synonyms() -> dict:
@@ -27,7 +47,24 @@ def _load_synonyms() -> dict:
 SKILL_SYNONYMS = _load_synonyms()
 
 
-def _present(keyword: str, text_lower: str, synonyms: dict | None = None) -> bool:
+def _matches(cand: str, text: str, text_lower: str) -> bool:
+    cased = CASE_SENSITIVE.get(cand)
+    if cased is not None:
+        # Exact casing. Hyphen compounds still count ("AI-native", "ML-based"),
+        # except for terms in HYPHEN_EXCLUDED ("Go-to-market" is not Go).
+        tail = r"(?![\w-])" if cand in HYPHEN_EXCLUDED else r"(?!\w)"
+        pattern = r"(?<!\w)" + re.escape(cased) + tail
+        return re.search(pattern, text) is not None
+    # Word-boundary match that also works for multi-word and hyphenated terms.
+    pattern = r"(?<!\w)" + re.escape(cand) + r"(?!\w)"
+    return re.search(pattern, text_lower) is not None
+
+
+def _present(keyword: str, text: str, synonyms: dict | None = None) -> bool:
+    """True if `keyword` (or a taxonomy synonym of it) appears in `text`.
+
+    `text` is the original, un-lowercased text: case-sensitive terms need it.
+    """
     synonyms = SKILL_SYNONYMS if synonyms is None else synonyms
     kw = keyword.strip().lower()
     if not kw:
@@ -35,19 +72,14 @@ def _present(keyword: str, text_lower: str, synonyms: dict | None = None) -> boo
     canonical = synonyms.get(kw, kw)
     candidates = {kw, canonical}
     candidates.update(k for k, v in synonyms.items() if v == canonical)
-    for cand in candidates:
-        # Word-boundary match that also works for multi-word and hyphenated terms.
-        pattern = r"(?<!\w)" + re.escape(cand) + r"(?!\w)"
-        if re.search(pattern, text_lower):
-            return True
-    return False
+    text_lower = text.lower()
+    return any(_matches(cand, text, text_lower) for cand in candidates)
 
 
 def scan(jd_keywords, resume_text: str) -> dict:
-    tl = resume_text.lower()
     present, missing = [], []
     for kw in jd_keywords:
-        (present if _present(kw, tl) else missing).append(kw)
+        (present if _present(kw, resume_text) else missing).append(kw)
     return {
         "present": present,
         "missing": missing,

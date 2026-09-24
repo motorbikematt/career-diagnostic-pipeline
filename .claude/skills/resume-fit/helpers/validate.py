@@ -87,6 +87,9 @@ def validate_file(yaml_path, schema_name: str):
 if __name__ == "__main__":
     import sys
 
+    from console import utf8_stdout
+
+    utf8_stdout()
     yaml_path, schema_name = sys.argv[1], sys.argv[2]
     try:
         validate_file(yaml_path, schema_name)

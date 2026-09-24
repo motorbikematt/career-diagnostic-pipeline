@@ -32,6 +32,23 @@ voice, applying ONLY the synthesis prescriptions.
 - **Voice Integrity Check:** compare each [CHANGED] line against the Voice Sample
   and unchanged lines; flag hard conformance as "VOICE NOTE: ...".
 
+## 2b. Ordering invariant (v2 addition)
+- Within every section, dated entries (roles, volunteer positions, education)
+  appear **newest first**. An Add or Reorder prescription never overrides this:
+  new content goes inside the entry it belongs to, at its date position.
+- Enforced deterministically: `python .claude/skills/resume-fit/helpers/chrono_check.py <draft.md>`
+  exits non-zero and names each entry that is newer than the one above it. Run it
+  after drafting (§4) and in the re-eval (§6b).
+
+## 2c. Word edits are real edits (v2 addition)
+Once `resume_candidate.docx` exists, the user may edit it directly in Word. The
+`.md` is then stale, and working from it loses their edits. Before ANY further
+edit pass, and before the §7 final render, run:
+`python .claude/skills/resume-fit/helpers/docx_drift.py <run>/resume_candidate.md <run>/resume_candidate.docx`
+If it reports DRIFT, stop. Rebuild the markdown from the docx with
+`--pull <run>/resume_candidate.pulled.md`, show the user the diff, and on their
+confirmation make the pulled file the new `resume_candidate.md` before continuing.
+
 ## 3. Input manifest
 The WHD (voice sample + cited sections), the current resume, `prescriptions.yaml`,
 `gapmap.yaml` (honesty: which items are Stretch/Hard No), `scd.yaml`.
@@ -69,7 +86,13 @@ AskUserQuestion, batched by tag type:
     section — size is a cost signal, not a cut signal.
   Recommend cutting the *cheap, low-value inches first* (oldest unlinked roles,
   tail sections, redundant summary paragraph) via `AskUserQuestion`, but the user
-  makes every call — recency-vs-tenure-gap tradeoffs are theirs. **Override:** if
+  makes every call; recency-vs-tenure-gap tradeoffs are theirs. **Survey every
+  section, not just the obvious ones:** when over budget the helper prints a
+  `review_checklist` of every section. Record a keep / compress / cut decision for
+  each in `<run>/length_review.yaml` (`"<section heading>": keep`, or
+  `{decision: cut, note: ...}`), then re-run with `--review <run>/length_review.yaml`.
+  Do not propose cuts or record an override until it reports
+  `review.complete: true`. **Override:** if
   the user chooses to exceed 2 pages, capture their stated reason and write it to
   the run as `length_override.md` (reason + final page estimate). Re-run the
   helper after edits until it reports fits OR an override reason is recorded.
@@ -116,6 +139,9 @@ re-enter any loop.
    Fixing a violation may require rephrasing (e.g. an em-dash clause becomes two
    sentences) — that judgment belongs to the model/user, not an auto-replace.
 
+5. **Ordering:** `python .claude/skills/resume-fit/helpers/chrono_check.py <resume_draft.md>`.
+   Must report `ordered: true` (§2b). Deterministic, clean or not.
+
 Write a short `reeval.md` to the run folder: the axis verdicts + any
 regression. **No recursion** — if it flags a regression, surface it to the user as a
 single yes/no ("keep as-is or make this one fix?"), never as a new trim cycle. If
@@ -143,7 +169,8 @@ clean, proceed to render. If the draft already passed cleanly (no dead-weight, f
   naming convention independent of internal revision scratch files:
   `<LASTNAME>_<FIRSTNAME>_<COMPANY>_<DATE>.docx` (e.g.
   `Reyes_Matthew_Anthropic_2026-07-06.docx`), built from the approved
-  `resume_candidate.md`. This is the one file named without a pipeline-internal
+  `resume_candidate.md`. Run the §2c drift check first: if the user edited the
+  candidate `.docx`, the approved text lives there, not in the `.md`. This is the one file named without a pipeline-internal
   suffix — it is meant to be handed to a human, not read by another pipeline step.
 
 ## 8. Refusal conditions

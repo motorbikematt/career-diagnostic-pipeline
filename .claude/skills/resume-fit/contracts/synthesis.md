@@ -44,6 +44,11 @@ All run artifacts + the WHD: `requirements.yaml`, `scd.yaml`, `gapmap.yaml`,
 ## 4. Outputs
 - **`prescriptions.yaml`** (validated against `schemas/prescriptions.schema.yaml`;
   coverage enforced by `prescriptions.py <prescriptions.yaml> <gapmap.yaml>`).
+  Each `target` names exactly ONE location. If you are unsure where content
+  belongs, decide, or ask the user; never write "under X or as a new Y" (the
+  helper rejects "or" / "either" / "alternatively" in a target). A Reorder or
+  Add must also keep roles within a section newest-first (see
+  `contracts/finishing.md` §2b).
 - **`report.md`** from `templates/report.md` — verdict-first, 1–2 pages,
   ~600–900 words. The **numbers strip is assembled by `numbers_strip.py`** (do not
   hand-transcribe the headline numbers). The two triggers are quoted **verbatim**

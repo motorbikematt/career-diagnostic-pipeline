@@ -68,4 +68,7 @@ def resolve_file(path, anchor_id: str) -> str:
 if __name__ == "__main__":
     import sys
 
+    from console import utf8_stdout
+
+    utf8_stdout()
     print(resolve_file(sys.argv[1], sys.argv[2]))

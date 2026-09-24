@@ -29,8 +29,10 @@ Executive Recruiter / Risk Analyst: assess real-world screening likelihood.
 ## 3. Input manifest (exactly these — nothing else; ENFORCED)
 - The current resume.
 - `requirements.yaml` (the JD parsed once).
-- The **gapmap summary** produced by `gapmap_summary.py` — `whd_evidence` and
-  `recoverable` are stripped; you receive only resume-derived fit signal.
+- The **gapmap summary** produced by `gapmap_summary.py`. `whd_evidence`,
+  `recoverable`, and the WHD-informed `seeker_archetype` are stripped; the
+  archetype arrives only as `seeker_archetype_resume` (resume-only). You receive
+  only resume-derived fit signal.
 - `scd.yaml` if present; otherwise apply the RISK-AVERSE MAINTENANCE safety default.
 
 **EXPLICITLY NOT PROVIDED: the WHD.** This subagent is dispatched with **no

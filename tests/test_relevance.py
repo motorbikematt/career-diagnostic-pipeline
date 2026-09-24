@@ -8,6 +8,7 @@ Guards three properties the design depends on:
      yields DIFFERENT linkage flags (a hardcoded stoplist would fail this).
 """
 import relevance
+from conftest import data_plane_runs
 
 
 # Minimal JD "A": a growth / API product role.
@@ -104,10 +105,7 @@ def test_real_seed_flags_offtarget_not_roblox():
     monetization/funnel bullet does (Roblox is protected by the data)."""
     from pathlib import Path
 
-    run = Path(
-        "D:/vibe/resume-pipeline-data/pipeline/runs/"
-        "anthropic-product-manager-api-growth-2026-07-06"
-    )
+    run = data_plane_runs() / "anthropic-product-manager-api-growth-2026-07-06"
     if not (run / "resume_final.md").exists():
         import pytest
         pytest.skip("data-plane Anthropic run not present")

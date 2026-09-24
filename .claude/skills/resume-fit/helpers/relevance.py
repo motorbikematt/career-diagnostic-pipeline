@@ -75,8 +75,7 @@ def _evidence_index(gapmap: dict, overlap_min: int = 2) -> list:
 
 def score_element(text: str, jd_keywords: list, evidence_idx: list,
                   overlap_min: int = 2) -> dict:
-    tl = text.lower()
-    ats_hits = [k for k in jd_keywords if _present(k, tl)]
+    ats_hits = [k for k in jd_keywords if _present(k, text)]
     el_tokens = _tokens(text)
     linked = [
         rid for rid, ev_tokens in evidence_idx
@@ -194,6 +193,9 @@ if __name__ == "__main__":
                     help="print only the none-linkage element texts")
     args = ap.parse_args()
 
+    from console import utf8_stdout
+
+    utf8_stdout()
     result = analyze_files(args.resume, args.requirements, args.gapmap)
     if args.none_only:
         for t in result["none_linkage"]:

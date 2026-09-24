@@ -24,3 +24,17 @@ def test_no_canary_token_survives_summary(gapmap):
     import yaml
     dumped = yaml.safe_dump(gapmap_summary.summarize(gapmap))
     assert "CANARY" not in dumped
+
+
+def test_only_resume_archetype_reaches_screening(gapmap):
+    # TODO #1: seeker_archetype is WHD-informed and must not be forwarded.
+    summary = gapmap_summary.summarize(gapmap)
+    assert "seeker_archetype" not in summary
+    assert summary["seeker_archetype_resume"] == gapmap["seeker_archetype_resume"]
+
+
+def test_missing_resume_archetype_fails_loudly(gapmap):
+    import pytest
+    del gapmap["seeker_archetype_resume"]
+    with pytest.raises(ValueError):
+        gapmap_summary.summarize(gapmap)

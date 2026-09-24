@@ -7,8 +7,9 @@ structure_updated: YYYY-MM-DD
 schema_version: 1
 # Canary: a unique token that exists ONLY in this front-matter. The screening
 # subagent never receives the WHD; a deterministic post-run scan fails the run
-# if this token appears in screen.yaml. The skill generates a fresh random token
-# per WHD on first ingest. Never copy it into any downstream artifact.
+# if this token appears in screen.yaml. Generate a fresh random token with
+# `python .claude/skills/resume-fit/helpers/canary.py init <whd.md>`; the scan
+# refuses to run on this placeholder. Never copy it into any downstream artifact.
 canary: "WHD-CANARY-REPLACE-WITH-UNIQUE-TOKEN-DO-NOT-OUTPUT"
 # One line per role, most recent first. `tags` are 3-5 lowercase capability
 # slugs so subagents can retrieve roles selectively without reading the whole

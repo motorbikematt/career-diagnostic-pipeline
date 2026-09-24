@@ -4,6 +4,7 @@ This is a fixed, mechanical rule (not a style/judgment check): certain Unicode
 characters are documented ATS parsing failure points regardless of content or JD.
 """
 import ats_chars
+from conftest import data_plane_runs
 
 
 def test_clean_text_reports_clean():
@@ -73,9 +74,9 @@ def test_real_candidate_is_clean():
     """The current resume_candidate.md (post ampersand fix, rev8) should scan clean."""
     from pathlib import Path
 
-    p = Path(
-        "D:/vibe/resume-pipeline-data/pipeline/runs/"
-        "anthropic-product-manager-api-growth-2026-07-06/resume_candidate.md"
+    p = (
+        data_plane_runs()
+        / "anthropic-product-manager-api-growth-2026-07-06/resume_candidate.md"
     )
     if not p.exists():
         import pytest

@@ -160,17 +160,53 @@ def estimate(md_text: str, margin_in: float = 0.6) -> dict:
     }
 
 
-def check(md_text: str, max_pages: float = 2.0, margin_in: float = 0.6) -> dict:
+REVIEW_DECISIONS = ("keep", "compress", "cut")
+
+
+def review_status(sections: list, review: dict | None) -> dict:
+    """Has every section been given a keep/compress/cut decision?
+
+    Closes a process gap: the length round is supposed to weigh cost vs. value
+    for EVERY section before anything is cut, and in practice sections were
+    skipped. The review file (`length_review.yaml`) maps each section heading to
+    a decision, either `heading: keep` or `heading: {decision: cut, note: ...}`.
+    Still value-blind: this checks the review is complete, not what it decided.
+    """
+    review = review or {}
+    missing, invalid = [], []
+    for s in sections:
+        h = s["heading"]
+        entry = review.get(h)
+        decision = entry.get("decision") if isinstance(entry, dict) else entry
+        if decision is None:
+            missing.append(h)
+        elif decision not in REVIEW_DECISIONS:
+            invalid.append({"heading": h, "decision": decision})
+    return {"complete": not missing and not invalid, "missing": missing, "invalid": invalid}
+
+
+def check(md_text: str, max_pages: float = 2.0, margin_in: float = 0.6,
+          review: dict | None = None) -> dict:
     est = estimate(md_text, margin_in=margin_in)
     est["max_pages"] = max_pages
     est["fits"] = est["estimated_pages"] <= max_pages + 0.05  # small tolerance
     est["over_pages"] = round(max(0.0, est["estimated_pages"] - max_pages), 2)
+    if not est["fits"]:
+        # Every section must be surveyed before any cut or override.
+        est["review_checklist"] = [s["heading"] for s in est["sections"]]
+        est["review"] = review_status(est["sections"], review)
     return est
 
 
-def check_file(path, max_pages: float = 2.0, margin_in: float = 0.6) -> dict:
+def check_file(path, max_pages: float = 2.0, margin_in: float = 0.6,
+               review_path=None) -> dict:
+    review = None
+    if review_path:
+        import yaml
+
+        review = yaml.safe_load(Path(review_path).read_text(encoding="utf-8")) or {}
     return check(Path(path).read_text(encoding="utf-8"),
-                 max_pages=max_pages, margin_in=margin_in)
+                 max_pages=max_pages, margin_in=margin_in, review=review)
 
 
 if __name__ == "__main__":
@@ -182,13 +218,23 @@ if __name__ == "__main__":
     ap.add_argument("--max-pages", type=float, default=2.0)
     ap.add_argument("--margin", type=float, default=0.6,
                     help="page margin in inches (render_docx.py uses 0.6)")
+    ap.add_argument("--review", metavar="LENGTH_REVIEW_YAML",
+                    help="per-section keep/compress/cut decisions to check for completeness")
     args = ap.parse_args()
 
-    result = check_file(args.path, max_pages=args.max_pages, margin_in=args.margin)
-    print(json.dumps(result, indent=2))
+    from console import utf8_stdout
+
+    utf8_stdout()
+    result = check_file(args.path, max_pages=args.max_pages, margin_in=args.margin,
+                        review_path=args.review)
+    print(json.dumps(result, indent=2, ensure_ascii=False))
     if not result["fits"]:
         print(f"OVER BUDGET: ~{result['estimated_pages']} pages "
               f"(target {result['max_pages']}); over by ~{result['over_pages']}. "
               f"Advisory only -- record a reason to override.")
+        if not result["review"]["complete"]:
+            print(f"REVIEW INCOMPLETE: {len(result['review']['missing'])} sections "
+                  "lack a keep/compress/cut decision. Decide every section in "
+                  "length_review.yaml before cutting or overriding.")
         # Advisory, non-zero exit so the loop notices; NOT a hard block.
         raise SystemExit(2)

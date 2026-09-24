@@ -40,3 +40,29 @@ def test_add_without_source_does_not_cover():
     ]}
     result = prescriptions.check_coverage(pres, gm)
     assert result["ok"] is False
+
+
+# --- Ambiguous targets (TODO #7) -------------------------------------------
+
+def test_fixture_prescriptions_have_unambiguous_targets():
+    import yaml
+    from conftest import RUN
+    pres = yaml.safe_load((RUN / "prescriptions.yaml").read_text(encoding="utf-8"))
+    assert prescriptions.ambiguous_targets(pres) == []
+
+
+def test_either_or_target_fails():
+    pres = {"prescriptions": [
+        {"type": "add", "target": "under Professional Summary or as a new early-career entry",
+         "why": "..."},
+    ]}
+    result = prescriptions.check_coverage(pres, {"requirements": []})
+    assert result["ok"] is False
+    assert len(result["ambiguous_targets"]) == 1
+
+
+def test_words_containing_or_are_not_flagged():
+    pres = {"prescriptions": [
+        {"type": "reframe", "target": "Senior Editor role, Coordinator bullet", "why": "..."},
+    ]}
+    assert prescriptions.ambiguous_targets(pres) == []

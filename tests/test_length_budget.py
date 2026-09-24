@@ -5,6 +5,7 @@ per-section breakdown. It must never fail closed (it's advisory) and must stay
 value-blind (no cut recommendations in its output).
 """
 import length_budget
+from conftest import data_plane_runs
 
 
 SHORT = """# Jane Doe
@@ -101,12 +102,40 @@ def test_calibration_against_observed_ground_truth():
     went undetected until checked against this exact ground truth."""
     from pathlib import Path
 
-    p = Path(
-        "D:/vibe/resume-pipeline-data/pipeline/runs/"
-        "anthropic-product-manager-api-growth-2026-07-06/resume_candidate.md"
+    p = (
+        data_plane_runs()
+        / "anthropic-product-manager-api-growth-2026-07-06/resume_candidate.md"
     )
     if not p.exists():
         import pytest
         pytest.skip("data-plane Anthropic run not present")
     est = length_budget.check_file(p, max_pages=2, margin_in=0.6)
     assert 1.85 <= est["estimated_pages"] <= 2.15
+
+
+# --- Section review completeness (TODO #8) ---------------------------------
+
+def test_over_budget_emits_checklist_and_incomplete_review():
+    r = length_budget.check(_long_resume(), max_pages=2)
+    assert r["fits"] is False
+    assert r["review_checklist"] == [s["heading"] for s in r["sections"]]
+    assert r["review"]["complete"] is False
+    assert r["review"]["missing"] == r["review_checklist"]
+
+
+def test_complete_review_passes_and_bad_decision_is_invalid():
+    first = length_budget.check(_long_resume(), max_pages=2)
+    review = {h: "keep" for h in first["review_checklist"]}
+    assert length_budget.check(_long_resume(), max_pages=2, review=review)["review"]["complete"]
+
+    h0 = first["review_checklist"][0]
+    review[h0] = {"decision": "shrink", "note": "?"}
+    status = length_budget.check(_long_resume(), max_pages=2, review=review)["review"]
+    assert status["complete"] is False
+    assert status["invalid"] == [{"heading": h0, "decision": "shrink"}]
+
+
+def test_fitting_resume_has_no_review_gate():
+    r = length_budget.check(SHORT, max_pages=2)
+    assert r["fits"] is True
+    assert "review" not in r
