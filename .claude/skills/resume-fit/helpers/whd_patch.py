@@ -99,9 +99,14 @@ def apply_patch(text: str, anchor_id: str, content: str, changelog_note: str,
 
 def apply_correction(text: str, anchor_id: str, old: str, new: str,
                      changelog_note: str, on: str | None = None,
-                     prompted_by: str | None = None) -> tuple[str, list]:
+                     prompted_by: str | None = None,
+                     redact: bool = False) -> tuple[str, list]:
     """Replace `old` with `new` inside one section. Returns (text, anchors that
-    still contain `old` elsewhere)."""
+    still contain `old` elsewhere).
+
+    `redact=True` keeps the old text out of the changelog: use it when the
+    point of the correction is that the text should no longer appear anywhere
+    (e.g. removing a person's name at the user's request)."""
     if not old:
         raise ValueError("a correction patch needs a non-empty `old`")
     on = on or _date.today().isoformat()
@@ -118,7 +123,13 @@ def apply_correction(text: str, anchor_id: str, old: str, new: str,
         )
     lines[target:end] = section.replace(old, new, 1).split("\n")
     run = f"; run: {prompted_by}" if prompted_by else ""
-    entry = f"{on} - {changelog_note} (corrected in {anchor_id}: was \"{old}\", now \"{new}\"{run})"
+    # One changelog line per correction: never embed the newline of a removed line.
+    was, now = old.strip(), new.strip()
+    if redact:
+        change = "removed (redacted)" if not now else f"replaced (old text redacted), now \"{now}\""
+    else:
+        change = f"removed \"{was}\"" if not now else f"was \"{was}\", now \"{now}\""
+    entry = f"{on} - {changelog_note} (corrected in {anchor_id}: {change}{run})"
     out = _append_changelog("\n".join(lines), entry)
     return out, anchors_containing(out, old)
 
@@ -137,7 +148,7 @@ def apply_patches(text: str, patches: list, on: str | None = None):
         if p.get("kind") == "correction":
             text, remaining = apply_correction(
                 text, p["target_anchor"], p.get("old", ""), p["content"], note, on,
-                p.get("prompted_by"),
+                p.get("prompted_by"), bool(p.get("redact")),
             )
             if remaining:
                 leftovers[p["target_anchor"]] = remaining

@@ -42,6 +42,25 @@ def test_correction_replaces_and_logs_old_text():
     assert remaining == []
 
 
+def test_removing_a_line_keeps_changelog_on_one_line():
+    out, _ = whd_patch.apply_correction(
+        WHD, "nimbus-labs", "- Holds 3 patents in imaging.\n", "", "drop line", on="2026-09-30")
+    assert "Holds 3 patents in imaging." not in whd_anchors.resolve_anchor(out, "nimbus-labs")
+    log = whd_anchors.resolve_anchor(out, "changelog").strip().split("\n")
+    assert log[-1] == ('- 2026-09-30 - drop line (corrected in nimbus-labs: '
+                       'removed "- Holds 3 patents in imaging.")')
+
+
+def test_redacted_correction_keeps_old_text_out_of_changelog():
+    out, _ = whd_patch.apply_correction(
+        WHD, "nimbus-labs", "- Holds 3 patents in imaging.\n", "", "remove name", on="2026-09-30",
+        redact=True)
+    assert "Holds 3 patents in imaging." not in out.split("<!-- anchor: nimbus-labs.p1 -->")[0]
+    log = whd_anchors.resolve_anchor(out, "changelog")
+    assert "Holds 3 patents in imaging." not in log
+    assert "removed (redacted)" in log
+
+
 def test_section_stops_at_sub_anchor_and_leftovers_reported():
     out, remaining = whd_patch.apply_correction(
         WHD, "nimbus-labs", "3 patents in imaging", "2 patents in imaging", "fix", on="2026-09-24")
