@@ -137,3 +137,8 @@ upgrade that skipped `whd_evidence` / `recoverable` / `review.anchor`.
 - [ ] GitHub Pages if non-technical users struggle with README
 - [ ] Validate behavioral hypothesis (Workday Career Profile interviews)
 - [ ] CareerLog hands-on evaluation
+
+## Proposed ATS Rules Update (2026 Research)
+- [ ] **1. Upgrade helpers/ats.py to support semantic matching.** The exact-match string logic is overly rigid for 2026 LLM-based ATS parsers. Introduce a semantic equivalence review step.
+- [ ] **2. Add 'Generic AI language' flag to contracts/screening.md.** ATS platforms don't auto-reject AI resumes, but human recruiters instantly drop resumes with generic buzzwords (e.g., 'spearheaded', 'results-driven'). Add this as a friction trigger.
+- [ ] **3. Implement the Google 'XYZ Formula' check.** Modify the fit or synthesis contracts to verify that bullet points follow the 'Accomplished X as measured by Y by doing Z' impact structure, specifically requiring quantifiable metrics.
