@@ -1,6 +1,7 @@
 # TODO
 
-Superseded items archived to `archive/TODO_v1.md` and `archive/TODO_v2.md`. This file tracks only what remains for v3.
+Superseded v1 items archived to `archive/TODO_v1.md`. This file tracks only
+what remains for v2.
 
 ## v2 public release
 For strangers to install and use the skill without the author's data:
@@ -126,83 +127,6 @@ upgrade that skipped `whd_evidence` / `recoverable` / `review.anchor`.
     Any upgrade must cite a WHD anchor; synthesis's honesty check can still label it Stretch. Re-run `gate1.py` on the updated gapmap.
   - *Gate 1 tally:* a hard requirement that stays Partial and not recoverable counts as **0.5** of an unrecoverable gap (matches the 0.5 score weight). Trip rules unchanged (>= 2, or > 1/3 of hard requirements). The Gap Brief lists weak Partials separately from Nones.
 
-## ATS evidence alignment (research 2026-10-03)
-Rules and the rule audit live in `docs/research/resume-fit-guidance.md`; the
-evidence and the bracketed source IDs ([S#], [L#], [U1]) live in
-`docs/research/ats-evidence-2026.md`. Paths are relative to
-`.claude/skills/resume-fit/`. Each group is ordered by priority, highest first.
-Already covered by done items: case-aware keyword matching (#2), location and
-relocation knockouts (#10), and per-requirement Match / Partial / None verdicts
-with the hard vs preferred split and Gate 1 (#12).
-
-### C. Fixable without input
-
-- [ ] **16. Contact details placed only in a header, footer, or text box go unnoticed.**
-  Greenhouse documents this as a parse failure [S1]. `render_docx.py` cannot emit headers or footers, so the risk is in source resume files the user supplies.
-  *Fix:* a check on input .docx files that fails when name, email, or phone appear only in a header, footer, or text box.
-
-- [ ] **17. Abbreviated titles and bare company names are not flagged.**
-  Greenhouse: "Sr." style titles and company names without Inc., LLC, and similar parse poorly [S1]; job title is a weighted, recency-boosted match criterion [S33, S34].
-  *Fix:* a helper that expands abbreviated titles ("Sr." to "Senior"), suggests a legal identifier where truthful, and flags divergence from the JD's title family.
-
-- [ ] **18. Section headings and date formats are not checked.**
-  Missing or inconsistent sections cause partial parses [S1]; nonstandard headings were flagged in a direct test [S93].
-  *Fix:* enforce a heading allowlist (Summary, Experience, Education, Skills) and one date format across entries.
-
-- [ ] **19. No file-size gate.**
-  Google caps uploads at 2 MB [S3]; Greenhouse stops parsing above 2.5 MB [S1].
-  *Fix:* fail any rendered output over 2 MB.
-
-- [ ] **20. `ats_chars.py` overstates its evidence.**
-  The wording "documented ATS parsing failure points" appears in `helpers/ats_chars.py`, `contracts/finishing.md` and `tests/test_ats_chars.py`. No tier-1 or tier-2 source supports it for dashes, curly quotes or "&", and two direct tests extracted dashes and curly quotes intact [S93, L1].
-  *Fix:* relabel dash, quote and arrow flags as house style (the no-dash rule can stay as a style rule); keep emoji and icon flags as hygiene; keep the "&" check only where the JD phrase is a plausible recruiter search term.
-
-- [ ] **21. The screening gates cite unreliable timings, and the simulation's own bias is unstated.**
-  "6-second" and "3-minute" appear in `contracts/screening.md`, `schemas/screen.schema.yaml` (comments) and `templates/appendix.md`. The timings come from thin vendor studies [S74, S75]; the attention pattern (title, employer, dates first) is the durable finding. The simulation is LLM-run, and published studies show LLM verdicts shift with framing, authority and gender cues [S95, S96].
-  *Fix:* rename the gates "fast scan" and "deep read"; have Gate 1 check current title, employer, dates and location in the top third of page one; add a limitations note on LLM-evaluator bias and keep the approximation framing.
-
-- [ ] **22. Bullets without a measure or method pass unflagged.**
-  Google asks for data and recommends "accomplished X as measured by Y, by doing Z" [S78, S80].
-  *Fix:* an advisory check that flags bullets lacking a measure (Y) or a method (Z). Absorbs Antigravity item A3.
-
-- [ ] **23. `length_budget.py` treats page three like any overflow.**
-  No ATS page penalty was found; two pages are preferred for experienced roles [S71, S78].
-  *Fix:* keep the two-page default; at three pages require a stated reason tied to unique evidence; check that the strongest metric sits in the top third of page one.
-
-### D. Needs your decision first
-
-- [ ] **24. Knockouts beyond location are not captured.**
-  Auto-rejection runs on recruiter-configured application questions [S15, S16, S21, S22, S23]. Location and relocation are handled (#10); work authorization, years of experience and salary are not.
-  *Decide:* which of these to store in `pipeline/whd/preferences.yaml` (a salary floor is sensitive), and whether Gate 1 or a pre-apply checklist compares them with the JD and the resume.
-
-- [ ] **25. The ATS coverage percentage reads as a score.**
-  Per-requirement verdicts already exist in the gapmap (#12), which matches how Workday Fit & Gap and Ashby evaluate [S28, S29, S30]. `ats.py` adds a literal-term coverage percentage that no vendor uses as a threshold, and synonym hits do not stack in Greenhouse scoring [S12]. Scoring favors skills shown in recent, dated roles [S33, S39].
-  *Decide:* demote `ats.py` output to "recruiter-search term gaps" split by required and preferred terms, and add an `evidence_location` field to gapmap rows (recent dated role / older role / skills list only).
-
-- [ ] **26. PDF output.**
-  Text PDFs and .docx are both accepted [S1, S3]. In a local test, LibreOffice headless export produced a tagged PDF, but python-docx's default bullet extracted as private-use U+F0B7 [L1].
-  *Decide:* whether to add PDF output; if so, export (not print) with LibreOffice headless, replace the Symbol-font bullet, and add a local extraction round trip (`pdftotext`) that fails on private-use characters, scrambled reading order, or contact details found only in a header.
-
-- [ ] **27. No step checks the resume in a real parser.**
-  Employer autofill previews and vendor trials are real parsers [S3, S6, S42]; Textkernel and Affinda need accounts and are proprietary.
-  *Decide:* add a manual finishing step (autofill preview first, vendor trial optional) that records mismatched fields in the run folder, and whether it is required or optional.
-
-- [ ] **28. Headings are built from manual bold and size.**
-  Using Word heading styles is a hypothesis from an unsourced briefing [U1]; no parser vendor documents relying on them.
-  *Decide:* whether to switch `render_docx.py` to restyled "Heading 1" / "Heading 2".
-
-- [ ] **29. Contact links may hide the URL.**
-  Link text such as "LinkedIn" leaves the address out of extracted text (reasoned; see the guidance file).
-  *Decide:* whether to make "show full URLs as visible text" a house rule.
-
-### Reviewed and closed: Gemini Antigravity proposals (2026-10-03)
-These three items were appended by the Gemini Antigravity run (commit 3f9f0f7).
-Dispositions follow the evidence review in `docs/research/ats-evidence-2026.md`.
-
-- [x] ~~**A1. Upgrade helpers/ats.py to support semantic matching.**~~ Closed as duplicate: the model already adjudicates semantic terminology mismatches (`ats.py` docstring), and the fit step judges each requirement. The evidence-backed change is #25.
-- [x] ~~**A2. Add 'Generic AI language' flag to contracts/screening.md.**~~ Closed as unsupported: its cited source could not be found, and no evidence shows recruiters reject specific words such as "spearheaded".
-- [x] ~~**A3. Implement the Google 'XYZ Formula' check.**~~ Merged into #22.
-
 ## Post v1.0 (roadmap)
 - [ ] Performance review support as Day 1 value proposition
 - [ ] Interview preparation module (diary data already structured for this)
@@ -213,4 +137,8 @@ Dispositions follow the evidence review in `docs/research/ats-evidence-2026.md`.
 - [ ] GitHub Pages if non-technical users struggle with README
 - [ ] Validate behavioral hypothesis (Workday Career Profile interviews)
 - [ ] CareerLog hands-on evaluation
-- [ ] LinkedIn profile consistency and referral prompts (advisory; no evidence gathered yet)
+
+## Proposed ATS Rules Update (2026 Gemini Antigravity Research)
+- [ ] **1. Upgrade helpers/ats.py to support semantic matching.** The exact-match string logic is overly rigid for 2026 LLM-based ATS parsers. Introduce a semantic equivalence review step.
+- [ ] **2. Add 'Generic AI language' flag to contracts/screening.md.** ATS platforms don't auto-reject AI resumes, but human recruiters instantly drop resumes with generic buzzwords (e.g., 'spearheaded', 'results-driven'). Add this as a friction trigger.
+- [ ] **3. Implement the Google 'XYZ Formula' check.** Modify the fit or synthesis contracts to verify that bullet points follow the 'Accomplished X as measured by Y by doing Z' impact structure, specifically requiring quantifiable metrics.
