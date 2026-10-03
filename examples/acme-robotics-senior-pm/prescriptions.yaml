@@ -2,7 +2,7 @@ prescriptions:
   - type: reorder
     target: "Top fold — lead with hardware/platform, not analytics"
     why: >
-      Resume reads SaaS-analytics-first; a robotics recruiter's six-second scan
+      Resume reads SaaS-analytics-first; a robotics recruiter's fast scan
       misses the hardware signal. Move Circuit Dynamics hardware-to-production
       above the analytics narrative.
     closes: [first_friction_trigger]
@@ -18,7 +18,7 @@ prescriptions:
     target: "Surface the 50k-units prototype-to-production metric in the top third"
     why: >
       This scope and metric is the first escalation trigger; make it impossible
-      to miss on the three-minute read.
+      to miss on the deep read.
     closes: [first_escalation_trigger]
     source: circuit-dynamics.p1
   - type: reframe

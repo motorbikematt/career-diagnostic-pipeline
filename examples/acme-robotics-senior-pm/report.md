@@ -12,7 +12,7 @@ SaaS-analytics-first resume to lead with hardware for a robotics reader.
 
 ## The two triggers
 - **First friction:** Resume reads SaaS-analytics-first; a robotics recruiter
-  scanning for six seconds sees "data-ingestion platform" before any hardware signal.
+  on a fast scan sees "data-ingestion platform" before any hardware signal.
 - **First escalation:** Shipped a hardware product prototype-to-production
   (50k units) — a metric and scope that compels a call despite the missing robotics domain.
 
@@ -20,7 +20,7 @@ SaaS-analytics-first resume to lead with hardware for a robotics reader.
 
 | Edit | Why | Source (WHD) |
 |---|---|---|
-| Reorder: lead with hardware/platform, not analytics | 6-second scan misses hardware; move Circuit Dynamics up | circuit-dynamics |
+| Reorder: lead with hardware/platform, not analytics | Fast scan misses hardware; move Circuit Dynamics up | circuit-dynamics |
 | Reframe: summary line | Signals SaaS analytics; needs platform + connected-hardware breadth | circuit-dynamics |
 | Add: surface 50k-units prototype-to-production in the top third | It is the escalation trigger; make it unmissable | circuit-dynamics.p1 |
 | Reframe: on-device computer vision bullet | Reframe as edge perception adjacent to robotics | circuit-dynamics.p2 |

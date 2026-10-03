@@ -81,8 +81,8 @@ the queue, so without this a patch landed twice); `gate1.py` rejects a gap-revie
 upgrade that skipped `whd_evidence` / `recoverable` / `review.anchor`.
 
 - [x] **14. The real WHD has no anchors.** Found while checking #11 against real data: `Reyes_WorkHistory_v4.md` contains zero `<!-- anchor: ... -->` markers (it predates the anchored template). Every `whd_patch.py` target, every `whd_anchors.py` citation, and every prescription `source` therefore fails to resolve on real data; the 4 proposed Endless patches already note "ANCHOR DOES NOT YET EXIST". Needs a one-time migration: add `role-N` / `role-N.project-M` / `beyond-employment` / `voice-sample` / `changelog` anchors and the front-matter `roles:` index, reviewed by the user. Blocks applying the pending WHD corrections (patent count, stale committee title, MOS figure, GoPro claim).
-  **Progress 2026-09-24:** Stage 1 done. `helpers/whd_migrate.py` wrote `Reyes_WorkHistory_v5.md` (v4 untouched): 111 stable slug anchors (roles, role subsections, projects, voice sample, beyond-employment subsections, changelog), roles newest-first, 347 counter-numbered bullets and 24 `****` runs fixed, front-matter `roles:` index; `--check` proves the 684 content lines are identical. Template, fixture and examples switched to slug anchors. Stage 2 decisions approved 2026-09-24 (role structure, per-role `resume_default` include / context-only / omit; see the plan file): Team Kettering PAC nested under Doorstep Democracy; new roles Exploration Solutions (with Before You Submit), Burning Man, Precinct Captain (omit: political), Lockheed Martin (context-only); Zero Gravity Corp. context-only. Stage 2 implemented 2026-09-24 in the data-plane v5 (12 roles, 129 anchors; every removed line was a renamed or renumbered heading, verified) and the fit / synthesis / finishing contracts now honor `resume_default`. Tags approved and written 2026-09-30. Stage 2c (Precinct Captain nested under Doorstep Democracy; 11 roles) and Stage 3 (208 lines, punctuation only, words verified unchanged; Voice Sample untouched) applied 2026-09-30. Stage 4 done 2026-09-30: user reviewed and approved v5; v4 moved to `pipeline/whd/archive/`; 8 corrections (patent count to 2 in three places, committee title, advisor mention removed and redacted from the changelog, MOS gain, Artemis trans-lunar) and the 4 Endless evidence patches (retargeted to real anchors) applied and marked `applied`. Superseded remaining list: Stage 3 em dash/arrow rewrite (reviewed diff, including the index titles), Stage 4 cut-over (archive v4).
-- [ ] **15. Existing run gapmaps predate `seeker_archetype_resume`.** All 3 real `gapmap.yaml` files lack it, so `validate.py` and `gapmap_summary.py` now fail on them by design. Resuming the Endless run needs that one field added (resume-only archetype). Old `requirements.yaml` files lack location facts and simply yield a location open-question.
+  **Progress 2026-09-24:** Stage 1 done. `helpers/whd_migrate.py` wrote `Reyes_WorkHistory_v5.md` (v4 untouched): 111 stable slug anchors (roles, role subsections, projects, voice sample, beyond-employment subsections, changelog), roles newest-first, 347 counter-numbered bullets and 24 `****` runs fixed, front-matter `roles:` index; `--check` proves the 684 content lines are identical. Template, fixture and examples switched to slug anchors. Stage 2 decisions approved 2026-09-24 (role structure, per-role `resume_default` include / context-only / omit; see the plan file): Team Kettering PAC nested under Doorstep Democracy; new roles Exploration Solutions (with Before You Submit), Burning Man, Precinct Captain (omit: political), Lockheed Martin (context-only); Zero Gravity Corp. context-only. Stage 2 implemented 2026-09-24 in the data-plane v5 (12 roles, 129 anchors; every removed line was a renamed or renumbered heading, verified) and the fit / synthesis / finishing contracts now honor `resume_default`. Tags approved and written 2026-09-30. Stage 2c (Precinct Captain nested under Doorstep Democracy; 11 roles) and Stage 3 (208 lines, punctuation only, words verified unchanged; Voice Sample untouched) applied 2026-09-30. Stage 4 done 2026-09-30: user reviewed and approved v5; v4 moved to `pipeline/whd/archive/`; 8 corrections (patent count to 2 in three places, committee title, advisor mention removed and redacted from the changelog, MOS gain, Artemis trans-lunar) and the 4 Endless evidence patches (retargeted to real anchors) applied and marked `applied`.- [ ] **15. Existing run gapmaps predate `seeker_archetype_resume`.** All 3 real `gapmap.yaml` files lack it, so `validate.py` and `gapmap_summary.py` now fail on them by design. Resuming the Endless run needs that one field added (resume-only archetype). Old `requirements.yaml` files lack location facts and simply yield a location open-question.
+  **Note 2026-10-03:** expected to close through the master-resume design items (drop the per-run field and compare the screen's own read to a stable `candidate_type`) rather than by migrating the old gapmaps. Whatever replaces the field must keep the screen's read resume-only (see defect #1).
 
 - [x] **10. Job location and remote/hybrid status are never captured.**
   The job-description parse (`schemas/requirements.schema.yaml`) has no field for location or work arrangement, and none for the source URL. A hybrid New York role was evaluated without ever considering that you are based in Ohio, so the "stop or proceed" gate (Gate 1) could not flag it.
@@ -137,29 +137,41 @@ with the hard vs preferred split and Gate 1 (#12).
 
 ### C. Fixable without input
 
-- [ ] **16. Contact details placed only in a header, footer, or text box go unnoticed.**
+Standalone-helper pass done 2026-10-03: new `filesize_gate.py`, `contact_check.py`,
+`structure_lint.py`, `env_check.py`; `ats_chars.py` categories; `length_budget.py
+--reason`; screening gate rename. The new lints are listed in the SKILL.md helper
+table but NOT yet wired into `contracts/finishing.md` 6b (decided: wire them with
+the master-resume work). Tests: 189 passed, now 220.
+
+- [x] **16. Contact details placed only in a header, footer, or text box go unnoticed.**
   Greenhouse documents this as a parse failure [S1]. `render_docx.py` cannot emit headers or footers, so the risk is in source resume files the user supplies.
   *Fix:* a check on input .docx files that fails when name, email, or phone appear only in a header, footer, or text box.
+  **Done 2026-10-03:** `helpers/contact_check.py` (body, table, header, footer and text-box regions; `--name` optional). Its `docx_text_by_region()` is reusable for the extraction round trip (#26, #27).
 
 - [ ] **17. Abbreviated titles and bare company names are not flagged.**
   Greenhouse: "Sr." style titles and company names without Inc., LLC, and similar parse poorly [S1]; job title is a weighted, recency-boosted match criterion [S33, S34].
   *Fix:* a helper that expands abbreviated titles ("Sr." to "Senior"), suggests a legal identifier where truthful, and flags divergence from the JD's title family.
+  **Progress 2026-10-03:** detection done in `helpers/structure_lint.py` (abbreviated titles fail with the expansion named; a missing legal identifier is an advisory). Still open: suggesting a legal identifier (needs your confirmation of the true legal name) and the JD title-family divergence check.
 
-- [ ] **18. Section headings and date formats are not checked.**
+- [x] **18. Section headings and date formats are not checked.**
   Missing or inconsistent sections cause partial parses [S1]; nonstandard headings were flagged in a direct test [S93].
   *Fix:* enforce a heading allowlist (Summary, Experience, Education, Skills) and one date format across entries.
+  **Done 2026-10-03:** `helpers/structure_lint.py`. Decided: the core four are the default allowlist; other `##` headings are advisory and can be accepted with `--allow` (for example Patents).
 
-- [ ] **19. No file-size gate.**
+- [x] **19. No file-size gate.**
   Google caps uploads at 2 MB [S3]; Greenhouse stops parsing above 2.5 MB [S1].
   *Fix:* fail any rendered output over 2 MB.
+  **Done 2026-10-03:** `helpers/filesize_gate.py`.
 
 - [ ] **20. `ats_chars.py` overstates its evidence.**
   The wording "documented ATS parsing failure points" appears in `helpers/ats_chars.py`, `contracts/finishing.md` and `tests/test_ats_chars.py`. No tier-1 or tier-2 source supports it for dashes, curly quotes or "&", and two direct tests extracted dashes and curly quotes intact [S93, L1].
   *Fix:* relabel dash, quote and arrow flags as house style (the no-dash rule can stay as a style rule); keep emoji and icon flags as hygiene; keep the "&" check only where the JD phrase is a plausible recruiter search term.
+  **Progress 2026-10-03:** relabeled. Each violation now has a `category` (house-style, hygiene, search-term); docstring, reasons, `contracts/finishing.md` 6b and the test docstring no longer claim a documented parsing failure. `clean` and the exit code are unchanged. Still open: limiting the "&" flag to likely JD search terms (needs the JD).
 
 - [ ] **21. The screening gates cite unreliable timings, and the simulation's own bias is unstated.**
   "6-second" and "3-minute" appear in `contracts/screening.md`, `schemas/screen.schema.yaml` (comments) and `templates/appendix.md`. The timings come from thin vendor studies [S74, S75]; the attention pattern (title, employer, dates first) is the durable finding. The simulation is LLM-run, and published studies show LLM verdicts shift with framing, authority and gender cues [S95, S96].
   *Fix:* rename the gates "fast scan" and "deep read"; have Gate 1 check current title, employer, dates and location in the top third of page one; add a limitations note on LLM-evaluator bias and keep the approximation framing.
+  **Progress 2026-10-03:** gates renamed in the contract, schema comments, appendix template and the committed example outputs (schema keys such as `gate1_verdict` unchanged); limitations note added as `contracts/screening.md` section 6. Still open: the top-third-of-page-one check.
 
 - [ ] **22. Bullets without a measure or method pass unflagged.**
   Google asks for data and recommends "accomplished X as measured by Y, by doing Z" [S78, S80].
@@ -168,6 +180,7 @@ with the hard vs preferred split and Gate 1 (#12).
 - [ ] **23. `length_budget.py` treats page three like any overflow.**
   No ATS page penalty was found; two pages are preferred for experienced roles [S71, S78].
   *Fix:* keep the two-page default; at three pages require a stated reason tied to unique evidence; check that the strongest metric sits in the top third of page one.
+  **Progress 2026-10-03:** `length_budget.py --reason TEXT` records an override; the result flags a real third page (above 2.5 estimated pages) and the CLI says the reason must name unique, relevant evidence. Still open: the top-third strongest-metric check.
 
 ### D. Needs your decision first
 

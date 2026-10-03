@@ -185,12 +185,21 @@ def review_status(sections: list, review: dict | None) -> dict:
     return {"complete": not missing and not invalid, "missing": missing, "invalid": invalid}
 
 
+# Above this many estimated pages the resume has a real third page. No ATS page
+# penalty was found (TODO #23; guidance R4), but two pages are preferred for
+# experienced roles, so a third page must carry unique, relevant evidence.
+THIRD_PAGE_AT = 2.5
+
+
 def check(md_text: str, max_pages: float = 2.0, margin_in: float = 0.6,
-          review: dict | None = None) -> dict:
+          review: dict | None = None, reason: str | None = None) -> dict:
     est = estimate(md_text, margin_in=margin_in)
     est["max_pages"] = max_pages
     est["fits"] = est["estimated_pages"] <= max_pages + 0.05  # small tolerance
     est["over_pages"] = round(max(0.0, est["estimated_pages"] - max_pages), 2)
+    est["third_page"] = est["estimated_pages"] > THIRD_PAGE_AT
+    est["reason"] = (reason or "").strip() or None
+    est["override_recorded"] = (not est["fits"]) and est["reason"] is not None
     if not est["fits"]:
         # Every section must be surveyed before any cut or override.
         est["review_checklist"] = [s["heading"] for s in est["sections"]]
@@ -199,14 +208,14 @@ def check(md_text: str, max_pages: float = 2.0, margin_in: float = 0.6,
 
 
 def check_file(path, max_pages: float = 2.0, margin_in: float = 0.6,
-               review_path=None) -> dict:
+               review_path=None, reason: str | None = None) -> dict:
     review = None
     if review_path:
         import yaml
 
         review = yaml.safe_load(Path(review_path).read_text(encoding="utf-8")) or {}
     return check(Path(path).read_text(encoding="utf-8"),
-                 max_pages=max_pages, margin_in=margin_in, review=review)
+                 max_pages=max_pages, margin_in=margin_in, review=review, reason=reason)
 
 
 if __name__ == "__main__":
@@ -220,21 +229,30 @@ if __name__ == "__main__":
                     help="page margin in inches (render_docx.py uses 0.6)")
     ap.add_argument("--review", metavar="LENGTH_REVIEW_YAML",
                     help="per-section keep/compress/cut decisions to check for completeness")
+    ap.add_argument("--reason", metavar="TEXT",
+                    help="why the resume may exceed the page target; a third page "
+                         "must name unique, relevant evidence")
     args = ap.parse_args()
 
     from console import utf8_stdout
 
     utf8_stdout()
     result = check_file(args.path, max_pages=args.max_pages, margin_in=args.margin,
-                        review_path=args.review)
+                        review_path=args.review, reason=args.reason)
     print(json.dumps(result, indent=2, ensure_ascii=False))
     if not result["fits"]:
         print(f"OVER BUDGET: ~{result['estimated_pages']} pages "
-              f"(target {result['max_pages']}); over by ~{result['over_pages']}. "
-              f"Advisory only -- record a reason to override.")
+              f"(target {result['max_pages']}); over by ~{result['over_pages']}.")
+        if result["third_page"]:
+            print("THIRD PAGE: keep it only if it carries unique, relevant evidence; "
+                  "state which evidence in --reason.")
         if not result["review"]["complete"]:
             print(f"REVIEW INCOMPLETE: {len(result['review']['missing'])} sections "
                   "lack a keep/compress/cut decision. Decide every section in "
                   "length_review.yaml before cutting or overriding.")
-        # Advisory, non-zero exit so the loop notices; NOT a hard block.
-        raise SystemExit(2)
+        if result["override_recorded"]:
+            print(f"OVERRIDE RECORDED: {result['reason']}")
+        else:
+            # Advisory, non-zero exit so the loop notices; NOT a hard block.
+            print("Advisory only -- record a reason with --reason to override.")
+            raise SystemExit(2)

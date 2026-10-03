@@ -27,7 +27,7 @@ the map" — the map is here and inspectable; it just isn't the headline.
 
 ## Screening reasoning (WHD-blind)
 - Recruiter persona: {{recruiter_persona}}
-- Gate 1 (6-second) verdict: {{gate1_verdict}}
+- Gate 1 (fast scan) verdict: {{gate1_verdict}}
 - Elimination logic: {{elimination_logic}}
 - Hiring-manager acceptance risk: {{hm_acceptance_risk}}
 

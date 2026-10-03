@@ -1,15 +1,21 @@
-"""ATS-unsafe character scanner (deterministic, JD-independent).
+"""Character scanner for resume text (deterministic, JD-independent).
 
-Certain Unicode characters are commonly dropped, garbled, or misread during ATS
-plain-text extraction -- independent of which JD or resume content is involved.
-This is a fixed, mechanical rule (not a style preference): em dashes, curly/smart
-quotes, decorative bullets/arrows, and emoji are documented ATS parsing failure
-points. Detecting them is exact character matching, so Python owns it -- same
+Every violation carries a `category` that says WHY it is flagged, because the
+evidence differs (docs/research/ats-evidence-2026.md; two direct extraction
+tests found dashes and curly quotes survive intact [S93, L1]):
+
+  house-style   em/en dashes, curly quotes, arrows. A house rule of the resume
+                owner (dashes read as an AI-authorship tell), NOT a documented
+                ATS parsing failure.
+  hygiene       emoji, decorative bullets/stars/checkmarks, inline bullet
+                characters. Cheap to avoid and unreadable to some parsers.
+  search-term   "&" used as a substituted "and" in prose (e.g. "Sales & Marketing"),
+                which can miss a recruiter search for the literal phrase. A
+                heuristic exception covers brand names (AT&T, M&A, Dolce & Gabbana).
+                Treat as style unless the phrase is a plausible JD search term.
+
+Detecting these is exact character matching, so Python owns it, the same
 principle as ats.py's keyword matching and canary.py's token scan.
-
-Also flags "&" used as a substituted "and" in prose (e.g. "Sales & Marketing"),
-which can break exact-keyword matching against a JD's literal phrase -- with a
-heuristic exception for literal brand/company names (AT&T, M&A, Dolce & Gabbana).
 
 VALUE-BLIND: this flags violations with line numbers; it does not rewrite the
 text. A fix often requires restructuring the sentence (e.g. an em-dash clause
@@ -22,22 +28,29 @@ import re
 import unicodedata
 from pathlib import Path
 
-# Character -> human-readable reason it's unsafe.
+# Character -> human-readable reason it is flagged.
 UNSAFE_CHARS = {
-    "—": "em dash (—) — often dropped or misread by ATS text extraction",
-    "–": "en dash (–) — use a plain hyphen (-) for date ranges",
-    "‘": "curly single-quote opening (') — use a straight apostrophe (')",
-    "’": "curly single-quote closing (') — use a straight apostrophe (')",
-    "“": "curly double-quote opening (“) — use a straight quote (\")",
-    "”": "curly double-quote closing (”) — use a straight quote (\")",
-    "•": "bullet character (•) inline in text — use markdown '- ' list syntax instead",
-    "→": "arrow (→) — spell out ('to') for ATS-safe text",
-    "➤": "decorative arrow bullet (➤) — use a plain hyphen bullet",
-    "★": "decorative star (★) — remove or use plain text",
-    "◆": "decorative diamond (◆) — remove or use plain text",
-    "✔": "checkmark (✔) — remove or use plain text",
-    "✓": "checkmark (✓) — remove or use plain text",
+    "—": "em dash (—): house style, rephrase the clause",
+    "–": "en dash (–): house style, use a plain hyphen (-) for date ranges",
+    "‘": "curly single-quote opening: house style, use a straight apostrophe (')",
+    "’": "curly single-quote closing: house style, use a straight apostrophe (')",
+    "“": "curly double-quote opening (“): house style, use a straight quote (\")",
+    "”": "curly double-quote closing (”): house style, use a straight quote (\")",
+    "•": "bullet character (•) inline in text: use markdown '- ' list syntax instead",
+    "→": "arrow (→): house style, spell out ('to')",
+    "➤": "decorative arrow bullet (➤): use a plain hyphen bullet",
+    "★": "decorative star (★): remove or use plain text",
+    "◆": "decorative diamond (◆): remove or use plain text",
+    "✔": "checkmark (✔): remove or use plain text",
+    "✓": "checkmark (✓): remove or use plain text",
 }
+
+# Characters flagged as the owner's house style rather than a parsing hazard.
+HOUSE_STYLE_CHARS = frozenset("—–‘’“”→")
+
+
+def _category(ch: str) -> str:
+    return "house-style" if ch in HOUSE_STYLE_CHARS else "hygiene"
 
 
 def _is_emoji(ch: str) -> bool:
@@ -93,11 +106,12 @@ def scan(text: str) -> dict:
         for ch in line:
             reason = UNSAFE_CHARS.get(ch)
             if reason is None and _is_emoji(ch) and ch not in UNSAFE_CHARS:
-                reason = f"emoji ({ch}) — ATS parsers cannot read emoji"
+                reason = f"emoji ({ch}): some parsers cannot read emoji"
             if reason:
                 violations.append({
                     "line": lineno,
                     "char": ch,
+                    "category": _category(ch),
                     "reason": reason,
                     "context": line.strip()[:100],
                 })
@@ -105,10 +119,11 @@ def scan(text: str) -> dict:
             violations.append({
                 "line": lineno,
                 "char": "&",
-                "reason": "ampersand (&) used as 'and' — a JD's literal keyword "
-                          "phrase (e.g. 'Sales and Marketing') may not match "
-                          "'Sales & Marketing'; spell out 'and' unless this is a "
-                          "literal company/brand name (AT&T, M&A)",
+                "category": "search-term",
+                "reason": "ampersand (&) used as 'and': a recruiter search for the "
+                          "literal phrase (e.g. 'Sales and Marketing') may not match "
+                          "'Sales & Marketing'; style unless the phrase is a likely "
+                          "search term, and fine in a brand name (AT&T, M&A)",
                 "context": line.strip()[:100],
             })
     seen = set()
@@ -139,5 +154,9 @@ if __name__ == "__main__":
     result = scan_file(sys.argv[1])
     print(json.dumps(result, indent=2, ensure_ascii=False))
     if not result["clean"]:
-        print(f"ATS-UNSAFE CHARACTERS: {result['violation_count']} found")
+        by_cat: dict = {}
+        for v in result["violations"]:
+            by_cat[v["category"]] = by_cat.get(v["category"], 0) + 1
+        print(f"CHARACTER FLAGS: {result['violation_count']} found "
+              + ", ".join(f"{n} {c}" for c, n in sorted(by_cat.items())))
         sys.exit(1)

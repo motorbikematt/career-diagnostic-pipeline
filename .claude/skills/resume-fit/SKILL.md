@@ -343,8 +343,8 @@ Only after Gate 2 "proceed to draft". Contract + verbatim ghost-editor invariant
    ```
    Confirm ATS coverage didn't regress vs seed, no NEW `none`-linkage claim was
    introduced, the voice check passed, `ats_chars.py` reports **clean** (fixed
-   rule — em/en dashes, curly quotes, decorative bullets, emoji; never tolerated,
-   not just a regression check), and `chrono_check.py` reports `ordered`. Write `reeval.md`. No recursion: any issue
+   rule — dashes, curly quotes and arrows are house style; emoji and decorative
+   symbols are hygiene; never tolerated, not just a regression check), and `chrono_check.py` reports `ordered`. Write `reeval.md`. No recursion: any issue
    surfaces as one yes/no, not a new trim loop.
 6. On clean + length-resolved + re-eval clean, write `resume_candidate.md` and
    render an ATS-safe docx (0.6in margins, single column, no tables):
@@ -434,11 +434,15 @@ arithmetic and string-matching so the model never does.
 | `numbers_strip.py` | Deterministic report headline numbers | `numbers_strip.py <run>` |
 | `prescriptions.py` | Enforce every recoverable gap has an Add row; reject "X or Y" targets | `prescriptions.py <prescriptions.yaml> <gapmap.yaml>` |
 | `tags.py` | Finishing-loop tag scan + exit check | `tags.py <resume_draft.md>` |
-| `length_budget.py` | Advisory 2-page estimator + per-section cost breakdown + review completeness | `length_budget.py <resume.md> --max-pages 2 [--review <length_review.yaml>]` |
+| `length_budget.py` | Advisory 2-page estimator + per-section cost breakdown + review completeness; `--reason` records an override (a third page must name unique evidence) | `length_budget.py <resume.md> --max-pages 2 [--review <length_review.yaml>] [--reason <text>]` |
 | `chrono_check.py` | Newest-first ordering check per section | `chrono_check.py <resume.md>` |
 | `docx_drift.py` | Detect hand edits in the `.docx` the `.md` lacks; `--pull` rebuilds md | `docx_drift.py <resume.md> <resume.docx> [--pull <out.md>]` |
 | `relevance.py` | Line-level JD-relevance meter (per-JD, value-blind); flags `none`-linkage claims | `relevance.py <resume.md> <requirements.yaml> <gapmap.yaml>` |
-| `ats_chars.py` | Scans for ATS-unsafe characters (em/en dash, curly quotes, decorative bullets, emoji, prose "&") | `ats_chars.py <resume.md>` |
+| `ats_chars.py` | Character scan with a category per flag: house-style (dashes, curly quotes, arrows), hygiene (emoji, decorative symbols), search-term (prose "&") | `ats_chars.py <resume.md>` |
+| `structure_lint.py` | Abbreviated titles, standard section headings (core four, `--allow` extras), one date format, legal-identifier advisory. Standalone, not yet in the finishing loop | `structure_lint.py <resume.md> [--allow <heading> ...]` |
+| `contact_check.py` | Fails when email, phone or name appear only in a .docx header, footer or text box. Standalone | `contact_check.py <resume.docx> [--name "<full name>"]` |
+| `filesize_gate.py` | Fails a rendered file over 2 MB (Google cap; Greenhouse parses to 2.5 MB). Standalone | `filesize_gate.py <resume.docx> [--max-mb 2]` |
+| `env_check.py` | Read-only report: `pdftotext`, LibreOffice, python-docx, pyyaml, data plane. Always exits 0 | `env_check.py` |
 | `compress_candidates.py` | Finds 3+ item lists as compression candidates (pattern only, no category-word suggestion) | `compress_candidates.py <resume.md>` |
 | `whitespace_check.py` | Per-page fullness/density check (research-grounded readability, not bullet-uniformity) | `whitespace_check.py <resume.md> --margin 0.6` |
 | `render_docx.py` | Render clean markdown to an ATS-safe docx (0.6in) | `render_docx.py <resume_candidate.md> <out.docx>` |

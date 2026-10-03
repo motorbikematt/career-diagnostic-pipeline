@@ -25,9 +25,9 @@
 
 ## Screening reasoning (WHD-blind)
 - Recruiter persona: corporate recruiter, moderate technical depth, risk-mitigation driver
-- Gate 1 (6-second) verdict: requires-interpretation
-- Elimination logic: not eliminated at the six-second scan; PM tenure, platform
-  strategy, and hardware-to-production all present. Survives to the three-minute read.
+- Gate 1 (fast scan) verdict: requires-interpretation
+- Elimination logic: not eliminated at the fast scan; PM tenure, platform
+  strategy, and hardware-to-production all present. Survives to the deep read.
 - Hiring-manager acceptance risk: moderate
 
 ## ATS keyword scan

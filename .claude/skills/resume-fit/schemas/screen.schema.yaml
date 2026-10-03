@@ -1,14 +1,14 @@
-# screen.yaml — the screening subagent's output (six-second / three-minute
-# stress test). Produced WITHOUT the WHD in context, by construction. These are
+# screen.yaml — the screening subagent's output (fast-scan / deep-read
+# stress test; "Gate 1" here is unrelated to gate1.py). Produced WITHOUT the WHD in context, by construction. These are
 # structured approximations of screening behavior, not predictions. The two
 # triggers are the report's most actionable diagnostic (plan section 3).
 type: object
 required: [gate1_verdict, first_friction_trigger, first_escalation_trigger, escalation_likelihood]
 properties:
   recruiter_persona: {type: str}
-  # Gate 1 — recruiter, 6-second screen:
+  # Gate 1 — recruiter, fast scan:
   gate1_verdict: {type: str}             # clear-archetype-match | requires-interpretation | immediate-discard-risk
-  # Gate 2 — hiring manager, 3-minute skim (its output IS the two triggers):
+  # Gate 2 — hiring manager, deep read (its output IS the two triggers):
   first_friction_trigger: {type: str}    # where doubt emerges (verbatim, leads the report)
   first_escalation_trigger: {type: str}  # the metric/brand/scope that compels a call (verbatim)
   elimination_logic: {type: str}

@@ -138,11 +138,14 @@ re-enter any loop.
    introduced by the edits, and every retained `none` claim is one the user already
    ratified as a differentiator (§5c) or is structural (contact/education).
 3. **Voice** — confirm the §2 Voice Integrity Check passed on the final text.
-4. **ATS-unsafe characters** — `python .claude/skills/resume-fit/helpers/ats_chars.py <resume_draft.md>`.
-   Fixed, JD-independent rule (not a style preference): em/en dashes, curly
-   quotes, decorative bullets/arrows, and emoji are documented ATS parsing failure
-   points. Must report **clean** before render — this is deterministic, so unlike
-   the other three axes there is no "regression tolerance," only clean or not.
+4. **Character flags** — `python .claude/skills/resume-fit/helpers/ats_chars.py <resume_draft.md>`.
+   Fixed, JD-independent rule. Each flag has a category: **house-style** (em/en
+   dashes, curly quotes, arrows: the owner's rule, not a documented ATS parsing
+   failure; two direct extraction tests read them intact), **hygiene** (emoji,
+   decorative symbols), and **search-term** (prose "&", style unless the phrase is
+   a plausible recruiter search term). Must report **clean** before render — this
+   is deterministic, so unlike the other three axes there is no "regression
+   tolerance," only clean or not.
    Fixing a violation may require rephrasing (e.g. an em-dash clause becomes two
    sentences) — that judgment belongs to the model/user, not an auto-replace.
 

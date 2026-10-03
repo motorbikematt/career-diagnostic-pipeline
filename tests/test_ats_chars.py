@@ -1,7 +1,8 @@
-"""Tests for the ATS-unsafe character scanner (ats_chars.py).
+"""Tests for the character scanner (ats_chars.py).
 
-This is a fixed, mechanical rule (not a style/judgment check): certain Unicode
-characters are documented ATS parsing failure points regardless of content or JD.
+Detection is exact and JD-independent. Each flag carries a category: house-style
+(dashes, curly quotes, arrows: the owner's rule, not a documented parsing
+failure), hygiene (emoji, decorative symbols) or search-term (prose "&").
 """
 import ats_chars
 from conftest import data_plane_runs
@@ -49,8 +50,28 @@ def test_value_blind_no_fix_suggestion_field():
     text = "Shipped fast — under budget.\n"
     result = ats_chars.scan(text)
     for v in result["violations"]:
-        assert set(v.keys()) == {"line", "char", "reason", "context"}
+        assert set(v.keys()) == {"line", "char", "category", "reason", "context"}
         assert "fix" not in v and "replacement" not in v
+
+
+def test_categories_distinguish_style_hygiene_and_search_term():
+    text = (
+        "Shipped fast — under budget.\n"
+        "Rated 5 → 9.\n"
+        "★ Top performer\n"
+        "Led Sales & Marketing.\n"
+    )
+    by_char = {v["char"]: v["category"] for v in ats_chars.scan(text)["violations"]}
+    assert by_char["—"] == "house-style"
+    assert by_char["→"] == "house-style"
+    assert by_char["★"] == "hygiene"
+    assert by_char["&"] == "search-term"
+
+
+def test_curly_quotes_and_en_dash_are_house_style():
+    text = "Built the “best” product, 2020 – 2022, team’s roadmap.\n"
+    cats = {v["category"] for v in ats_chars.scan(text)["violations"]}
+    assert cats == {"house-style"}
 
 
 def test_ampersand_as_prose_and_flagged():

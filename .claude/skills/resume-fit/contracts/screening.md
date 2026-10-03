@@ -8,7 +8,13 @@ input manifest and the enforcement note. Compress ritual only.
 Executive Recruiter / Risk Analyst: assess real-world screening likelihood.
 **Diagnostic only — no resume edits.**
 
-## 2. Invariants (verbatim from the v1 FINAL prompt — DO NOT PARAPHRASE)
+## 2. Invariants (from the v1 FINAL prompt — DO NOT PARAPHRASE, except the two gate labels)
+The gate labels were renamed 2026-10-03 (TODO #21): v1 called them the "6-second
+screen" and "3-minute skim", timings that rest on thin vendor studies. The durable
+finding is the attention pattern (title, employer, dates first), so the gates are
+now the **fast scan** and the **deep read**. "Gate 1" and "Gate 2" here are the
+screen's own labels and are unrelated to `gate1.py` (the stop/proceed gate).
+
 - **Diagnostic only — no resume edits.**
 - **WHD-blindness:** this agent "Deliberately does NOT use the Work History
   Document — the recruiter doesn't have it." You assess only what a recruiter
@@ -18,10 +24,10 @@ Executive Recruiter / Risk Analyst: assess real-world screening likelihood.
 - **Framing (do not overclaim):** "These are structured approximations of
   screening behavior, not predictions. They model how time-pressured
   pattern-matching would process this resume."
-- **Gate 1 — Recruiter, 6-Second Screen:** Verdict = Clear Archetype Match /
+- **Gate 1 — Recruiter, Fast Scan:** Verdict = Clear Archetype Match /
   Requires Interpretation / Immediate Discard Risk; reasoning = gut reaction to
   Headline + Summary + Most Recent Role.
-- **Gate 2 — Hiring Manager, 3-Minute Skim:** First Friction Trigger (where doubt
+- **Gate 2 — Hiring Manager, Deep Read:** First Friction Trigger (where doubt
   emerges); First Escalation Trigger (the metric, brand, or scope that compels a
   call).
 - **Escalation Likelihood:** Strong / Competitive / Fragile / Unfavorable.
@@ -50,3 +56,11 @@ competitive | fragile | unfavorable). Also: `recruiter_persona`,
 ## 5. Refusal conditions
 - If given or asked to fetch the WHD → refuse and flag a blindness violation.
 - No resume edits, ever. Diagnostic only.
+
+## 6. Limitations (state them; do not overclaim)
+The screen is run by an LLM, and published studies show LLM screening verdicts
+shift with framing, authority and demographic cues [S95, S96]. Treat its output as
+an approximation of how time-pressured pattern-matching would read the resume, not
+a prediction of any real recruiter's decision. The attention pattern it models
+(title, employer, dates first) is the durable claim [S74, S75]; the old timing
+figures are not.

@@ -139,3 +139,31 @@ def test_fitting_resume_has_no_review_gate():
     r = length_budget.check(SHORT, max_pages=2)
     assert r["fits"] is True
     assert "review" not in r
+
+
+# --- Page-three reason (TODO #23) -------------------------------------------
+
+def test_over_budget_without_reason_records_no_override():
+    r = length_budget.check(_long_resume(), max_pages=2)
+    assert r["override_recorded"] is False
+    assert r["reason"] is None
+
+
+def test_reason_records_override_and_blank_reason_does_not():
+    r = length_budget.check(_long_resume(), max_pages=2, reason="patents are unique evidence")
+    assert r["override_recorded"] is True
+    assert r["reason"] == "patents are unique evidence"
+    blank = length_budget.check(_long_resume(), max_pages=2, reason="   ")
+    assert blank["override_recorded"] is False
+
+
+def test_third_page_flag_only_above_two_and_a_half_pages():
+    assert length_budget.check(SHORT)["third_page"] is False
+    big = length_budget.check(_long_resume())
+    assert big["estimated_pages"] > length_budget.THIRD_PAGE_AT
+    assert big["third_page"] is True
+
+
+def test_fitting_resume_never_records_override():
+    r = length_budget.check(SHORT, reason="irrelevant")
+    assert r["override_recorded"] is False
