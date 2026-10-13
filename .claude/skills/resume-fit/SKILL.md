@@ -319,7 +319,12 @@ Only after Gate 2 "proceed to draft". Contract + verbatim ghost-editor invariant
    ```bash
    python .claude/skills/resume-fit/helpers/length_budget.py <run>/resume_draft.md --max-pages 2
    ```
-   If over budget, show the user the per-section **cost** (from this helper) beside
+   Try the layout levers first; they leave the text identical and cost no
+   content. Offer them in this order, each a render option, then re-measure:
+   (a) narrow margins `--margin 0.5`, (b) body text `--body-pt 10.5` (floor 10;
+   headings never shrink: header-only shrinks were measured to save under one
+   line). Pass the same `--margin`/`--body-pt` to `length_budget.py`.
+   If still over budget, show the user the per-section **cost** (from this helper) beside
    the per-section **value** (JD-linkage from `gapmap.yaml`/`screen.yaml`) and let
    them decide cuts — protect JD-relevant/recent-in-demand work, cut cheap inches
    first (oldest unlinked roles, tail sections). Never auto-truncate. Survey EVERY
@@ -332,7 +337,8 @@ Only after Gate 2 "proceed to draft". Contract + verbatim ghost-editor invariant
    accurate count+category phrase and the user ratifies before it's applied. If
    the user chooses to exceed 2 pages, record the reason in
    `<run>/length_override.md`. Re-run until it reports `fits` OR an override
-   reason is recorded.
+   reason is recorded. The estimate is within about 0.1 page of Word, too
+   coarse for a 2-vs-3 page call: **Word decides** (step 6).
 5. Closed-loop re-eval (ONE pass, before promoting the draft) — validate the clean
    tagged draft on the same axes as the seed (`contracts/finishing.md` §6b):
    ```bash
@@ -347,10 +353,16 @@ Only after Gate 2 "proceed to draft". Contract + verbatim ghost-editor invariant
    symbols are hygiene; never tolerated, not just a regression check), and `chrono_check.py` reports `ordered`. Write `reeval.md`. No recursion: any issue
    surfaces as one yes/no, not a new trim loop.
 6. On clean + length-resolved + re-eval clean, write `resume_candidate.md` and
-   render an ATS-safe docx (0.6in margins, single column, no tables):
+   render an ATS-safe docx (single column, no tables; default 0.6in margins and
+   11pt body, or the levers the user chose in the length round), then confirm
+   the real page count in Word:
    ```bash
-   python .claude/skills/resume-fit/helpers/render_docx.py <run>/resume_candidate.md <run>/resume_candidate.docx
+   python .claude/skills/resume-fit/helpers/render_docx.py <run>/resume_candidate.md <run>/resume_candidate.docx [--margin 0.5] [--body-pt 10.5]
+   python .claude/skills/resume-fit/helpers/word_pages.py <run>/resume_candidate.docx --max-pages 2
    ```
+   Over budget in Word reopens the length round (never an unannounced override).
+   Exit 3 means Word is unavailable: say so and ask the user to confirm the
+   page count when they open the file.
    Deliverables: `resume_candidate.docx` + `resume_candidate.md`. **Not yet
    "final"** — see Phase G §7 in `contracts/finishing.md`: the user reads it
    aloud and explicitly approves before a true final is named. The input resume
@@ -434,7 +446,8 @@ arithmetic and string-matching so the model never does.
 | `numbers_strip.py` | Deterministic report headline numbers | `numbers_strip.py <run>` |
 | `prescriptions.py` | Enforce every recoverable gap has an Add row; reject "X or Y" targets | `prescriptions.py <prescriptions.yaml> <gapmap.yaml>` |
 | `tags.py` | Finishing-loop tag scan + exit check | `tags.py <resume_draft.md>` |
-| `length_budget.py` | Advisory 2-page estimator + per-section cost breakdown + review completeness; `--reason` records an override (a third page must name unique evidence) | `length_budget.py <resume.md> --max-pages 2 [--review <length_review.yaml>] [--reason <text>]` |
+| `length_budget.py` | Advisory page estimator built from Word-measured layout rules (within ~0.1 page) + per-section cost breakdown + review completeness; flags `borderline`; `--reason` records an override (a third page must name unique evidence) | `length_budget.py <resume.md> --max-pages 2 [--margin M] [--body-pt P] [--review <length_review.yaml>] [--reason <text>]` |
+| `word_pages.py` | Real page count measured in Microsoft Word (read-only, COM via PowerShell); decides "fits". Exit 0 fits, 2 over, 3 Word unavailable | `word_pages.py <resume.docx> --max-pages 2 [--pdf <out.pdf>]` |
 | `chrono_check.py` | Newest-first ordering check per section | `chrono_check.py <resume.md>` |
 | `docx_drift.py` | Detect hand edits in the `.docx` the `.md` lacks; `--pull` rebuilds md | `docx_drift.py <resume.md> <resume.docx> [--pull <out.md>]` |
 | `relevance.py` | Line-level JD-relevance meter (per-JD, value-blind); flags `none`-linkage claims | `relevance.py <resume.md> <requirements.yaml> <gapmap.yaml>` |
@@ -442,10 +455,10 @@ arithmetic and string-matching so the model never does.
 | `structure_lint.py` | Abbreviated titles, standard section headings (core four, `--allow` extras), one date format, legal-identifier advisory. Standalone, not yet in the finishing loop | `structure_lint.py <resume.md> [--allow <heading> ...]` |
 | `contact_check.py` | Fails when email, phone or name appear only in a .docx header, footer or text box. Standalone | `contact_check.py <resume.docx> [--name "<full name>"]` |
 | `filesize_gate.py` | Fails a rendered file over 2 MB (Google cap; Greenhouse parses to 2.5 MB). Standalone | `filesize_gate.py <resume.docx> [--max-mb 2]` |
-| `env_check.py` | Read-only report: `pdftotext`, LibreOffice, python-docx, pyyaml, data plane. Always exits 0 | `env_check.py` |
+| `env_check.py` | Read-only report: `pdftotext`, Word (LibreOffice only when Word is absent), python-docx, pyyaml, data plane. Always exits 0 | `env_check.py` |
 | `compress_candidates.py` | Finds 3+ item lists as compression candidates (pattern only, no category-word suggestion) | `compress_candidates.py <resume.md>` |
-| `whitespace_check.py` | Per-page fullness/density check (research-grounded readability, not bullet-uniformity) | `whitespace_check.py <resume.md> --margin 0.6` |
-| `render_docx.py` | Render clean markdown to an ATS-safe docx (0.6in) | `render_docx.py <resume_candidate.md> <out.docx>` |
+| `whitespace_check.py` | Per-page fullness/density check (research-grounded readability, not bullet-uniformity) | `whitespace_check.py <resume.md> [--margin M] [--body-pt P]` |
+| `render_docx.py` | Render clean markdown to an ATS-safe docx (default 0.6in, 11pt; floors 0.5in, 10pt; headings fixed) | `render_docx.py <resume_candidate.md> <out.docx> [--margin M] [--body-pt P]` |
 | `whd_patch.py` | Apply approved WHD patches (append, or `correction` = replace) + changelog | `whd_patch.py <whd.md> <patches.yaml>` |
 
 Schema names for `validate.py`: `requirements`, `location`, `preferences`, `scd`, `gapmap`, `screen`, `prescriptions`, `patches`.

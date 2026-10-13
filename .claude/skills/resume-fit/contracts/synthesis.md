@@ -146,7 +146,7 @@ hardest to scan. A resume can pass length and relevance and still read as a wall
 text.
 
 ```bash
-python .claude/skills/resume-fit/helpers/whitespace_check.py <resume.md> --margin 0.6
+python .claude/skills/resume-fit/helpers/whitespace_check.py <resume.md> [--margin M] [--body-pt P]
 ```
 
 Reports a per-page fullness ratio (dense / balanced / sparse) plus raw word/char

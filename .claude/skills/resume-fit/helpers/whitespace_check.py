@@ -28,18 +28,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from length_budget import (
-    PAGE_HEIGHT_IN,
-    USABLE_PAGE_HEIGHT_IN,
-    _classify,
-    _strip_md,
-    _line_h,
-    _wrapped_lines,
-    PAGE_WIDTH_IN,
-    BULLET_INDENT_IN,
-    BODY_PT,
-    SPACE_BEFORE,
-)
+from length_budget import BODY_PT, DEFAULT_MARGIN_IN, elements, usable_page_height_in
 
 # Research-grounded band, not an arbitrary cutoff: below ~55% full a page can
 # start to look sparse/unfinished; above ~85% full it reads as a dense
@@ -49,30 +38,20 @@ DENSE_THRESHOLD = 0.85
 SPARSE_THRESHOLD = 0.55
 
 
-def _element_stats(md_text: str, margin_in: float) -> list:
+def _element_stats(md_text: str, margin_in: float, body_pt: float) -> list:
     """Per-element (height_in, word_count) -- reuses length_budget's exact
     element model so this check stays consistent with the page estimator."""
-    text_width = PAGE_WIDTH_IN - 2 * margin_in
-    bullet_width = text_width - BULLET_INDENT_IN
-    stats = []
-    for raw in md_text.splitlines():
-        c = _classify(raw)
-        if c is None:
-            continue
-        kind, vis, pt = c
-        vis = _strip_md(vis)
-        width = bullet_width if kind == "bullet" else text_width
-        rendered_lines = _wrapped_lines(vis, width, pt)
-        h = rendered_lines * _line_h(pt) + SPACE_BEFORE[kind]
-        stats.append({"height_in": h, "words": len(vis.split()), "chars": len(vis)})
-    return stats
+    return [{"height_in": e["height_in"], "words": len(e["text"].split()),
+             "chars": len(e["text"])}
+            for e in elements(md_text, margin_in, body_pt)]
 
 
-def analyze(md_text: str, margin_in: float = 0.6) -> dict:
-    stats = _element_stats(md_text, margin_in)
-    total_h = sum(s["height_in"] for s in stats)
+def analyze(md_text: str, margin_in: float = DEFAULT_MARGIN_IN,
+            body_pt: float = BODY_PT) -> dict:
+    stats = _element_stats(md_text, margin_in, body_pt)
+    usable = usable_page_height_in(margin_in)
 
-    # Walk elements, accumulating into pages of USABLE_PAGE_HEIGHT_IN each --
+    # Walk elements, accumulating into pages of `usable` height each --
     # mirrors how length_budget.py turns total height into a page count, but
     # keeps the per-page breakdown instead of collapsing to one number.
     # CAVEAT (loud, not buried): this per-page boundary is APPROXIMATE. A greedy
@@ -89,7 +68,7 @@ def analyze(md_text: str, margin_in: float = 0.6) -> dict:
     pages = []
     current = {"height_in": 0.0, "words": 0, "chars": 0}
     for s in stats:
-        if current["height_in"] + s["height_in"] > USABLE_PAGE_HEIGHT_IN and current["height_in"] > 0:
+        if current["height_in"] + s["height_in"] > usable and current["height_in"] > 0:
             pages.append(current)
             current = {"height_in": 0.0, "words": 0, "chars": 0}
         current["height_in"] += s["height_in"]
@@ -100,7 +79,7 @@ def analyze(md_text: str, margin_in: float = 0.6) -> dict:
 
     page_reports = []
     for i, p in enumerate(pages, start=1):
-        ratio = round(p["height_in"] / USABLE_PAGE_HEIGHT_IN, 2)
+        ratio = round(p["height_in"] / usable, 2)
         if ratio >= DENSE_THRESHOLD:
             verdict = "dense"
         elif ratio <= SPARSE_THRESHOLD:
@@ -133,8 +112,8 @@ def analyze(md_text: str, margin_in: float = 0.6) -> dict:
     }
 
 
-def analyze_file(path, margin_in: float = 0.6) -> dict:
-    return analyze(Path(path).read_text(encoding="utf-8"), margin_in=margin_in)
+def analyze_file(path, margin_in: float = DEFAULT_MARGIN_IN, body_pt: float = BODY_PT) -> dict:
+    return analyze(Path(path).read_text(encoding="utf-8"), margin_in=margin_in, body_pt=body_pt)
 
 
 if __name__ == "__main__":
@@ -144,10 +123,11 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(
         description="Report per-page whitespace/fullness ratio (advisory).")
     ap.add_argument("path")
-    ap.add_argument("--margin", type=float, default=0.6)
+    ap.add_argument("--margin", type=float, default=DEFAULT_MARGIN_IN)
+    ap.add_argument("--body-pt", type=float, default=BODY_PT)
     args = ap.parse_args()
 
-    result = analyze_file(args.path, margin_in=args.margin)
+    result = analyze_file(args.path, margin_in=args.margin, body_pt=args.body_pt)
     print(json.dumps(result, indent=2))
     if result["dense_pages"] or result["sparse_pages"]:
         issues = []

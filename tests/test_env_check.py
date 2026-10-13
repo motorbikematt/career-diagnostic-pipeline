@@ -4,6 +4,7 @@ import env_check
 
 
 def test_reports_found_and_missing_binaries(monkeypatch):
+    monkeypatch.setattr(env_check, "word_installed", lambda: False)
     monkeypatch.setattr(env_check.shutil, "which",
                         lambda name: "C:/tools/pdftotext.exe" if name == "pdftotext" else None)
     rows = {r["item"]: r for r in env_check.run()}
@@ -14,10 +15,22 @@ def test_reports_found_and_missing_binaries(monkeypatch):
 
 
 def test_libreoffice_found_under_either_executable_name(monkeypatch):
+    monkeypatch.setattr(env_check, "word_installed", lambda: False)
     monkeypatch.setattr(env_check.shutil, "which",
                         lambda name: "/usr/bin/libreoffice" if name == "libreoffice" else None)
     rows = {r["item"]: r for r in env_check.run()}
     assert rows["libreoffice"]["ok"] is True
+
+
+def test_word_reported_and_libreoffice_not_probed_when_word_installed(monkeypatch):
+    """With Word installed, LibreOffice is never looked for or reported."""
+    monkeypatch.setattr(env_check, "word_installed", lambda: True)
+    probed = []
+    monkeypatch.setattr(env_check.shutil, "which", lambda name: probed.append(name))
+    rows = {r["item"]: r for r in env_check.run()}
+    assert rows["word"]["ok"] is True
+    assert "libreoffice" not in rows
+    assert not {"soffice", "libreoffice"} & set(probed)
 
 
 def test_missing_data_plane_is_reported_not_raised(monkeypatch):

@@ -91,26 +91,59 @@ def test_estimator_is_value_blind():
         assert forbidden not in blob
 
 
-def test_calibration_against_observed_ground_truth():
-    """Anthropic resume_candidate.md (rev8) is a user-confirmed real 2-page
-    document in Word, rendered with the CURRENT render_docx.py template (0.6in
-    margins, 2pt space_after, 1.05 line spacing). The estimator must reproduce
-    that within tight tolerance -- this pins USABLE_PAGE_HEIGHT_IN and
-    LINE_H_PER_PT together so a future template change (e.g. re-tightening
-    render_docx.py without updating this model) can't silently drift them out of
-    sync again, which previously caused a 38% total-height miscalibration that
-    went undetected until checked against this exact ground truth."""
-    from pathlib import Path
+# --- Layout model pinned to Word measurements (2026-10-09) -------------------
 
-    p = (
-        data_plane_runs()
-        / "anthropic-product-manager-api-growth-2026-07-06/resume_candidate.md"
-    )
-    if not p.exists():
-        import pytest
-        pytest.skip("data-plane Anthropic run not present")
-    est = length_budget.check_file(p, max_pages=2, margin_in=0.6)
-    assert 1.85 <= est["estimated_pages"] <= 2.15
+def test_line_height_matches_word_measurement():
+    """Word measured a 13.84pt pitch for 11pt Calibri at 1.05 line spacing
+    (81 paragraph pairs, four resumes). The old model used 11.55pt, a ~24%
+    per-line under-count that a fitted page-height constant only partly hid."""
+    assert abs(length_budget._line_h(11) * 72 - 13.84) < 0.1
+
+
+def test_paragraph_gap_is_max_not_sum():
+    """Word uses max(space_after, space_before) between paragraphs, not both."""
+    assert length_budget._gap_above("h2") * 72 == 10
+    assert length_budget._gap_above("bullet") * 72 == length_budget.SPACE_AFTER_PT
+
+
+def test_usable_height_is_physical_page_minus_margins():
+    assert length_budget.usable_page_height_in(0.6) == 11.0 - 1.2
+    assert length_budget.usable_page_height_in(0.5) == 10.0
+
+
+def test_smaller_body_font_is_shorter():
+    body = _long_resume(n_roles=2, bullets_per_role=3)
+    at_11 = length_budget.estimate(body, body_pt=11)["total_height_in"]
+    at_10_5 = length_budget.estimate(body, body_pt=10.5)["total_height_in"]
+    assert at_10_5 < at_11
+
+
+def test_no_tolerance_over_budget_and_borderline_flag():
+    """`fits` has no slack above the budget; just under it is flagged
+    borderline so the loop confirms with word_pages.py."""
+    r = length_budget.check(SHORT, max_pages=2)
+    assert r["borderline"] is False
+    tiny_budget = length_budget.estimate(SHORT)["estimated_pages"]
+    r = length_budget.check(SHORT, max_pages=tiny_budget + 0.01)
+    assert r["fits"] is True and r["borderline"] is True
+    assert length_budget.check(SHORT, max_pages=tiny_budget - 0.01)["fits"] is False
+
+
+def test_against_word_ground_truth():
+    """Four real resumes, frozen in the data plane's fixtures with the page
+    positions Word measured (word_measurements.yaml). The old model estimated
+    Qualcomm at 1.99 and called it fitting when Word printed 3 pages; every
+    estimate must now land within 0.1 page of Word."""
+    import pytest
+    import yaml
+
+    gt = data_plane_runs().parent / "fixtures" / "word_ground_truth"
+    if not gt.exists():
+        pytest.skip("data-plane Word ground-truth fixtures not present")
+    truth = yaml.safe_load((gt / "word_measurements.yaml").read_text(encoding="utf-8"))
+    for name, m in truth.items():
+        est = length_budget.estimate((gt / f"{name}.md").read_text(encoding="utf-8"))
+        assert abs(est["estimated_pages"] - m["fractional_pages"]) <= 0.1, (name, est["estimated_pages"])
 
 
 # --- Section review completeness (TODO #8) ---------------------------------

@@ -14,6 +14,8 @@ Bracketed IDs refer to `ats-evidence-2026.md`: [S#] is a bibliography source, [L
 | Tested locally | Observed in a project test (L-numbered); limited to that environment |
 | Hypothesis | Plausible and cheap to adopt, but undocumented by any parser vendor and untested |
 | Style choice | A house preference with no ATS basis; keep or drop on taste |
+| Practitioner consensus | Repeated across career-advice sources (tier 4 or 5) but never tested; adopt as convention, do not cite as evidence |
+| Project rule | A decision made for this project; it follows from the no-fabrication and voice invariants, not from outside evidence |
 
 ## 1. Document format rules
 
@@ -112,3 +114,84 @@ The 14 changes proposed in the original report were reconciled with `TODO.md` on
 | 14. LLM-evaluator bias note | #21 |
 
 Format rules from section 1 that became TODO items: the Symbol-font bullet and export method (#26), heading styles (#28), and visible URLs (#29).
+
+## 7. Summary rules (added 2026-10-10)
+
+Evidence base: thin. The project's own evidence file has nothing on summaries. The only measured data is the TheLadders eye-tracking study, which is vendor-run and from 2012 [S74, S75]; the rest is career-advice writing (tier 4 and 5) gathered on 2026-10-10 (sources listed at the end of this section; not yet in the bibliography). Rules below say which kind of basis they have.
+
+**Decision, 2026-10-10: there is no "candidate type".** An earlier plan had a single approved statement of "who I am" anchor the summary and serve as the stable comparison for the screen's archetype read (TODO #15). It is dropped. It locked the resume to a niche taken from the WHD's record of the past (the self-ranked domain list), it had no consumer in the pipeline beyond the summary, and the archetype fields in the gapmap remain per-run diagnostics only. Direction is expressed through which true material is foregrounded (rule S6), never through a stored identity statement.
+
+### 7.1 What a summary is, and how much it weighs
+
+| # | Rule | Status | Basis |
+|---|---|---|---|
+| S1 | The summary is a claim, not evidence. It carries little weight in screening and cannot rescue bullets that fail. | Evidence-backed (mechanism); the weight is inference | First-pass attention goes to name, titles, employers, dates and education, and explanatory prose had little effect on that decision [S74, S75]. Requirement-by-requirement scoring cites the supporting resume section [S28, S30], and skills in recent dated roles are favored [S33, S39] |
+| S2 | It must not displace current title, employer, dates and location from the top third of page one. | Evidence-backed (pattern) | [S74, S75]. Same rule as section 2 |
+| S3 | Its role is orientation and a checkable thesis: it tells a reader who goes past the first pass what to look for, and the bullets must then prove it. | Practitioner consensus | Career-advice sources agree on purpose; no test found |
+| S4 | A summary is optional. Omit it before letting it push the first page past two. | Project rule | Follows from S1 and the two-page default |
+
+### 7.2 Content
+
+| # | Rule | Status | Basis |
+|---|---|---|---|
+| S5 | Every claim in a summary traces to an approved library bullet, and that bullet traces to a WHD anchor. A claim with no bullet is removed or the bullet is written first. | Project rule | No-fabrication invariant; an unsupported claim also leaves a requirement with no evidence trail [S28, S30] |
+| S6 | Direction comes from selection, not declaration. Aspirations decide which true capabilities lead and which targets are pursued. They never add a fact, a skill or a claim of experience, and they are not stored in the WHD (the WHD is the record of what happened). | Project rule | Separates the record from intent; keeps the WHD usable for any target |
+| S7 | Do not tie the summary to one domain or employer type unless the target requires it. Write one summary per target family. | Project rule | Decision 2026-10-10; the candidate-type statement above failed this test |
+| S8 | State the role and scope, then two or three quantified results where the WHD supports a measure. Do not invent a measure. | Practitioner consensus, plus the project's X-Y-Z rule | Sources agree on numbers and scope; the X-Y-Z rule is in section 2 [S78, S80] |
+| S9 | Two to four lines. No first-person pronouns. No objective statement ("seeking a role that..."). | Practitioner consensus | Objectives are discouraged for experienced candidates in the sources gathered; length is advice only |
+| S10 | Name the through-line of a mixed background by what the work had in common (the capability), not by listing industries. | Practitioner consensus | Career-change guidance in the sources gathered |
+| S11 | Mirror the target's vocabulary only where it is true, once, without synonym repetition. | Evidence-backed | Greenhouse maps many terms to one calibrated skill [S12] |
+| S12 | Prefer concrete scope and results to adjectives. Phrases such as "results-driven" and "detail-oriented" are weak, but they are not auto-rejected, so the rule is a writing standard, not a lint. | Practitioner consensus | Recruiter commentary; compare closed TODO A2, which found no evidence that recruiters reject specific words |
+| S13 | The wording must pass the voice check against the WHD voice sample and use no dash or arrow characters (house style). | Project rule | Existing invariants in `contracts/finishing.md` |
+
+### 7.3 How the pieces relate
+
+```
+WHD            what happened; all of it; fixed; never states direction
+  |  (anchors)
+bullet library approved wording of true facts; each bullet traces to an anchor; tagged by capability
+  |  (selection)
+master resume  curated default selection; summary slot filled by a variant
+  |  (tailoring)
+job resume     bullets chosen and ordered for one JD; one summary variant chosen or adapted
+```
+
+- The **job description** is the question. Each requirement should have a bullet that answers it, or be reported as an honest gap.
+- **Aspirations** are a filter on which jobs to pursue and which true material leads. They are not evidence (S6).
+- The **summary** is the thesis that connects them. The **bullets** are the proof. A summary claim without a bullet fails S5; a strong bullet that no summary mentions is fine.
+- Tailoring starts from the master and the library, never from the previous job's resume (the compounding problem this whole design fixes).
+
+Sources gathered 2026-10-10 (tier 4 and 5, not yet numbered in the bibliography):
+- ATD, "What recruiters look at during the 6 seconds": https://www.td.org/content/atd-blog/what-recruiters-look-at-during-the-6-seconds-they-spend-on-your-resume
+- Built In, "14 Tips for Writing a Stellar Product Manager Resume": https://builtin.com/articles/product-manager-resume
+- Product School, "The Product Management Resume Checklist": https://productschool.substack.com/p/product-management-resume-checklist
+- The Interview Guys, career-changer summaries: https://blog.theinterviewguys.com/?p=2729
+- Toptal, objective versus summary: https://www.toptal.com/resume/career-center/resume-objective-vs-resume-summary-key-differences-and-when-to-use-each
+- Recruiter.com, "Is the Resume Objective Statement Truly Dead?": https://www.recruiter.com/i/is-the-resume-objective-statement-truly-dead/
+Not used: the "340% more callbacks" claim (no method) and the 2018 and 2025 attention figures reported by one site (could not be verified elsewhere).
+
+## 8. How LLM-assisted writing behaves, and how to separate the work (added 2026-10-10)
+
+Status for this section: Reasoned from model behavior observed in this project. No external study was gathered. Treat each statement as a working assumption that the process is built to withstand, not as a finding.
+
+### 8.1 Behaviors the process has to plan for
+
+1. **Polish by default.** A model improves text it was not asked to improve. The finishing contract already forbids this for unflagged lines. The same pull applies to approved bullets, which must be stored exactly as the candidate approved them.
+2. **Fluent and generic.** Without strong constraints, drafts converge on a plausible, interchangeable professional register. The candidate's own phrasing is the correction, not a lightly edited draft of the model's.
+3. **Words before facts.** Offering polished options before the facts and positioning are settled invites rejection and wasted rounds. In the session that produced these rules, two rounds of polished summary options were rejected, and the candidate then said they were unhappy with how the options presented them. The fix is to elicit the candidate's own rough statement first and edit it.
+4. **Pressure to fill gaps.** A sentence that needs a number or a scope tends to acquire one. The rule is to flag a missing measure, never supply it (section 2, X-Y-Z).
+5. **Context carries over.** A long session accumulates rejected drafts, process chatter and earlier framings, and later output inherits them. This is the document-level form of the compounding problem the master resume exists to stop.
+6. **One posture does not fit all tasks.** Interrogating evidence rewards doubt and precision. Building tools rewards determinism and tests. Writing prose rewards voice and economy. Doing them in one conversation degrades each: evidence work gets loose, prose gets cautious and choppy.
+7. **Authorship is visible.** The candidate reads certain punctuation as an AI tell (house style), and some hiring-manager surveys report rejection of AI-generated application materials, though those figures are weak (tier 5, 19.6% in one survey versus an unclear 49% in another; see the evidence file). The shipped wording should be the candidate's own edited words.
+
+### 8.2 Required separation: three kinds of session
+
+Each kind runs in its own fresh session, started from a short written handoff that names the persona, the permitted inputs, the outputs and the forbidden actions. Do not carry one kind's conversation into another.
+
+| Session | Persona | Does | Inputs | Output | Must not |
+|---|---|---|---|---|---|
+| A. Evidence (bullets) | Evidence interviewer: a skeptical editor who checks every claim against the record | Drafts candidate bullets from one role's WHD anchors, challenges numbers and verbs, asks one question at a time, stores the candidate's exact words | WHD anchors, voice sample, the bullet rules | Approved bullets in the library, each with its anchor and capability tags | Write summary prose; invent a measure; polish an approved line; change the WHD without a patch |
+| B. Prose (summary variants) | Voice editor: writes in the candidate's register and edits the candidate's own rough lines | Starts by asking the candidate for rough statements in their own words, then tightens them within sections 7.1 and 7.2 | Approved bullets (read-only), voice sample, the target family, the candidate's rough lines | Two or three summary variants, each claim tagged with the supporting bullet ids | Introduce any claim that has no approved bullet; edit bullets; touch code or schemas |
+| C. Process (code, schemas, lints, contracts) | Engineer: deterministic, tested, narrow | Changes helpers, schemas and contracts; runs the test suite | The repo, the TODO list | Committed code and tests | Draft resume wording; approve bullets; edit the WHD |
+
+Session B runs after the library holds approved bullets for the roles it will draw on (rule S5 depends on it). Storage for summary variants and a check that every summary claim maps to a bullet id are not yet built; they are tracked as TODO #30.

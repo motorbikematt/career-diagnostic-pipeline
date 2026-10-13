@@ -82,7 +82,13 @@ AskUserQuestion, batched by tag type:
 - **Stretch confrontations** — any prescription touching a Stage-3 stretch: the
   user explicitly accepts the honest framing or drops the line. No silent softening.
 - **Length round** — run `length_budget.py <draft.md> --max-pages 2` (margin 0.6).
-  If it reports **over budget**, present the overflow to the user with BOTH
+  **Layout levers first** (2026-10-09, measured in Word): they leave the
+  extracted text identical and cost no content. Offer, in order: narrow margins
+  (`render_docx.py --margin 0.5`), then body text 10.5pt (`--body-pt 10.5`,
+  floor 10). Headings never shrink: shrinking only the name and section
+  headings saved under one line on a real resume, and role titles must not drop
+  below body size. Re-measure with the same `--margin`/`--body-pt`.
+  If it still reports **over budget**, present the overflow to the user with BOTH
   signals side by side, then let them decide — never auto-cut:
   - **Cost** — the per-section `height_in` / `rendered_lines` from the helper
     (which section is eating the pages). The helper is value-blind; it only meters
@@ -119,7 +125,9 @@ Cap ~3 rounds per type; overflow to a punch list.
 ## 6. Exit criteria + render
 - The loop does not terminate until `tags.py` reports **clean** (zero blocking
   tags) AND the voice audit passes AND the length round (§5) is resolved —
-  `length_budget.py` reports **fits** at 2 pages, OR the user recorded an override
+  Word reports **fits** at 2 pages (`word_pages.py`, run on the rendered docx;
+  `length_budget.py` is an estimate within ~0.1 page and cannot decide a
+  boundary case), OR the user recorded an override
   reason in `length_override.md`. Length is a *default*, not a hard block: unlike
   the tags gate, a justified override lets the render proceed past 2 pages.
 - If the user stalls, save with an explicit **NOT SUBMITTABLE** banner and the
@@ -160,7 +168,10 @@ clean, proceed to render. If the draft already passed cleanly (no dead-weight, f
 
 - On clean (tags clean + length resolved + re-eval clean): strip informational
   tags, write `resume_candidate.md` (source of truth), then render:
-  `python .claude/skills/resume-fit/helpers/render_docx.py <run>/resume_candidate.md <run>/resume_candidate.docx`
+  `python .claude/skills/resume-fit/helpers/render_docx.py <run>/resume_candidate.md <run>/resume_candidate.docx [--margin 0.5] [--body-pt 10.5]`
+  then `python .claude/skills/resume-fit/helpers/word_pages.py <run>/resume_candidate.docx --max-pages 2`.
+  Over budget in Word reopens the length round; exit 3 (no Word) means the user
+  confirms the page count by eye.
   (ATS-safe: single column, standard font, no tables/text-boxes/headers).
   Deliverables: `resume_candidate.docx` + `resume_candidate.md` + `reeval.md`.
   **This is NOT "final."** It has passed every automated gate but still needs the

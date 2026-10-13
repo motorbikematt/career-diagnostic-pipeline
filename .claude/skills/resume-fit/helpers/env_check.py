@@ -1,14 +1,16 @@
 """Environment readiness report (read-only, always exits 0).
 
 Answers "can this machine run the optional steps?" before they are planned:
-`pdftotext` (poppler) for a text-extraction round trip, LibreOffice headless for
-PDF export (TODO #26), the Python libraries the helpers import, and the data
-plane path. It changes nothing and never fails; a missing optional tool is
+`pdftotext` (poppler) for a text-extraction round trip, Microsoft Word for the
+real page count and PDF export (word_pages.py), the Python libraries the helpers
+import, and the data plane path. LibreOffice is only looked for when Word is not
+installed: it is the headless fallback for machines without Word (Linux, CI). It changes nothing and never fails; a missing optional tool is
 reported, not raised.
 """
 from __future__ import annotations
 
 import importlib.util
+import platform
 import shutil
 
 import config
@@ -16,8 +18,10 @@ import config
 # (label, executable names tried in order, what needs it)
 BINARIES = (
     ("pdftotext", ("pdftotext",), "text-extraction round trip on a PDF (poppler)"),
-    ("libreoffice", ("soffice", "libreoffice"), "headless PDF export (TODO #26)"),
 )
+WORD_NEEDED_FOR = "real page count and PDF export (word_pages.py)"
+LIBREOFFICE = ("libreoffice", ("soffice", "libreoffice"),
+               "page count and PDF export where Word is absent (fallback)")
 # (label, import name, what needs it)
 LIBRARIES = (
     ("python-docx", "docx", "render_docx.py, docx_drift.py, contact_check.py"),
@@ -31,6 +35,28 @@ def _binary(label: str, names: tuple, needed_for: str) -> dict:
         if path:
             return {"item": label, "ok": True, "detail": path, "needed_for": needed_for}
     return {"item": label, "ok": False, "detail": "not on PATH", "needed_for": needed_for}
+
+
+def word_installed() -> bool:
+    """Word registers the Word.Application COM class; reading the registry is
+    instant and does not launch Word."""
+    if platform.system() != "Windows":
+        return False
+    import winreg
+
+    try:
+        winreg.CloseKey(winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, r"Word.Application\CurVer"))
+        return True
+    except OSError:
+        return False
+
+
+def _layout_engine() -> dict:
+    """Word when installed; otherwise LibreOffice, the headless fallback."""
+    if word_installed():
+        return {"item": "word", "ok": True, "detail": "Word.Application registered",
+                "needed_for": WORD_NEEDED_FOR}
+    return _binary(*LIBREOFFICE)
 
 
 def _library(label: str, module: str, needed_for: str) -> dict:
@@ -51,6 +77,7 @@ def _data_plane() -> dict:
 
 def run() -> list:
     return ([_binary(*b) for b in BINARIES]
+            + [_layout_engine()]
             + [_library(*l) for l in LIBRARIES]
             + [_data_plane()])
 
