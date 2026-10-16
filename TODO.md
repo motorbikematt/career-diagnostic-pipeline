@@ -213,6 +213,11 @@ the master-resume work). Tests: 189 passed, now 220.
   `docs/research/resume-fit-guidance.md` sections 7 and 8 set rules for summaries (every claim traces to an approved bullet; two to four lines; no first person; no objective statement; a variant per target family). Nothing checks them, and there is no file for the variants.
   *Decide:* where summary variants live (a `summaries.yaml` next to `bullet_library.yaml`, each claim tagged with bullet ids), and whether to add an advisory lint for the mechanical rules (length, pronouns, objective phrasing) and a claim-to-bullet check. Do this after the bullet library exists.
 
+- [ ] **31. The resume's location is not checked against the target market.**
+  On Eightfold's Netflix career site the parsed location set the job pool: the header city if present, otherwise the most recent role's city; a relocation phrase had no visible effect [L2]. Location and relocation knockouts (#10) compare preferences with the JD, but nothing checks which city the resume itself presents.
+  *Fix:* an advisory lint that reports the header location and the first location in the work history, and warns when the JD is on-site or hybrid in a different metro, or when the header has no location and the first role's city would be picked up instead.
+  *Decide:* the wording to recommend for a candidate open to relocation (for example "Kettering, OH; relocating to {metro}" only when that is true), and whether the lint reads target metros from `pipeline/whd/preferences.yaml`.
+
 ### Reviewed and closed: Gemini Antigravity proposals (2026-10-03)
 These three items were appended by the Gemini Antigravity run (commit 3f9f0f7).
 Dispositions follow the evidence review in `docs/research/ats-evidence-2026.md`.

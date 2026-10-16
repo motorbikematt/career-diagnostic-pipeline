@@ -60,6 +60,8 @@ Bracketed IDs refer to `ats-evidence-2026.md`: [S#] is a bibliography source, [L
 | Before applying, check that the resume agrees with planned answers to likely knockout questions (location, relocation, work authorization, years of experience, salary) | Evidence-backed (mechanism) | Recruiter-configured auto-reject and disqualification on application answers [S15, S16, S21, S22, S23] |
 | Where an employer offers an AI opt-out, it routes the application to manual review | Evidence-backed | Greenhouse [S12, S13] |
 | Check the employer's autofill preview after upload and correct missed fields | Evidence-backed | Google asks candidates to correct parser misses [S3] |
+| Treat the header location as a targeting setting: for on-site or hybrid targets, state the location the candidate will actually work from, and make sure no other city on the page (such as the most recent role's) is the one the parser picks up | Tested locally | On Eightfold's Netflix career site, the resume's location set the job pool: a Kettering header returned only remote roles, and with no header location the parser used the most recent role's city [L2]. A relocation phrase had no visible effect. One platform; Textkernel also documents location as a weighted criterion that drops out for remote jobs [S33, S34] |
+| Expect the vocabulary in a resume tuned for one target to carry over to every other submission | Tested locally | On the same site, heavy AI and ML wording returned engineering and research roles to a PM, while PM-flavored wording returned only product roles [L2]. Keep one variant per target family rather than reusing a tuned resume |
 
 ## 4. Verifying a resume without replicating an ATS
 

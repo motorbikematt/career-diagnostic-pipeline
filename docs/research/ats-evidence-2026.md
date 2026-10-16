@@ -24,7 +24,7 @@ Confidence levels: **high** means tier-1 or tier-2 sources state the claim direc
 
 Citations use bibliography IDs in square brackets, for example [S1].
 
-Two further ID types appear: [L1] and later L-numbers are local tests run for this project, and [U1] marks an unsourced input reviewed but not relied on. Both are described in "Local tests and unsourced inputs" below.
+Two further ID types appear: [L1] and later L-numbers are local tests and observations run for this project, and [U1] marks an unsourced input reviewed but not relied on. Both are described in "Local tests and unsourced inputs" below.
 
 ## Executive summary
 
@@ -256,6 +256,30 @@ Results:
 
 Limits: one document, one export engine, one open-source extractor. Microsoft Word's own PDF export and commercial ATS parsers were not tested, and the .docx file itself was not run through an extractor. In a .docx, list bullet glyphs live in the numbering definitions rather than in paragraph text (an inference from the Office Open XML structure, not tested here).
 
+### L2. Eightfold job recommendations on the Netflix career site (2026-10-16)
+
+Purpose: see what an Eightfold career-site matcher does with two real resumes from this project, uploaded to the "match my resume to jobs" feature on Netflix's career site.
+
+Platform: `explore.jobs.netflix.net` is Eightfold's hosted career site. Its page source links `netflix.eightfold.ai`, loads assets from `static.vscdn.net`, and sets `isPcsEnabled` (checked 2026-10-16).
+
+Method: two uploads, each answered with a greeting of the form "Based on your resume/CV, we found N relevant jobs in {city}" and a list of jobs.
+
+| | Upload A (written for a Qualcomm gaming AI role) | Upload B (written for a Netflix requisition) |
+|---|---|---|
+| Header location | Kettering, OH, with "Open to San Diego Relocation or Hybrid Travel" | None |
+| First location in work history | Kettering, OH (current role) | San Mateo, CA (Roblox, most recent role) |
+| Headline and vocabulary | "Senior AI Product leader"; heavy AI and ML terms (GenAI, diffusion, agentic, YOLO, edge AI, real-time inference) | "Product leader specializing in developer ecosystems, SDKs"; light AI terms; Jira, Confluence, OKRs in Skills |
+| Greeting | 3 jobs "in Kettering, Ohio" | 13 jobs "in San Mateo, CA" |
+| Jobs returned | PM, Localization Innovation (remote); AI Research Scientist 4/5, Generative Models and Recommender Systems; Senior Game Engineer, Gen AI, Games | 12 PM-family jobs plus one TPM; locations Los Gatos, Los Angeles, and two remote US roles |
+
+Results:
+- **The search location is taken from the resume and limits the job pool.** With no header location, the greeting named San Mateo, the city of the most recent role. With Kettering in the header and the current role, only roles available from Ohio (remote US) came back. The relocation phrase in Upload A had no visible effect.
+- **Vocabulary decided the job family.** Upload A's AI and ML wording returned an engineer and a research scientist alongside one PM role. Upload B returned only product roles and no games roles, although it keeps the same gaming employers and engines (Roblox, Dolby, Unreal, WWISE). The earlier games and research matches came from the AI and builder vocabulary, not from the gaming history.
+- **Same pool, different ranking.** Two remote PM jobs appear in Upload B's list: Localization Innovation and PM L6, Data Platform. Upload A could reach both, yet ranked the research scientist and game engineer roles above the Data Platform PM role.
+- **One job survived both uploads:** PM, Localization Innovation.
+
+Limits: two uploads on one platform and one employer, run hours apart. The resumes differ in location, headline, vocabulary and content at once, so the location finding rests on the greetings rather than a one-variable test. Eightfold returns no scores and no rejected jobs, so ranking order cannot be separated from catalog order. Upload A arrived through a LinkedIn link carrying a job ID (`pid`) and a `location` parameter; whether the seed job or that parameter shaped the results was not tested. Each upload may update the candidate's profile in the employer's system, which limits how many further tests are worth running. This is a career-site recommender for candidates; recruiter-side Eightfold ranking [S35] may weigh signals differently.
+
 ### U1. Technical briefing on document generation (unsourced)
 
 `archive/technical_briefing_ats_optimized_document_generation.md` (added 2026-10-03; author and sources not stated) proposes formatting rules for .docx and PDF output. It cites nothing, so none of its claims is used as evidence. Its testable points are tracked as hypotheses in `resume-fit-guidance.md`, with L1 results where they apply. One claim was contradicted by L1: that standard word-processor bullets avoid corrupt substitution characters.
@@ -271,7 +295,7 @@ Limits: one document, one export engine, one open-source extractor. Microsoft Wo
 - No official resume guidance from Meta, Apple, Microsoft, or Netflix was found.
 - Sources not marked "re-checked" were carried from the automated research pass and were not individually re-opened.
 - S92, S95, and S96 are preprints without peer review. S90 and S93 are vendor-published data.
-- L1 is a single local test in one environment and is reported as such, not as a tier-ranked source.
+- L1 is a single local test in one environment and is reported as such, not as a tier-ranked source. L2 is two uploads to one employer's career site with several variables changed at once.
 - Claims in the two parallel reports reviewed in the third pass were not adopted unless their sources were opened and confirmed. Rejected claims include vector search having replaced keyword matching across ATS platforms, regulation mandating human review in NYC, and recruiters rejecting specific buzzwords.
 
 ## Bibliography
