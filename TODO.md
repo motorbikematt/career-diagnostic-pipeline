@@ -218,6 +218,54 @@ the master-resume work). Tests: 189 passed, now 220.
   *Fix:* an advisory lint that reports the header location and the first location in the work history, and warns when the JD is on-site or hybrid in a different metro, or when the header has no location and the first role's city would be picked up instead.
   *Decide:* the wording to recommend for a candidate open to relocation (for example "Kettering, OH; relocating to {metro}" only when that is true), and whether the lint reads target metros from `pipeline/whd/preferences.yaml`.
 
+## LinkedIn and recruiter guidance alignment (2026-10-22)
+Rules, source labels and the full gap analysis live in `docs/research/linkedin-guidance-2026.md`
+([W1], [W2] there). Paths are relative to `.claude/skills/resume-fit/`. Nothing here is
+implemented. Items 32 and 33 wait on decisions D1 and D2 in that file; 41 waits on D3.
+Related open items sharpened by this guidance: #17 (JD title-family divergence), #21 and
+#23 (top-of-page-one checks), #22 (X-Y-Z check), #24 (knockouts), #25 (coverage percentage),
+#30 (summary variants).
+
+- [x] **32. No banner line, and the summary rule blocks a bridge summary.** (D1 decided and implemented 2026-10-22)
+  **Done 2026-10-22:** `prescriptions.py` enforces exactly one `summary` prescription and a verbatim-JD-title `banner` (credentialed titles need a WHD source; term list in the helper); `summary_lint.py` and `schemas/summary_options.schema.yaml` added; finishing contract section 4b and the 6b re-eval, synthesis contract, SKILL.md, report template and the example run updated; 276 tests pass. Not wired: banner insertion is a contract step (no helper renders or checks the banner line in the draft). The decision text follows.
+  Official guidance: a target-title banner under the name and a who/what/how/proof summary [W2]. `contracts/finishing.md` forbids adding a summary the seed resume lacks; `resume-fit-guidance.md` S4 calls it optional.
+  *Decided:* every resume has a summary (rebuild an existing one, Add if absent) built to who/what/how/proof with the proof sentence tied to the JD; two to four lines, no first person, claims traced to approved bullets or WHD anchors; protected in the length round. Banner line uses the JD title verbatim as an owner-approved exception to no-fabrication, banner only (D2 stays open for role-entry titles). Synthesis drafts two or three summary options; the user picks or edits; edits are stored verbatim.
+  *Implement:* replace the finishing-contract invariant; add Summary and Banner prescription types to `schemas/prescriptions.schema.yaml` and `contracts/synthesis.md`; record the banner exception in the honesty check and report; update `resume-fit-guidance.md` S4; add tests. *Confirm first:* the proposed exclusion for credentialed titles (engineer, nurse, CPA).
+
+- [ ] **33. Title and scope policy.** (decision D2)
+  The recruiter advises titling the resume with the target's title and giving the true title at the background check [W2]. The honesty check would class that as a Stretch. A truthful parenthetical carrying the scope is the safer form.
+  *Decide:* default parenthetical, ratified swap with a background-check reminder, or never swap. Then add a Title-alignment prescription type, a `title_on_record` field and `scope_equivalent_titles` in the WHD role index, and a report line.
+
+- [ ] **34. Requirements carry no emphasis.**
+  The top third to two-thirds of a JD's requirements carry the core ask [W2]. `schemas/requirements.schema.yaml` stores hard versus preferred only.
+  *Fix:* an `emphasis` field (core | supporting) set at intake from position in the JD; use it to order the Gap Map and report rows.
+
+- [ ] **35. Synonym hits hide vocabulary gaps.**
+  Recruiters and scoring look for the JD's wording [W2]; `ats.py` counts taxonomy synonyms as matches. Merges with #25.
+  *Fix:* report synonym-only matches as a "vocabulary gap" and prescribe mirroring the JD term once, only where true.
+
+- [ ] **36. Hidden-text lint for input resumes.**
+  The guest says white or one-point text and prompt injection do not work [W2]; nothing checks supplied .docx files for them.
+  *Fix:* a standalone helper that fails on white-on-white, font size at or below 2 pt, or hidden (vanish) runs. Fixable without input.
+
+- [ ] **37. Age-signal advisory.**
+  After about five years of experience, drop education years and GPA [W2]. `resume_default` covers old roles only.
+  *Fix:* an advisory lint for graduation years and GPA on a resume whose experience exceeds five years, and a WHD flag marking them omit-by-default. Do not alter a required application field.
+
+- [ ] **38. Scope line, top two-thirds, and unquantified filler.**
+  Extends #21, #22 and #23: each recent role starts with a scope line; the scan zone is the top two-thirds of page one, not the top third; flag subjective adjectives in the summary as an advisory only (TODO A2 stays closed: no evidence of word rejection).
+
+- [ ] **39. WHD template lacks structured scope and education flags.**
+  Add a "Scope facts" block per role (team, sites, budget, revenue, users), title-of-record fields (with #33), and an education-dates flag (with #37). Update `templates/whd-template.md`, `whd_anchors.py` and the migration helper, with tests.
+
+- [ ] **40. No target families in preferences.**
+  Official guidance: narrow to one or two targets by interest, skill and demand [W2]; one resume per target title [W1].
+  *Decide:* a `target_families` list in `pipeline/whd/preferences.yaml`, used by #30 (summary variants) and by a Gate 1 warning when a JD falls outside every declared family.
+
+- [ ] **41. No LinkedIn profile mode.** (decision D3)
+  First-party guidance now exists for headline, About, Featured and Open to Work [W1, W2].
+  *Decide:* a profile mode inside `resume-fit` that drafts headline options and a first-person About from the WHD (every claim traced to a WHD anchor, voice sample as the register, house style respected), flags resume and profile inconsistencies in title, dates and numbers, and suggests Featured items from Beyond Employment.
+
 ### Reviewed and closed: Gemini Antigravity proposals (2026-10-03)
 These three items were appended by the Gemini Antigravity run (commit 3f9f0f7).
 Dispositions follow the evidence review in `docs/research/ats-evidence-2026.md`.

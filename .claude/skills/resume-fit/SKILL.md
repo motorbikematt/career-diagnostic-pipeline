@@ -251,9 +251,12 @@ artifacts + the WHD and produces the report. Spec + verbatim Stage 3 invariants:
 
 1. Produce `prescriptions.yaml` (validated against `schemas/prescriptions.schema.yaml`),
    then enforce the mandatory rule — every Recoverable Gap has a covering Add
-   prescription with a WHD source:
+   prescription with a WHD source. The same check enforces the summary and banner
+   policy (decision D1): exactly one `summary` prescription on every run, and a
+   `banner` prescription carrying the JD title verbatim (an owner exception to
+   no-fabrication, banner only; a credentialed title needs a WHD source):
    ```bash
-   python .claude/skills/resume-fit/helpers/prescriptions.py <run>/prescriptions.yaml <run>/gapmap.yaml
+   python .claude/skills/resume-fit/helpers/prescriptions.py <run>/prescriptions.yaml <run>/gapmap.yaml <run>/requirements.yaml
    ```
 2. Assemble the headline numbers deterministically (do not hand-transcribe):
    ```bash
@@ -300,6 +303,13 @@ Present `report.md`, then `AskUserQuestion`:
 Only after Gate 2 "proceed to draft". Contract + verbatim ghost-editor invariants:
 `contracts/finishing.md`. The tagged draft is a **worklist, never the deliverable**.
 
+0. **Summary round** (`contracts/finishing.md` 4b): draft two or three summary
+   options from approved bullets or cited WHD anchors, each claim tagged with its
+   anchor, into `<run>/summary_options.yaml`; the user picks or writes their own
+   (stored verbatim). Then check:
+   ```bash
+   python .claude/skills/resume-fit/helpers/summary_lint.py --options <run>/summary_options.yaml --whd <data-plane>/pipeline/whd/<WHD>.md
+   ```
 1. Generate the silent tagged draft (`resume_draft.md`) applying only the
    `prescriptions.yaml` edits, in the candidate's voice (WHD `voice-sample`).
    Target 2 pages; apply any Compress/Cut prescriptions as you draft. Keep every
@@ -346,11 +356,12 @@ Only after Gate 2 "proceed to draft". Contract + verbatim ghost-editor invariant
    python .claude/skills/resume-fit/helpers/relevance.py <run>/resume_draft.md <run>/requirements.yaml <run>/gapmap.yaml
    python .claude/skills/resume-fit/helpers/ats_chars.py <run>/resume_draft.md
    python .claude/skills/resume-fit/helpers/chrono_check.py <run>/resume_draft.md
+   python .claude/skills/resume-fit/helpers/summary_lint.py <run>/resume_draft.md
    ```
    Confirm ATS coverage didn't regress vs seed, no NEW `none`-linkage claim was
    introduced, the voice check passed, `ats_chars.py` reports **clean** (fixed
    rule — dashes, curly quotes and arrows are house style; emoji and decorative
-   symbols are hygiene; never tolerated, not just a regression check), and `chrono_check.py` reports `ordered`. Write `reeval.md`. No recursion: any issue
+   symbols are hygiene; never tolerated, not just a regression check), and `chrono_check.py` reports `ordered`, and `summary_lint.py` reports clean (a summary exists, no first person, no objective wording). Write `reeval.md`. No recursion: any issue
    surfaces as one yes/no, not a new trim loop.
 6. On clean + length-resolved + re-eval clean, write `resume_candidate.md` and
    render an ATS-safe docx (single column, no tables; default 0.6in margins and
@@ -444,7 +455,8 @@ arithmetic and string-matching so the model never does.
 | `gapmap_summary.py` | Screening-safe gapmap (strips WHD fields, resume-only archetype) | `gapmap_summary.py <gapmap.yaml> --out <file>` |
 | `canary.py` | Screening-blindness leak scan; `init` writes a unique token | `canary.py <screen.yaml> <whd.md>` / `canary.py init <whd.md>` |
 | `numbers_strip.py` | Deterministic report headline numbers | `numbers_strip.py <run>` |
-| `prescriptions.py` | Enforce every recoverable gap has an Add row; reject "X or Y" targets | `prescriptions.py <prescriptions.yaml> <gapmap.yaml>` |
+| `prescriptions.py` | Enforce every recoverable gap has an Add row; reject "X or Y" targets; exactly one `summary` prescription; banner uses the JD title verbatim, credentialed titles need a WHD source | `prescriptions.py <prescriptions.yaml> <gapmap.yaml> [<requirements.yaml>]` |
+| `summary_lint.py` | Mechanical summary rules: summary exists, no first person, no objective wording; warns on length and no number. With `--options`, also checks each claim is anchored to a real WHD anchor | `summary_lint.py <resume.md>` / `summary_lint.py --options <summary_options.yaml> [--whd <whd.md>]` |
 | `tags.py` | Finishing-loop tag scan + exit check | `tags.py <resume_draft.md>` |
 | `length_budget.py` | Advisory page estimator built from Word-measured layout rules (within ~0.1 page) + per-section cost breakdown + review completeness; flags `borderline`; `--reason` records an override (a third page must name unique evidence) | `length_budget.py <resume.md> --max-pages 2 [--margin M] [--body-pt P] [--review <length_review.yaml>] [--reason <text>]` |
 | `word_pages.py` | Real page count measured in Microsoft Word (read-only, COM via PowerShell); decides "fits". Exit 0 fits, 2 over, 3 Word unavailable | `word_pages.py <resume.docx> --max-pages 2 [--pdf <out.pdf>]` |
@@ -461,7 +473,7 @@ arithmetic and string-matching so the model never does.
 | `render_docx.py` | Render clean markdown to an ATS-safe docx (default 0.6in, 11pt; floors 0.5in, 10pt; headings fixed) | `render_docx.py <resume_candidate.md> <out.docx> [--margin M] [--body-pt P]` |
 | `whd_patch.py` | Apply approved WHD patches (append, or `correction` = replace) + changelog | `whd_patch.py <whd.md> <patches.yaml>` |
 
-Schema names for `validate.py`: `requirements`, `location`, `preferences`, `scd`, `gapmap`, `screen`, `prescriptions`, `patches`.
+Schema names for `validate.py`: `requirements`, `location`, `preferences`, `scd`, `gapmap`, `screen`, `prescriptions`, `patches`, `summary_options`.
 
 ## Screening-blindness enforcement (BUILT)
 

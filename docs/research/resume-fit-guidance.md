@@ -92,7 +92,7 @@ Tier-5 "ATS score" checkers model keyword overlap, which is the overfitting this
 | Missing: knockout consistency | Not checked | Missing | Recruiter-configured auto-reject on application answers [S15, S16, S21, S22] | Add a pre-apply checklist covering location, relocation, work authorization, years of experience, and salary, checked against the resume |
 | Missing: quantified impact | Not checked deterministically | Missing | Google's "include data" and X-Y-Z guidance [S78, S80] | Flag bullets that lack a measure or a method |
 | Missing: real-parser verification | Not in workflow | Missing | Employer autofill and vendor trials are real parsers [S3, S6, S42] | Add a manual verification step and record mismatched fields |
-| Missing: LinkedIn consistency, referrals | Not checked | Missing (no evidence gathered) | No reliable source found | Optional advisory, marked unverified |
+| Missing: LinkedIn consistency, referrals | Not checked | Missing (LinkedIn profile now has first-party evidence; referrals still none) | LinkedIn staff guidance on headline, About, Featured, Open to Work: `linkedin-guidance-2026.md` section 2.4 [W1, W2] | See TODO 41 (profile mode and resume consistency check) |
 
 ## 6. Where the proposed changes went
 
@@ -130,7 +130,7 @@ Evidence base: thin. The project's own evidence file has nothing on summaries. T
 | S1 | The summary is a claim, not evidence. It carries little weight in screening and cannot rescue bullets that fail. | Evidence-backed (mechanism); the weight is inference | First-pass attention goes to name, titles, employers, dates and education, and explanatory prose had little effect on that decision [S74, S75]. Requirement-by-requirement scoring cites the supporting resume section [S28, S30], and skills in recent dated roles are favored [S33, S39] |
 | S2 | It must not displace current title, employer, dates and location from the top third of page one. | Evidence-backed (pattern) | [S74, S75]. Same rule as section 2 |
 | S3 | Its role is orientation and a checkable thesis: it tells a reader who goes past the first pass what to look for, and the bullets must then prove it. | Practitioner consensus | Career-advice sources agree on purpose; no test found |
-| S4 | A summary is optional. Omit it before letting it push the first page past two. | Project rule | Follows from S1 and the two-page default |
+| S4 | Superseded 2026-10-22 (decision D1, `linkedin-guidance-2026.md` section 5): every resume has a summary, protected in the length round. Previously: a summary was optional and omitted before letting it push the first page past two. | Project rule | Owner decision; the official guidance treats the summary as the cover letter's replacement [W2] |
 
 ### 7.2 Content
 

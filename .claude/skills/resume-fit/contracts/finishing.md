@@ -27,8 +27,13 @@ voice, applying ONLY the synthesis prescriptions.
 - "Respect [the] Honesty Check. Never claim what was classified as Stretch or
   Hard No. If a prescription requires content the candidate cannot honestly
   claim, output '[CANDIDATE TO SUPPLY: description of what is needed and why]'."
-- "Do not add a summary/objective section unless one already exists on the
-  current resume."
+- **SUPERSEDED 2026-10-22 (decision D1, TODO 32).** The v1 line was: "Do not add
+  a summary/objective section unless one already exists on the current resume."
+  v2: every resume has a summary. Rebuild the existing one, or add one when the
+  `summary` prescription says so (see 4b). Still no objective statement, still no
+  first person, and every claim traces to an approved bullet or a cited WHD anchor.
+  The banner line under the name carries the JD title verbatim, an owner-approved
+  exception to no-fabrication that covers the banner ONLY (4b).
 - **Voice Integrity Check:** compare each [CHANGED] line against the Voice Sample
   and unchanged lines; flag hard conformance as "VOICE NOTE: ...".
 
@@ -68,6 +73,30 @@ as the deliverable. **Target 2 pages** (the 2026 default for a senior IC); apply
 any Compress/Cut prescriptions from synthesis as you draft. The draft may still
 overflow — the length round (§5) resolves it with the user; never pre-truncate
 silently to hit the budget.
+
+## 4b. Summary round and banner (v2 addition, decision D1)
+Runs before the silent draft is finalized, driven by the `summary` and `banner`
+prescriptions.
+
+- **Summary options.** Draft two or three options from the approved bullets (until
+  the bullet library exists, from the cited WHD anchors), each built as who / what /
+  how / proof, the proof tying the experience to this JD. Two to four lines, no
+  first person, no objective statement, no adjective with a measure available. Write
+  `<run>/summary_options.yaml` (`schemas/summary_options.schema.yaml`): each
+  option's text plus its `claims`, every claim tagged with the WHD anchor behind it.
+  Do not invent a measure: a missing one becomes `[CANDIDATE TO SUPPLY: ...]`.
+- **The user chooses.** One AskUserQuestion round: pick an option, or give their own
+  wording. Record `chosen`, set `edited` when they change it, and store their wording
+  in `final_text` verbatim. Their words are never re-polished (section 2). The voice
+  check still applies to every option.
+- **Check:** `python .claude/skills/resume-fit/helpers/summary_lint.py --options <run>/summary_options.yaml --whd <whd>`
+  must report clean (no first person, no objective wording, every claim anchored to
+  a real WHD anchor). Length and no-number are warnings only.
+- **Banner.** Insert the `jd_title` from the `banner` prescription verbatim on its own
+  line under the name and contact line. It is the one place a title the candidate
+  never held may appear (owner exception, banner only). Every role entry keeps the
+  true title. Never apply it to a credentialed title without a WHD source (the
+  prescription would have been omitted).
 
 ## 5. The finishing loop (plan section 4)
 Interview the user until the draft is clean, highest-stakes first, via
@@ -159,6 +188,9 @@ re-enter any loop.
 
 5. **Ordering:** `python .claude/skills/resume-fit/helpers/chrono_check.py <resume_draft.md>`.
    Must report `ordered: true` (§2b). Deterministic, clean or not.
+6. **Summary:** `python .claude/skills/resume-fit/helpers/summary_lint.py <resume_draft.md>`.
+   Must report clean: a Summary section exists, no first person, no objective
+   wording (§4b). Its `long` and `no-number` warnings are reported, never blocking.
 
 Write a short `reeval.md` to the run folder: the axis verdicts + any
 regression. **No recursion** — if it flags a regression, surface it to the user as a

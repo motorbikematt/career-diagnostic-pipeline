@@ -1,0 +1,25 @@
+# summary_options.yaml: the summary round's working file (Phase G, contracts/finishing.md 4b).
+# Two or three options drafted from approved bullets, each claim tagged with the WHD
+# anchor that supports it (guidance rule S5). The user picks or edits; their own
+# words go in `final_text` verbatim and are never re-polished. Checked by
+# summary_lint.py --options.
+type: object
+required: [options]
+properties:
+  options:
+    type: list
+    items:
+      required: [id, text, claims]
+      properties:
+        id: {type: str}           # a | b | c
+        text: {type: str}         # two to four lines, no first person, no objective
+        claims:
+          type: list
+          items:
+            required: [claim, anchor]
+            properties:
+              claim: {type: str}  # the factual assertion in the text
+              anchor: {type: str} # WHD anchor id that supports it
+  chosen: {type: str}             # the option id the user picked
+  edited: {type: bool}            # true when the user changed the chosen text
+  final_text: {type: str}         # the approved wording, the user's words verbatim

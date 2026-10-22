@@ -10,7 +10,14 @@ properties:
     items:
       required: [type, target, why]
       properties:
-        type: {type: str}     # reframe | add | remove | reorder | compress | cut
+        type: {type: str}     # reframe | add | remove | reorder | compress | cut | summary | banner
+        # summary: exactly one per run. Rebuild the seed resume's summary (or add one
+        #   if it has none) to who/what/how/proof, the proof tying the experience to
+        #   this JD. `why` names what the JD tie must carry; never draft the wording.
+        # banner: at most one. The JD title verbatim in a line under the name (owner
+        #   exception to no-fabrication, banner only). Needs `jd_title`; a credentialed
+        #   title also needs `source` (prescriptions.py enforces both).
+        jd_title: {type: str}  # banner only: the JD role string, verbatim
         target: {type: str}   # the ONE bullet/line/section to change (the "what"); no "X or Y" alternatives (prescriptions.py rejects them)
         why: {type: str}      # what it currently signals -> what it needs to signal (the "why")
         closes: {type: list}  # gap-map ids or screen trigger refs this closes

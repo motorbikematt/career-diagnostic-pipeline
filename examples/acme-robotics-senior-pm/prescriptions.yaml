@@ -7,11 +7,18 @@ prescriptions:
       above the analytics narrative.
     closes: [first_friction_trigger]
     source: circuit-dynamics
-  - type: reframe
-    target: "Summary line"
+  - type: banner
+    target: "Banner line under the name"
+    jd_title: "Senior Product Manager, Robotics Platform"
     why: >
-      Currently signals a SaaS analytics PM; needs to signal platform +
-      connected-hardware breadth relevant to a robotics platform.
+      Ties the resume to the posting at a glance. The JD title verbatim, under the
+      banner exception (banner only); the title of record stays in the role entry.
+  - type: summary
+    target: "Summary section"
+    why: >
+      Rebuild to who / what / how / proof. Currently signals a SaaS analytics PM;
+      the proof sentence must tie platform + connected-hardware breadth to a
+      robotics platform.
     closes: [hr-2]
     source: circuit-dynamics
   - type: add

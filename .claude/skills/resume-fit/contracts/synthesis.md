@@ -28,12 +28,32 @@ Senior Resume Strategist: diagnose, prescribe, validate. This is the report.
   content → condense to fewer lines, preserving the JD-relevant signal — the
   *what*, not a rewrite); **Cut** (low-relevance content → remove entirely to
   reclaim space). Compress/Cut are *subtractive* prescriptions; see §6.
+- **Summary and Banner prescriptions (v2 addition, decision D1, 2026-10-22).** Two
+  more prescription types, same what-and-why-only rule (never draft the wording;
+  the finishing loop's summary round does that, `contracts/finishing.md` 4b):
+  - **Summary** (exactly one per run): every resume has a summary. Rebuild the seed
+    resume's summary, or Add one if it has none. The target is built as who / what /
+    how / proof, and the proof sentence ties the experience to THIS JD (the
+    "bridge"; it carries most weight for a pivot, a mixed background or a title
+    gap, but applies every run). `why` names what the JD tie must carry and
+    which WHD anchors it may draw on (`source`). Constraints: two to four lines, no
+    first person, no objective statement, every claim traced to an approved bullet
+    or WHD anchor.
+  - **Banner** (one per run, unless exempt): a line under the name carrying the
+    JD's title verbatim (`jd_title`). This is an owner-approved EXCEPTION to the
+    no-fabrication rule, limited to the banner: role-entry titles stay true. It
+    does not cover a credentialed title (engineer, nurse, CPA and the like, see
+    `prescriptions.py`): that banner needs a WHD `source` like any claim, and with
+    none the Banner row is omitted and an Open Question says why.
+  Both are enforced by `prescriptions.py`.
 - **Honesty Check:** Genuine Alignment (WHD confirms real depth, not keyword
   proximity); Stretch Claims (reframing would present partial experience as
   stronger than it is — flag explicitly); Hard No (not in resume or WHD — cannot
   be honestly claimed; do not suggest fabrication); Integrity Verdict: "The
   candidate can honestly present themselves as: ___. They cannot honestly claim:
-  ___."
+  ___." **Banner exception (v2):** when a Banner prescription exists, record it
+  here as a "banner exception" (not a Stretch), and keep the Integrity Verdict
+  stating the title of record (the current role's `title` in the WHD roles index).
 - **Information Gaps:** what to resolve before editing (thin/absent WHD detail,
   JD ambiguities, SCD context gaps).
 
@@ -70,7 +90,8 @@ cite sources).
 
 ## 4. Outputs
 - **`prescriptions.yaml`** (validated against `schemas/prescriptions.schema.yaml`;
-  coverage enforced by `prescriptions.py <prescriptions.yaml> <gapmap.yaml>`).
+  coverage, the one-summary rule and the banner rules enforced by
+  `prescriptions.py <prescriptions.yaml> <gapmap.yaml> <requirements.yaml>`).
   Each `target` names exactly ONE location. If you are unsure where content
   belongs, decide, or ask the user; never write "under X or as a new Y" (the
   helper rejects "or" / "either" / "alternatively" in a target). A Reorder or

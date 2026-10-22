@@ -21,7 +21,8 @@ SaaS-analytics-first resume to lead with hardware for a robotics reader.
 | Edit | Why | Source (WHD) |
 |---|---|---|
 | Reorder: lead with hardware/platform, not analytics | Fast scan misses hardware; move Circuit Dynamics up | circuit-dynamics |
-| Reframe: summary line | Signals SaaS analytics; needs platform + connected-hardware breadth | circuit-dynamics |
+| Banner: "Senior Product Manager, Robotics Platform" | Ties the resume to the posting at a glance (JD title verbatim; banner exception) | n/a |
+| Summary: rebuild to who / what / how / proof | Signals SaaS analytics; the proof sentence must tie platform + connected-hardware breadth to robotics | circuit-dynamics |
 | Add: surface 50k-units prototype-to-production in the top third | It is the escalation trigger; make it unmissable | circuit-dynamics.p1 |
 | Reframe: on-device computer vision bullet | Reframe as edge perception adjacent to robotics | circuit-dynamics.p2 |
 
@@ -29,6 +30,8 @@ SaaS-analytics-first resume to lead with hardware for a robotics reader.
 You can honestly present as: a platform + connected-hardware PM who has taken a
 product prototype-to-production and shipped on-device computer vision.
 You cannot claim: robotics-domain or ROS experience — neither is in the record.
+Banner exception: the banner shows the JD title; your title of record (Senior
+Product Manager, Nimbus Labs) stays on the role entry.
 
 ## Shadow requirements
 - Comfort operating in a hardware-paced release cycle, not a weekly SaaS ship cadence.
