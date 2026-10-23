@@ -285,6 +285,15 @@ artifacts + the WHD and produces the report. Spec + verbatim Stage 3 invariants:
    word/char counts are independently checkable. This is a layout/readability
    signal, NOT a bullet-length-uniformity nudge — uniform length is itself an
    AI-writing tell, so never normalize bullets toward this resume's own median.
+   Then run the density lint on the seed resume, so prescriptions favor fewer,
+   shorter claims over additions (`contracts/synthesis.md` §5d):
+   ```bash
+   python .claude/skills/resume-fit/helpers/density_lint.py <resume.md>
+   ```
+   It flags long bullets, bullets carrying more than two numbers, roles over
+   their recency budget, long role intros, summary numbers repeated in bullets,
+   and word counts over budget in the scan zone (top two-thirds of page one) and
+   overall. Ceilings only, never targets; advisory, never an auto-cut.
 
 **Exception-driven interrogation (synthesis):** if the honesty check finds a
 load-bearing stretch — a claim that, if withdrawn, flips the Worth-It verdict —
@@ -329,12 +338,24 @@ Only after Gate 2 "proceed to draft". Contract + verbatim ghost-editor invariant
    ```bash
    python .claude/skills/resume-fit/helpers/length_budget.py <run>/resume_draft.md --max-pages 2
    ```
-   Try the layout levers first; they leave the text identical and cost no
-   content. Offer them in this order, each a render option, then re-measure:
-   (a) narrow margins `--margin 0.5`, (b) body text `--body-pt 10.5` (floor 10;
-   headings never shrink: header-only shrinks were measured to save under one
-   line). Pass the same `--margin`/`--body-pt` to `length_budget.py`.
-   If still over budget, show the user the per-section **cost** (from this helper) beside
+   **Content first, layout last** (decision 2026-10-23). The layout levers fit
+   more words on a page, which makes a dense resume denser, so they come after
+   content. Order:
+   (a) Run the density lint and resolve each flag with the user (cut, compress
+   or keep; never auto-cut). Words removed here stay in the WHD.
+   ```bash
+   python .claude/skills/resume-fit/helpers/density_lint.py <run>/resume_draft.md
+   ```
+   (b) If still over budget, the cost/value survey below.
+   (c) Only once the density lint is clean and the remaining overflow is within
+   about 0.1 page (the estimator's error), offer the layout levers, each a render
+   option, then re-measure: narrow margins `--margin 0.5`, then body text
+   `--body-pt 10.5` (floor 10; headings never shrink: header-only shrinks were
+   measured to save under one line). Pass the same `--margin`/`--body-pt` to
+   `length_budget.py` and `density_lint.py`. If the user takes a lever while
+   density flags remain open, record that choice and the open flags in
+   `<run>/length_override.md`.
+   Cost/value survey: show the user the per-section **cost** (from this helper) beside
    the per-section **value** (JD-linkage from `gapmap.yaml`/`screen.yaml`) and let
    them decide cuts — protect JD-relevant/recent-in-demand work, cut cheap inches
    first (oldest unlinked roles, tail sections). Never auto-truncate. Survey EVERY
@@ -357,7 +378,9 @@ Only after Gate 2 "proceed to draft". Contract + verbatim ghost-editor invariant
    python .claude/skills/resume-fit/helpers/ats_chars.py <run>/resume_draft.md
    python .claude/skills/resume-fit/helpers/chrono_check.py <run>/resume_draft.md
    python .claude/skills/resume-fit/helpers/summary_lint.py <run>/resume_draft.md
+   python .claude/skills/resume-fit/helpers/density_lint.py <run>/resume_draft.md
    ```
+   Report any open density flags in `reeval.md` (advisory, never blocking).
    Confirm ATS coverage didn't regress vs seed, no NEW `none`-linkage claim was
    introduced, the voice check passed, `ats_chars.py` reports **clean** (fixed
    rule — dashes, curly quotes and arrows are house style; emoji and decorative
@@ -469,6 +492,7 @@ arithmetic and string-matching so the model never does.
 | `filesize_gate.py` | Fails a rendered file over 2 MB (Google cap; Greenhouse parses to 2.5 MB). Standalone | `filesize_gate.py <resume.docx> [--max-mb 2]` |
 | `env_check.py` | Read-only report: `pdftotext`, Word (LibreOffice only when Word is absent), python-docx, pyyaml, data plane. Always exits 0 | `env_check.py` |
 | `compress_candidates.py` | Finds 3+ item lists as compression candidates (pattern only, no category-word suggestion) | `compress_candidates.py <resume.md>` |
+| `density_lint.py` | Advisory scan-density flags: long bullets, more than two numbers per bullet, roles over a recency bullet budget, long role intros, summary numbers repeated in bullets, scan-zone and total word ceilings. Always exits 0 | `density_lint.py <resume.md> [--margin M] [--body-pt P]` |
 | `whitespace_check.py` | Per-page fullness/density check (research-grounded readability, not bullet-uniformity) | `whitespace_check.py <resume.md> [--margin M] [--body-pt P]` |
 | `render_docx.py` | Render clean markdown to an ATS-safe docx (default 0.6in, 11pt; floors 0.5in, 10pt; headings fixed) | `render_docx.py <resume_candidate.md> <out.docx> [--margin M] [--body-pt P]` |
 | `whd_patch.py` | Apply approved WHD patches (append, or `correction` = replace) + changelog | `whd_patch.py <whd.md> <patches.yaml>` |

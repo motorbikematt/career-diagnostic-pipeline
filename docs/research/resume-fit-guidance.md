@@ -197,3 +197,32 @@ Each kind runs in its own fresh session, started from a short written handoff th
 | C. Process (code, schemas, lints, contracts) | Engineer: deterministic, tested, narrow | Changes helpers, schemas and contracts; runs the test suite | The repo, the TODO list | Committed code and tests | Draft resume wording; approve bullets; edit the WHD |
 
 Session B runs after the library holds approved bullets for the roles it will draw on (rule S5 depends on it). Storage for summary variants and a check that every summary claim maps to a bullet id are not yet built; they are tracked as TODO #30.
+
+## 9. Density and scan cost (added 2026-10-23)
+
+Evidence base: thin. No controlled study was found that ties bullet length or words per page to callbacks. The rules below rest on the recruiter guidance in `linkedin-guidance-2026.md` [W2], on the X-Y-Z guidance in section 2 [S78, S80], and on the owner's goal that a resume read as high value on a first pass. Implemented in `helpers/density_lint.py` (TODO #42).
+
+### 9.1 Sources reviewed
+
+| Source | What it is | What it supports |
+|---|---|---|
+| [W2] LinkedIn "Get Hired Hotline", recruiter guest (the CAFE author) | Live resume makeover by a recruiter of about 15 years | The scan zone is the top two-thirds of page one. The makeover was mostly subtraction: five dated highlight bullets removed, a three-column competency grid reduced to one line, shorter paragraphs, a scope line per role |
+| CAFE worksheet (Get Selected lead magnet, same author) | Cause, Action, Findings, Effect: four prompts merged into one sentence | Same structure as CAR and X-Y-Z [S78, S80]. Its useful step is the merge into one sentence. Its "estimates and approximations are fine" conflicts with the no-fabrication invariant unless the candidate supplies and labels the estimate. Its claim of a verb list sorted by impact is not borne out by the site, which sorts verbs alphabetically within categories |
+| Get Selected bullet grader | Free web tool, scored in client-side code | A heuristic, not evidence: 3 points for any digit, 3 for a first word in its verb list, 2 for 8 to 30 words, 2 for avoiding "responsible for" and similar openers. Any digit earns full impact credit, so a weak bullet can score 10. Not a gate |
+
+Tier: W2 is practitioner guidance adopted as official by owner decision (`linkedin-guidance-2026.md` section 1). The CAFE material and the grader are vendor marketing (tier 5).
+
+### 9.2 Rules
+
+| # | Rule | Status | Basis |
+|---|---|---|---|
+| D1 | Measure what a first pass costs: words in the top two-thirds of page one, and in total | Practitioner consensus | [W2] scan zone; the attention pattern in [S74, S75] |
+| D2 | One claim and one measure per bullet. A second or third number moves to the WHD or the interview | Project rule | X-Y-Z asks for a measure, not several [S78, S80]; a figure no one reads costs scan time |
+| D3 | Bullet budgets fall with recency: more for the current role, fewer for older ones | Practitioner consensus | [W2] makeover; recent dated roles carry more weight [S33, S39] |
+| D4 | Ceilings only, never targets or floors | Project rule | Uniform bullet length is an AI-writing tell (`contracts/synthesis.md` section 5d) |
+| D5 | Content first, layout last. Narrow margins and smaller type fit more words on a page, so they follow content cuts and close only a small remaining gap | Project rule | Decision 2026-10-23; the levers were measured in Word on 2026-10-09 and still apply |
+| D6 | Advisory, never an auto-cut. The user decides every cut, and cut material stays in the WHD | Project rule | Existing length-round and no-fabrication invariants |
+
+### 9.3 Calibration (2026-10-23)
+
+Six past candidate resumes: 998 to 1,254 words in total; 298 to 379 words in the scan zone; 101 bullets, 15 to 101 words each, median about 35; 40 bullets with no number and 24 with three or more; roles carrying up to six bullets. Owner-set ceilings, expected to be retuned as runs come in under them: bullets 40 words, 2 numbers per bullet, role budget 5, 4, then 2, role intro 40 words, scan zone 300 words, total 1,000 words. At these values the past runs raise about 5.7 long-bullet flags and 4 multi-number flags per run.

@@ -192,6 +192,23 @@ prescription, lets edits be tighter and more elegant from the start instead of
 brute-force cuts after the fact. If the base resume already reads dense here,
 synthesis's prescriptions should favor tighter phrasing over additive detail.
 
+**Density lint (added 2026-10-23).** Whitespace measures the page; the density
+lint measures the claims on it. Run it on the seed resume:
+
+```bash
+python .claude/skills/resume-fit/helpers/density_lint.py <resume.md> [--margin M] [--body-pt P]
+```
+
+It flags bullets over 40 words, bullets with more than two numbers, roles over a
+recency budget (5, 4, then 2 bullets), role intros over 40 words, summary numbers
+repeated in a bullet, and more than 300 words in the top two-thirds of page one or
+1,000 in total. The thresholds are owner-set project rules calibrated on six past
+runs, not documented recruiter limits; they are ceilings, never targets. When it
+flags, prefer Compress and Cut prescriptions that remove a second metric or merge
+an intro into the scope line over Add prescriptions that grow a flagged role. An
+Add that the gap rules require still stands; place it where it does not breach a
+role budget, or pair it with a Cut in the same role.
+
 ## 5. Exception-driven interrogation trigger (before writing the report)
 If the Honesty Check finds a **load-bearing stretch** — a claim that, if
 withdrawn, flips the Worth-It verdict — confront it with the user in one question

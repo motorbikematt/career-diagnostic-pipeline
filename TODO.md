@@ -254,6 +254,7 @@ Related open items sharpened by this guidance: #17 (JD title-family divergence),
 
 - [ ] **38. Scope line, top two-thirds, and unquantified filler.**
   Extends #21, #22 and #23: each recent role starts with a scope line; the scan zone is the top two-thirds of page one, not the top third; flag subjective adjectives in the summary as an advisory only (TODO A2 stays closed: no evidence of word rejection).
+  **Progress 2026-10-23:** the scan zone is measured as the top two-thirds of page one, with a word ceiling, in `density_lint.py` (#42). Still open: the scope-line check and the summary adjective advisory.
 
 - [ ] **39. WHD template lacks structured scope and education flags.**
   Add a "Scope facts" block per role (team, sites, budget, revenue, users), title-of-record fields (with #33), and an education-dates flag (with #37). Update `templates/whd-template.md`, `whd_anchors.py` and the migration helper, with tests.
@@ -265,6 +266,18 @@ Related open items sharpened by this guidance: #17 (JD title-family divergence),
 - [ ] **41. No LinkedIn profile mode.** (decision D3)
   First-party guidance now exists for headline, About, Featured and Open to Work [W1, W2].
   *Decide:* a profile mode inside `resume-fit` that drafts headline options and a first-person About from the WHD (every claim traced to a WHD anchor, voice sample as the register, house style respected), flags resume and profile inconsistencies in title, dates and numbers, and suggests Featured items from Beyond Employment.
+
+## Density and simplification (2026-10-23)
+
+Source: the CAFE worksheet and Get Selected bullet grader review, and the 2026-10-22 LinkedIn makeover [W2]; see `docs/research/resume-fit-guidance.md` section 9. Six past candidate resumes measured 998 to 1,254 words, with a median bullet of about 35 words and 24 of 101 bullets carrying three or more numbers. The pipeline adds content and had no mechanism that subtracts it.
+
+- [ ] **42. Resumes are dense and nothing measures scan cost.**
+  **Done 2026-10-23 (build 1):** `helpers/density_lint.py` (advisory, always exits 0) with tests; run in Phase E on the seed resume, in the Phase G length round and in the 6b re-eval. Thresholds are owner-set and calibrated on six past runs, expected to be retuned: bullets 40 words, 2 numbers per bullet, role budget 5/4/2, role intro 40 words, scan zone 300 words, total 1,000 words. The length round is now content first, layout last: margin and font levers come only after the density lint is clean and the overflow is within about 0.1 page.
+  *Still open:*
+  - Screening gives the escalation trigger as a paraphrase, so no check can confirm the key metric sits in the scan zone. Add a verbatim `escalation_quote` to `screen.schema.yaml` and check its location (touches the screening contract; keep blindness enforcement intact).
+  - The pairing of Add with Cut in a flagged role is a contract instruction only; `prescriptions.py` does not enforce a net word budget.
+  - Evidence interviews (Phase B.5 new-evidence, Phase G Supply, Phase H) ask one open question. Use a structured cause, action, result-with-baseline, impact sequence, and record where each measure came from (exact, candidate estimate, unknown); never let the model supply a figure.
+  - 40 of 101 past bullets carry no number at all; that is #22, not density.
 
 ### Reviewed and closed: Gemini Antigravity proposals (2026-10-03)
 These three items were appended by the Gemini Antigravity run (commit 3f9f0f7).

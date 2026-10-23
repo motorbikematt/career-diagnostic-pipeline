@@ -111,12 +111,22 @@ AskUserQuestion, batched by tag type:
 - **Stretch confrontations** — any prescription touching a Stage-3 stretch: the
   user explicitly accepts the honest framing or drops the line. No silent softening.
 - **Length round** — run `length_budget.py <draft.md> --max-pages 2` (margin 0.6).
-  **Layout levers first** (2026-10-09, measured in Word): they leave the
-  extracted text identical and cost no content. Offer, in order: narrow margins
-  (`render_docx.py --margin 0.5`), then body text 10.5pt (`--body-pt 10.5`,
-  floor 10). Headings never shrink: shrinking only the name and section
-  headings saved under one line on a real resume, and role titles must not drop
-  below body size. Re-measure with the same `--margin`/`--body-pt`.
+  **Content first, layout last** (decision 2026-10-23, replacing the 2026-10-09
+  "layout levers first" order). The levers leave the text identical, but they
+  fit more words on each page, which makes a dense resume denser. Order:
+  1. **Density flags.** Run `density_lint.py <draft.md>` and take each flag to the
+     user (cut, compress or keep; never auto-cut). Cut words stay in the WHD.
+  2. **Cost/value survey** (below) if still over budget.
+  3. **Layout levers last**, only once the density lint is clean and the
+     remaining overflow is within about 0.1 page (the estimator's error).
+     Offer, in order: narrow margins (`render_docx.py --margin 0.5`), then body
+     text 10.5pt (`--body-pt 10.5`, floor 10). Headings never shrink: shrinking
+     only the name and section headings saved under one line on a real resume
+     (measured in Word, 2026-10-09), and role titles must not drop below body
+     size. Re-measure with the same `--margin`/`--body-pt` in both
+     `length_budget.py` and `density_lint.py`. If the user takes a lever while
+     density flags remain open, record that choice and the open flags in
+     `length_override.md`.
   If it still reports **over budget**, present the overflow to the user with BOTH
   signals side by side, then let them decide — never auto-cut:
   - **Cost** — the per-section `height_in` / `rendered_lines` from the helper
@@ -191,6 +201,9 @@ re-enter any loop.
 6. **Summary:** `python .claude/skills/resume-fit/helpers/summary_lint.py <resume_draft.md>`.
    Must report clean: a Summary section exists, no first person, no objective
    wording (§4b). Its `long` and `no-number` warnings are reported, never blocking.
+7. **Density:** `python .claude/skills/resume-fit/helpers/density_lint.py <resume_draft.md>`.
+   Advisory only. List any open flags in `reeval.md` and note whether the
+   tailoring added flags the seed resume did not have; never a new trim cycle.
 
 Write a short `reeval.md` to the run folder: the axis verdicts + any
 regression. **No recursion** — if it flags a regression, surface it to the user as a
