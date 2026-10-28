@@ -394,9 +394,11 @@ Only after Gate 2 "proceed to draft". Contract + verbatim ghost-editor invariant
    python .claude/skills/resume-fit/helpers/render_docx.py <run>/resume_candidate.md <run>/resume_candidate.docx [--margin 0.5] [--body-pt 10.5]
    python .claude/skills/resume-fit/helpers/word_pages.py <run>/resume_candidate.docx --max-pages 2
    ```
-   Over budget in Word reopens the length round (never an unannounced override).
-   Exit 3 means Word is unavailable: say so and ask the user to confirm the
-   page count when they open the file.
+   `render_docx.py` also saves the file through Word (clean metadata, Word's own
+   app properties); its exit 3 means Word is unavailable and the .docx was not
+   Word-saved: say so. Over budget in Word reopens the length round (never an
+   unannounced override). `word_pages.py` exit 3 means Word is unavailable: say
+   so and ask the user to confirm the page count when they open the file.
    Deliverables: `resume_candidate.docx` + `resume_candidate.md`. **Not yet
    "final"** — see Phase G §7 in `contracts/finishing.md`: the user reads it
    aloud and explicitly approves before a true final is named. The input resume
@@ -494,7 +496,7 @@ arithmetic and string-matching so the model never does.
 | `compress_candidates.py` | Finds 3+ item lists as compression candidates (pattern only, no category-word suggestion) | `compress_candidates.py <resume.md>` |
 | `density_lint.py` | Advisory scan-density flags: long bullets, more than two numbers per bullet, roles over a recency bullet budget, long role intros, summary numbers repeated in bullets, scan-zone and total word ceilings. Always exits 0 | `density_lint.py <resume.md> [--margin M] [--body-pt P]` |
 | `whitespace_check.py` | Per-page fullness/density check (research-grounded readability, not bullet-uniformity) | `whitespace_check.py <resume.md> [--margin M] [--body-pt P]` |
-| `render_docx.py` | Render clean markdown to an ATS-safe docx (default 0.6in, 11pt; floors 0.5in, 10pt; headings fixed) | `render_docx.py <resume_candidate.md> <out.docx> [--margin M] [--body-pt P]` |
+| `render_docx.py` | Render clean markdown to an ATS-safe docx (default 0.6in, 11pt; floors 0.5in, 10pt; headings fixed); sets clean core properties (author from the `#` heading), then saves through Word so Word writes the app properties (`--no-word-save` skips; exit 3 if Word is unavailable) | `render_docx.py <resume_candidate.md> <out.docx> [--margin M] [--body-pt P] [--no-word-save]` |
 | `whd_patch.py` | Apply approved WHD patches (append, or `correction` = replace) + changelog | `whd_patch.py <whd.md> <patches.yaml>` |
 
 Schema names for `validate.py`: `requirements`, `location`, `preferences`, `scd`, `gapmap`, `screen`, `prescriptions`, `patches`, `summary_options`.

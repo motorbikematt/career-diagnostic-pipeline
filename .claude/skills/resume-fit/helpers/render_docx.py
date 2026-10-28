@@ -12,6 +12,13 @@ Length levers (finishing-loop length round, in this order before content cuts):
 `--margin 0.5` (narrow margins, the conventional floor) then `--body-pt 10.5`.
 Both leave the extracted text identical; heading sizes never shrink, so the
 hierarchy holds. Pass the same values to length_budget.py and word_pages.py.
+
+Metadata and the Word save: the template's python-docx metadata (author, 2013
+timestamps, revision, thumbnail) is replaced with the candidate's name (the `#`
+heading) and the current time, then the file is opened and saved in Word so Word
+itself writes the app properties and statistics and the file leaves
+Compatibility Mode. That last step needs Windows + Word; without them the CLI
+reports it and exits 3 (the .docx is still rendered). `--no-word-save` skips it.
 """
 from __future__ import annotations
 
@@ -81,6 +88,54 @@ def _guard_overwrite(md_path, out: Path) -> None:
             "Run docx_drift.py --pull to keep those edits, or --force to discard them.")
 
 
+RESAVE_PS1 = Path(__file__).with_name("word_resave.ps1")
+
+
+def _clean_core(doc, author: str) -> None:
+    """Replace python-docx's template metadata (author "python-docx", 2013
+    timestamps, revision, thumbnail) with the candidate's own. `identifier` is
+    left alone: render() stamps it afterwards for the drift guard."""
+    import datetime
+
+    now = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0, tzinfo=None)
+    cp = doc.core_properties
+    cp.author = cp.last_modified_by = author
+    cp.title = cp.subject = cp.keywords = cp.comments = cp.category = cp.content_status = ""
+    cp.revision = 1
+    cp.created = cp.modified = now
+    pkg = doc.part.package
+    for rid, rel in list(pkg.rels.items()):
+        if rel.reltype.endswith("/thumbnail"):
+            pkg.rels.pop(rid)
+
+
+def word_resave(docx_path, timeout: int = 180) -> dict:
+    """Open and save the .docx in Word so Word writes its own app properties and
+    statistics, and leave Compatibility Mode. Returns Word's JSON report, or
+    {"available": False, "reason": ...} when Word cannot be driven."""
+    import json
+    import platform
+    import shutil
+    import subprocess
+
+    if platform.system() != "Windows":
+        return {"available": False, "reason": "Word COM needs Windows"}
+    shell = shutil.which("pwsh") or shutil.which("powershell")
+    if shell is None:
+        return {"available": False, "reason": "PowerShell not found"}
+    cmd = [shell, "-NoProfile", "-NonInteractive", "-File", str(RESAVE_PS1),
+           "-DocxPath", str(Path(docx_path).resolve()), "-Convert"]
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        return {"available": False, "reason": f"Word did not answer within {timeout}s"}
+    if proc.returncode != 0:
+        return {"available": False, "reason": (proc.stderr or proc.stdout).strip()[:400]}
+    data = json.loads(proc.stdout.strip().splitlines()[-1])
+    data["available"] = True
+    return data
+
+
 def render(md_path, out_path, margin_in: float = MARGIN_IN, body_pt: float = BODY_PT,
            force: bool = False):
     if body_pt < MIN_BODY_PT:
@@ -103,7 +158,11 @@ def render(md_path, out_path, margin_in: float = MARGIN_IN, body_pt: float = BOD
     normal_para.space_after = Pt(2)
     normal_para.line_spacing = 1.05
 
-    for raw in Path(md_path).read_text(encoding="utf-8").splitlines():
+    lines = Path(md_path).read_text(encoding="utf-8").splitlines()
+    name = next((ln[2:].strip() for ln in lines if ln.startswith("# ")), "")
+    _clean_core(doc, name)
+
+    for raw in lines:
         line = raw.rstrip()
         if not line.strip() or line.strip() == "---":
             continue
@@ -153,10 +212,22 @@ if __name__ == "__main__":
                     help=f"body and role-title size (floor {MIN_BODY_PT}); headings unchanged")
     ap.add_argument("--force", action="store_true",
                     help="overwrite an existing .docx even if its text differs from the markdown")
+    ap.add_argument("--no-word-save", action="store_true",
+                    help="skip the final open-and-save in Word (Word then does not write app properties)")
     args = ap.parse_args()
     try:
-        print(render(args.md, args.out, margin_in=args.margin, body_pt=args.body_pt,
-                     force=args.force))
+        out = render(args.md, args.out, margin_in=args.margin, body_pt=args.body_pt,
+                     force=args.force)
     except DocxDriftError as e:
         print(f"REFUSED: {e}")
         raise SystemExit(2)
+    print(out)
+    if not args.no_word_save:
+        report = word_resave(out)
+        if report["available"]:
+            print(f"Saved by Word (compatibility mode {report['compat_before']} -> "
+                  f"{report['compat_after']}).")
+        else:
+            print(f"WORD UNAVAILABLE: {report['reason']}. The .docx is rendered but was not "
+                  "saved by Word; its app properties are still python-docx's.")
+            raise SystemExit(3)

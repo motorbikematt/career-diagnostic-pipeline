@@ -1,3 +1,5 @@
+import zipfile
+
 import render_docx
 from docx import Document
 
@@ -99,6 +101,30 @@ def test_unstamped_docx_falls_back_to_markdown_comparison(tmp_path):
     doc.save(str(out))
     with pytest.raises(render_docx.DocxDriftError):
         render_docx.render(md, out)
+
+
+def test_core_properties_are_the_candidates_not_the_template(tmp_path):
+    """python-docx's template author, 2013 timestamps and thumbnail must not
+    leak into the output; the drift stamp must survive the cleanup."""
+    md = tmp_path / "r.md"
+    md.write_text("# Jane Candidate\n\n- Did a thing.\n", encoding="utf-8")
+    out = tmp_path / "r.docx"
+    render_docx.render(md, out)
+
+    cp = Document(str(out)).core_properties
+    assert cp.author == cp.last_modified_by == "Jane Candidate"
+    assert cp.title == cp.subject == cp.keywords == cp.comments == ""
+    assert cp.revision == 1
+    assert cp.created.year >= 2026 and cp.modified.year >= 2026
+    assert cp.identifier.startswith(render_docx.SNAPSHOT_PREFIX)
+    with zipfile.ZipFile(out) as z:
+        assert not any("thumbnail" in n.lower() for n in z.namelist())
+
+
+def test_word_resave_reports_unavailable_off_windows(tmp_path, monkeypatch):
+    monkeypatch.setattr("platform.system", lambda: "Linux")
+    report = render_docx.word_resave(tmp_path / "x.docx")
+    assert report["available"] is False and "Windows" in report["reason"]
 
 
 def test_rerender_over_an_in_sync_docx_is_allowed(tmp_path):

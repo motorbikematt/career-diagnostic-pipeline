@@ -215,8 +215,10 @@ clean, proceed to render. If the draft already passed cleanly (no dead-weight, f
   tags, write `resume_candidate.md` (source of truth), then render:
   `python .claude/skills/resume-fit/helpers/render_docx.py <run>/resume_candidate.md <run>/resume_candidate.docx [--margin 0.5] [--body-pt 10.5]`
   then `python .claude/skills/resume-fit/helpers/word_pages.py <run>/resume_candidate.docx --max-pages 2`.
-  Over budget in Word reopens the length round; exit 3 (no Word) means the user
-  confirms the page count by eye.
+  `render_docx.py` also saves the file through Word (clean metadata, Word's own
+  app properties); exit 3 there means no Word, so the .docx exists but was not
+  Word-saved: say so. Over budget in Word reopens the length round; exit 3 from
+  `word_pages.py` (no Word) means the user confirms the page count by eye.
   (ATS-safe: single column, standard font, no tables/text-boxes/headers).
   Deliverables: `resume_candidate.docx` + `resume_candidate.md` + `reeval.md`.
   **This is NOT "final."** It has passed every automated gate but still needs the

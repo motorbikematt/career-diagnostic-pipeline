@@ -19,7 +19,8 @@ import config
 BINARIES = (
     ("pdftotext", ("pdftotext",), "text-extraction round trip on a PDF (poppler)"),
 )
-WORD_NEEDED_FOR = "real page count and PDF export (word_pages.py)"
+WORD_NEEDED_FOR = ("real page count and PDF export (word_pages.py), and the final "
+                   "save that gives render_docx.py output Word's own properties")
 LIBREOFFICE = ("libreoffice", ("soffice", "libreoffice"),
                "page count and PDF export where Word is absent (fallback)")
 # (label, import name, what needs it)
