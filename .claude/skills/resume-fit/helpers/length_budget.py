@@ -196,6 +196,9 @@ def review_status(sections: list, review: dict | None) -> dict:
     return {"complete": not missing and not invalid, "missing": missing, "invalid": invalid}
 
 
+OVERRIDE_KEY = "override"
+
+
 # Above this many estimated pages the resume has a real third page. No ATS page
 # penalty was found (TODO #23; guidance R4), but two pages are preferred for
 # experienced roles, so a third page must carry unique, relevant evidence.
@@ -234,6 +237,11 @@ def check_file(path, max_pages: float = 2.0, margin_in: float = DEFAULT_MARGIN_I
         import yaml
 
         review = yaml.safe_load(Path(review_path).read_text(encoding="utf-8")) or {}
+        # The review file also holds the length decision's override, so one
+        # file records the whole round: `override: {reason: ..., open_flags: [...]}`.
+        override = review.pop(OVERRIDE_KEY, None)
+        if reason is None and override:
+            reason = override.get("reason") if isinstance(override, dict) else str(override)
     return check(Path(path).read_text(encoding="utf-8"), max_pages=max_pages,
                  margin_in=margin_in, review=review, reason=reason, body_pt=body_pt)
 
@@ -279,5 +287,6 @@ if __name__ == "__main__":
             print(f"OVERRIDE RECORDED: {result['reason']}")
         else:
             # Advisory, non-zero exit so the loop notices; NOT a hard block.
-            print("Advisory only -- record a reason with --reason to override.")
+            print("Advisory only -- record a reason (--reason, or `override:` in "
+                  "length_review.yaml) to override.")
             raise SystemExit(2)

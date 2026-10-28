@@ -168,6 +168,24 @@ def test_complete_review_passes_and_bad_decision_is_invalid():
     assert status["invalid"] == [{"heading": h0, "decision": "shrink"}]
 
 
+def test_review_file_override_records_the_reason(tmp_path):
+    """One file records the whole length round: section decisions plus the
+    override, which is never mistaken for a section heading."""
+    import yaml
+
+    md = tmp_path / "r.md"
+    md.write_text(_long_resume(), encoding="utf-8")
+    first = length_budget.check(_long_resume(), max_pages=2)
+    review = {h: "keep" for h in first["review_checklist"]}
+    review["override"] = {"reason": "publications list is the evidence", "open_flags": []}
+    rp = tmp_path / "length_review.yaml"
+    rp.write_text(yaml.safe_dump(review), encoding="utf-8")
+    r = length_budget.check_file(md, max_pages=2, review_path=rp)
+    assert r["override_recorded"] is True
+    assert r["reason"] == "publications list is the evidence"
+    assert r["review"]["complete"] is True
+
+
 def test_fitting_resume_has_no_review_gate():
     r = length_budget.check(SHORT, max_pages=2)
     assert r["fits"] is True

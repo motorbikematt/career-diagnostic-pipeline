@@ -112,3 +112,30 @@ def test_apply_file_twice_is_idempotent(tmp_path):
     applied, _ = whd_patch.apply_file(whd, patches, on="2026-09-24")  # Phase H re-run
     assert applied == []
     assert whd.read_bytes() == after_first
+    assert len(list((tmp_path / "backups").iterdir())) == 1  # no-op run makes no backup
+
+
+def test_apply_file_backs_up_the_whd_before_writing(tmp_path):
+    whd = tmp_path / "whd.md"
+    whd.write_text(WHD, encoding="utf-8")
+    patches = tmp_path / "patches.yaml"
+    patches.write_text(yaml.safe_dump({"patches": [
+        {"kind": "evidence", "target_anchor": "nimbus-labs", "content": "- new evidence",
+         "whd_worthy": True, "status": "approved", "note": "ev"}]}), encoding="utf-8")
+    whd_patch.apply_file(whd, patches, on="2026-09-24")
+    (backup,) = (tmp_path / "backups").iterdir()
+    assert backup.read_text(encoding="utf-8") == WHD  # the pre-patch text
+    assert "new evidence" in whd.read_text(encoding="utf-8")
+
+
+def test_backup_whd_keeps_only_the_newest(tmp_path):
+    whd = tmp_path / "whd.md"
+    whd.write_text(WHD, encoding="utf-8")
+    folder = tmp_path / "backups"
+    folder.mkdir()
+    for i in range(5):
+        (folder / f"whd.2026-01-0{i + 1}T000000.md").write_text("old", encoding="utf-8")
+    whd_patch.backup_whd(whd, keep=3)
+    names = sorted(p.name for p in folder.iterdir())
+    assert len(names) == 3
+    assert names[:2] == ["whd.2026-01-04T000000.md", "whd.2026-01-05T000000.md"]  # 01-03 went

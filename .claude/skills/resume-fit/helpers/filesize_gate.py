@@ -2,7 +2,7 @@
 
 Evidence (docs/research/resume-fit-guidance.md section 1): Google caps uploads at
 2 MB [S3] and Greenhouse stops parsing above 2.5 MB [S1]. A single 2 MB gate
-satisfies both. Works on any file (.docx now, .pdf if PDF output is added later).
+satisfies both. Works on any file.
 
 The size check is exact, so Python owns it. It fails; it does not shrink anything.
 """

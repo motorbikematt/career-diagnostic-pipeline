@@ -14,6 +14,9 @@ Two ways a patch lands:
   After a replace, any remaining copies of `old` elsewhere in the WHD are
   reported so the user can correct them too.
 
+Before any write, the WHD is copied to `<whd dir>/backups/` (newest 10 kept),
+so no one needs to copy it into a run folder by hand.
+
 A section runs from its anchor to the NEXT anchor, so `nimbus-labs` ends where
 `nimbus-labs.p1` begins. The Voice Sample and the changelog are never
 patch targets.
@@ -161,6 +164,28 @@ def apply_patches(text: str, patches: list, on: str | None = None):
     return text, applied, leftovers
 
 
+BACKUP_DIR = "backups"
+BACKUPS_KEPT = 10
+
+
+def backup_whd(whd_path, keep: int = BACKUPS_KEPT):
+    """Copy the WHD into <whd dir>/backups/ before it is patched, keeping the
+    newest `keep` copies. One shared place, so runs never carry WHD copies."""
+    import shutil
+    from datetime import datetime
+    from pathlib import Path
+
+    whd = Path(whd_path)
+    folder = whd.parent / BACKUP_DIR
+    folder.mkdir(exist_ok=True)
+    stamp = datetime.now().strftime("%Y-%m-%dT%H%M%S")
+    dest = folder / f"{whd.stem}.{stamp}{whd.suffix}"
+    shutil.copy2(whd, dest)
+    for old in sorted(folder.glob(f"{whd.stem}.*{whd.suffix}"))[:-keep]:
+        old.unlink()
+    return dest
+
+
 def apply_file(whd_path, patches_path, on: str | None = None):
     import yaml
     from pathlib import Path
@@ -171,6 +196,7 @@ def apply_file(whd_path, patches_path, on: str | None = None):
     new_text, applied, leftovers = apply_patches(text, patches, on)
     if not applied:
         return applied, leftovers
+    backup_whd(whd_path)
     write_whd(whd_path, new_text + ("\n" if text.endswith("\n") else ""), eol)
     # Only after the WHD write succeeds: record which patches landed.
     Path(patches_path).write_text(

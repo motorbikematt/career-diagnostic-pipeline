@@ -28,7 +28,7 @@ def _powershell() -> str | None:
     return shutil.which("pwsh") or shutil.which("powershell")
 
 
-def measure(docx_path, pdf_path=None, timeout: int = 180) -> dict:
+def measure(docx_path, timeout: int = 180) -> dict:
     """Return Word's measurement, or {"available": False, "reason": ...}."""
     if platform.system() != "Windows":
         return {"available": False, "reason": "Word COM needs Windows"}
@@ -37,8 +37,6 @@ def measure(docx_path, pdf_path=None, timeout: int = 180) -> dict:
         return {"available": False, "reason": "PowerShell not found"}
     cmd = [shell, "-NoProfile", "-NonInteractive", "-File", str(PS1),
            "-DocxPath", str(Path(docx_path).resolve())]
-    if pdf_path:
-        cmd += ["-PdfPath", str(Path(pdf_path).resolve())]
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
     except subprocess.TimeoutExpired:
@@ -50,8 +48,8 @@ def measure(docx_path, pdf_path=None, timeout: int = 180) -> dict:
     return data
 
 
-def check(docx_path, max_pages: int = 2, pdf_path=None) -> dict:
-    m = measure(docx_path, pdf_path=pdf_path)
+def check(docx_path, max_pages: int = 2) -> dict:
+    m = measure(docx_path)
     if not m["available"]:
         return m
     bottom = m["page_height"] - m["bottom_margin"]
@@ -71,10 +69,9 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description="Page count of a .docx, measured in Word.")
     ap.add_argument("docx")
     ap.add_argument("--max-pages", type=int, default=2)
-    ap.add_argument("--pdf", help="also export a PDF through Word to this path")
     args = ap.parse_args()
 
-    result = check(args.docx, max_pages=args.max_pages, pdf_path=args.pdf)
+    result = check(args.docx, max_pages=args.max_pages)
     print(json.dumps(result, indent=2))
     if not result["available"]:
         print("WORD UNAVAILABLE: use length_budget.py's estimate and confirm the page count by eye.")

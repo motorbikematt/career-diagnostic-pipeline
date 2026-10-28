@@ -18,6 +18,17 @@ def test_create_run_folder(tmp_path):
     assert p == tmp_path / "pipeline" / "runs" / "acme-robotics-senior-pm-2026-07-06"
 
 
+def test_create_run_folder_makes_work_subfolder(tmp_path):
+    p = runfolder.create_run_folder(tmp_path, "Co", "Role", on="2026-07-06")
+    assert (p / "work").is_dir()
+    assert runfolder.work_dir(p) == p / "work"
+
+
+def test_work_dir_falls_back_to_flat_run(tmp_path):
+    """Runs made before the work/ layout keep their artifacts at the top level."""
+    assert runfolder.work_dir(tmp_path) == tmp_path
+
+
 def test_create_run_folder_idempotent(tmp_path):
     a = runfolder.create_run_folder(tmp_path, "Co", "Role", on="2026-07-06")
     b = runfolder.create_run_folder(tmp_path, "Co", "Role", on="2026-07-06")

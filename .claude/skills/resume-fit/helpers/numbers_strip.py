@@ -7,15 +7,14 @@ never drift from the math (plan section 3, "Numbers strip"):
 """
 from __future__ import annotations
 
-from pathlib import Path
-
 import yaml
 
 import score
+from runfolder import work_dir
 
 
 def assemble(run_dir) -> dict:
-    run = Path(run_dir)
+    run = work_dir(run_dir)
     gm = yaml.safe_load((run / "gapmap.yaml").read_text(encoding="utf-8"))
     s = score.compute(gm)
     out = {

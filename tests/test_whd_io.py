@@ -37,7 +37,7 @@ def test_preferences_snapshot_copied_once(tmp_path):
     whd_dir.mkdir(parents=True)
     (whd_dir / "preferences.yaml").write_text("home: A\n", encoding="utf-8")
     run = runfolder.create_run_folder(tmp_path, "Co", "Role", on="2026-09-24")
-    snap = run / "preferences.snapshot.yaml"
+    snap = run / "work" / "preferences.snapshot.yaml"
     assert snap.read_text(encoding="utf-8") == "home: A\n"
     (whd_dir / "preferences.yaml").write_text("home: B\n", encoding="utf-8")
     runfolder.create_run_folder(tmp_path, "Co", "Role", on="2026-09-24")
@@ -46,4 +46,4 @@ def test_preferences_snapshot_copied_once(tmp_path):
 
 def test_no_preferences_no_snapshot(tmp_path):
     run = runfolder.create_run_folder(tmp_path, "Co", "Role", on="2026-09-24")
-    assert not (run / "preferences.snapshot.yaml").exists()
+    assert not (run / "work" / "preferences.snapshot.yaml").exists()

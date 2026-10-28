@@ -2,7 +2,7 @@
 
 Answers "can this machine run the optional steps?" before they are planned:
 `pdftotext` (poppler) for a text-extraction round trip, Microsoft Word for the
-real page count and PDF export (word_pages.py), the Python libraries the helpers
+real page count (word_pages.py) and the Word save, the Python libraries the helpers
 import, and the data plane path. LibreOffice is only looked for when Word is not
 installed: it is the headless fallback for machines without Word (Linux, CI). It changes nothing and never fails; a missing optional tool is
 reported, not raised.
@@ -19,10 +19,10 @@ import config
 BINARIES = (
     ("pdftotext", ("pdftotext",), "text-extraction round trip on a PDF (poppler)"),
 )
-WORD_NEEDED_FOR = ("real page count and PDF export (word_pages.py), and the final "
-                   "save that gives render_docx.py output Word's own properties")
+WORD_NEEDED_FOR = ("real page count (word_pages.py), and the final save that gives "
+                   "render_docx.py output Word's own properties")
 LIBREOFFICE = ("libreoffice", ("soffice", "libreoffice"),
-               "page count and PDF export where Word is absent (fallback)")
+               "page count where Word is absent (fallback)")
 # (label, import name, what needs it)
 LIBRARIES = (
     ("python-docx", "docx", "render_docx.py, docx_drift.py, contact_check.py"),
