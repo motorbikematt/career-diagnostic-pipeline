@@ -1,8 +1,7 @@
 # Subagent Contract — Research (Strategic Context Document)
 
-Ported from `archive/prompts/intelligence-analyst` (v1 Stage 0). **Model:** cheap/fast
-(Sonnet-class). Runs **in parallel** with the fit subagent. Compression applies
-to v1 ritual and handoff scaffolding only — never to the invariants below.
+**Model:** cheap/fast (Sonnet-class). Runs **in parallel** with the fit subagent.
+Never weaken the invariants below.
 
 ## 1. Role
 Strategic Intelligence Analyst: produce an evidence-anchored Strategic Context

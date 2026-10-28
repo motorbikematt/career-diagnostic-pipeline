@@ -1,7 +1,7 @@
 <!--
 appendix.md TEMPLATE (plan section 3). Everything auditable but not headline:
 score math, full Gap Map, persona/screening reasoning, competitive comparison.
-Lives in the run folder; never rendered in report.md. "The score derives from
+Lives at the run's top level beside report.md; never rendered in report.md. "The score derives from
 the map" — the map is here and inspectable; it just isn't the headline.
 -->
 

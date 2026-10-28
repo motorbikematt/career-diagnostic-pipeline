@@ -1,9 +1,9 @@
 # Finishing (Ghost Editor + interactive loop)
 
-Ported from `archive/prompts/ghost-editor` (v1 Stage 4 Draft). **Model:** strong
-(Opus-class). v2 INVERTS the deliverable: the tagged draft is generated but
-**never shown as the deliverable** — it becomes the finishing loop's worklist.
-The system interviews the user until zero blocking tags remain, then renders.
+**Model:** strong (Opus-class). The tagged draft is generated but **never shown
+as the deliverable**: it is the finishing loop's worklist. The system interviews
+the user until zero blocking tags remain, then renders. Every file below lives
+in the run's `work/` folder (`<work>`) except the final `.docx` (§7).
 
 ## 1. Role
 Ghost Editor: produce a job-targeted resume draft that preserves the candidate's
@@ -56,10 +56,11 @@ user put it there) but raise it once in the Stretch round.
 Once `resume_candidate.docx` exists, the user may edit it directly in Word. The
 `.md` is then stale, and working from it loses their edits. Before ANY further
 edit pass, and before the §7 final render, run:
-`python .claude/skills/resume-fit/helpers/docx_drift.py <run>/resume_candidate.md <run>/resume_candidate.docx`
+`python .claude/skills/resume-fit/helpers/docx_drift.py <work>/resume_candidate.md <work>/resume_candidate.docx`
 If it reports DRIFT, stop. Rebuild the markdown from the docx with
-`--pull <run>/resume_candidate.pulled.md`, show the user the diff, and on their
-confirmation make the pulled file the new `resume_candidate.md` before continuing.
+`--pull <work>/resume_candidate.pulled.md`, show the user the diff, and on their
+confirmation make the pulled file the new `resume_candidate.md` (replace it; do
+not keep both) before continuing.
 
 ## 3. Input manifest
 The WHD (voice sample + cited sections), the current resume, `prescriptions.yaml`,
@@ -68,7 +69,8 @@ The WHD (voice sample + cited sections), the current resume, `prescriptions.yaml
 ## 4. Silent draft (worklist, never the deliverable)
 Generate the resume as clean markdown with inline tags:
 `[CHANGED]`, `[REMOVED]`, `[CANDIDATE TO SUPPLY: ...]`, `[NOT INTEGRATED]`, and
-`VOICE NOTE: ...`. Save as `resume_draft.md` in the run folder. Do NOT present it
+`VOICE NOTE: ...`. Save as `<work>/resume_draft.md` and edit it in place across
+rounds (no numbered or dated copies). Do NOT present it
 as the deliverable. **Target 2 pages** (the 2026 default for a senior IC); apply
 any Compress/Cut prescriptions from synthesis as you draft. The draft may still
 overflow — the length round (§5) resolves it with the user; never pre-truncate
@@ -82,14 +84,14 @@ prescriptions.
   the bullet library exists, from the cited WHD anchors), each built as who / what /
   how / proof, the proof tying the experience to this JD. Two to four lines, no
   first person, no objective statement, no adjective with a measure available. Write
-  `<run>/summary_options.yaml` (`schemas/summary_options.schema.yaml`): each
+  `<work>/summary_options.yaml` (`schemas/summary_options.schema.yaml`): each
   option's text plus its `claims`, every claim tagged with the WHD anchor behind it.
   Do not invent a measure: a missing one becomes `[CANDIDATE TO SUPPLY: ...]`.
 - **The user chooses.** One AskUserQuestion round: pick an option, or give their own
   wording. Record `chosen`, set `edited` when they change it, and store their wording
   in `final_text` verbatim. Their words are never re-polished (section 2). The voice
   check still applies to every option.
-- **Check:** `python .claude/skills/resume-fit/helpers/summary_lint.py --options <run>/summary_options.yaml --whd <whd>`
+- **Check:** `python .claude/skills/resume-fit/helpers/summary_lint.py --options <work>/summary_options.yaml --whd <whd>`
   must report clean (no first person, no objective wording, every claim anchored to
   a real WHD anchor). Length and no-number are warnings only.
 - **Banner.** Insert the `jd_title` from the `banner` prescription verbatim on its own
@@ -125,8 +127,8 @@ AskUserQuestion, batched by tag type:
      (measured in Word, 2026-10-09), and role titles must not drop below body
      size. Re-measure with the same `--margin`/`--body-pt` in both
      `length_budget.py` and `density_lint.py`. If the user takes a lever while
-     density flags remain open, record that choice and the open flags in
-     `length_override.md`.
+     density flags remain open, record that choice and the open flags under
+     `override:` in `length_review.yaml`.
   If it still reports **over budget**, present the overflow to the user with BOTH
   signals side by side, then let them decide — never auto-cut:
   - **Cost** — the per-section `height_in` / `rendered_lines` from the helper
@@ -141,13 +143,14 @@ AskUserQuestion, batched by tag type:
   makes every call; recency-vs-tenure-gap tradeoffs are theirs. **Survey every
   section, not just the obvious ones:** when over budget the helper prints a
   `review_checklist` of every section. Record a keep / compress / cut decision for
-  each in `<run>/length_review.yaml` (`"<section heading>": keep`, or
-  `{decision: cut, note: ...}`), then re-run with `--review <run>/length_review.yaml`.
+  each in `<work>/length_review.yaml` (`"<section heading>": keep`, or
+  `{decision: cut, note: ...}`), then re-run with `--review <work>/length_review.yaml`.
   Do not propose cuts or record an override until it reports
-  `review.complete: true`. **Override:** if
-  the user chooses to exceed 2 pages, capture their stated reason and write it to
-  the run as `length_override.md` (reason + final page estimate). Re-run the
-  helper after edits until it reports fits OR an override reason is recorded.
+  `review.complete: true`. **Override:** if the user chooses to exceed 2 pages,
+  record their stated reason in the same file, as
+  `override: {reason: ..., open_flags: [...]}`; `length_budget.py --review`
+  reads it. Re-run the helper after edits until it reports fits OR an override
+  reason is recorded.
   - **Compression candidates (before cutting content):** run
     `python .claude/skills/resume-fit/helpers/compress_candidates.py <draft.md>`. It finds claim lines
     with a 3+ item comma/and-separated list mechanically (pattern only — no
@@ -162,12 +165,14 @@ AskUserQuestion, batched by tag type:
 Cap ~3 rounds per type; overflow to a punch list.
 
 ## 6. Exit criteria + render
-- The loop does not terminate until `tags.py` reports **clean** (zero blocking
-  tags) AND the voice audit passes AND the length round (§5) is resolved —
+- The loop does not terminate until
+  `python .claude/skills/resume-fit/helpers/tags.py <work>/resume_draft.md`
+  reports **clean** (zero blocking tags; run it every pass) AND the voice audit
+  passes AND the length round (§5) is resolved —
   Word reports **fits** at 2 pages (`word_pages.py`, run on the rendered docx;
   `length_budget.py` is an estimate within ~0.1 page and cannot decide a
   boundary case), OR the user recorded an override
-  reason in `length_override.md`. Length is a *default*, not a hard block: unlike
+  reason in `length_review.yaml`. Length is a *default*, not a hard block: unlike
   the tags gate, a justified override lets the render proceed past 2 pages.
 - If the user stalls, save with an explicit **NOT SUBMITTABLE** banner and the
   list of what remains — never render a tagged draft as final.
@@ -205,7 +210,7 @@ re-enter any loop.
    Advisory only. List any open flags in `reeval.md` and note whether the
    tailoring added flags the seed resume did not have; never a new trim cycle.
 
-Write a short `reeval.md` to the run folder: the axis verdicts + any
+Write a short `<work>/reeval.md`: the axis verdicts + any
 regression. **No recursion** — if it flags a regression, surface it to the user as a
 single yes/no ("keep as-is or make this one fix?"), never as a new trim cycle. If
 clean, proceed to render. If the draft already passed cleanly (no dead-weight, fits
@@ -213,14 +218,14 @@ clean, proceed to render. If the draft already passed cleanly (no dead-weight, f
 
 - On clean (tags clean + length resolved + re-eval clean): strip informational
   tags, write `resume_candidate.md` (source of truth), then render:
-  `python .claude/skills/resume-fit/helpers/render_docx.py <run>/resume_candidate.md <run>/resume_candidate.docx [--margin 0.5] [--body-pt 10.5]`
-  then `python .claude/skills/resume-fit/helpers/word_pages.py <run>/resume_candidate.docx --max-pages 2`.
+  `python .claude/skills/resume-fit/helpers/render_docx.py <work>/resume_candidate.md <work>/resume_candidate.docx [--margin 0.5] [--body-pt 10.5]`
+  then `python .claude/skills/resume-fit/helpers/word_pages.py <work>/resume_candidate.docx --max-pages 2`.
   `render_docx.py` also saves the file through Word (clean metadata, Word's own
   app properties); exit 3 there means no Word, so the .docx exists but was not
   Word-saved: say so. Over budget in Word reopens the length round; exit 3 from
   `word_pages.py` (no Word) means the user confirms the page count by eye.
-  (ATS-safe: single column, standard font, no tables/text-boxes/headers).
-  Deliverables: `resume_candidate.docx` + `resume_candidate.md` + `reeval.md`.
+  (ATS-safe: single column, standard font, no tables/text-boxes/headers.)
+  Never export a PDF. Give the user `<work>/resume_candidate.docx` to read.
   **This is NOT "final."** It has passed every automated gate but still needs the
   user's own read-aloud pass and explicit sign-off (§7). "Final" is reserved for
   the artifact the user actually approves to submit — using it earlier is exactly
@@ -233,13 +238,15 @@ clean, proceed to render. If the draft already passed cleanly (no dead-weight, f
 - **The input resume is never renamed.** Whatever file the user provided (any
   name, any location their config points to) stays as-is — the pipeline reads it,
   never rewrites or renames the source.
-- On approval, render the true final deliverable using a stable, professional
-  naming convention independent of internal revision scratch files:
-  `<LASTNAME>_<FIRSTNAME>_<COMPANY>_<DATE>.docx` (e.g.
-  `Reyes_Matthew_Anthropic_2026-07-06.docx`), built from the approved
-  `resume_candidate.md`. Run the §2c drift check first: if the user edited the
-  candidate `.docx`, the approved text lives there, not in the `.md`. This is the one file named without a pipeline-internal
-  suffix — it is meant to be handed to a human, not read by another pipeline step.
+- On approval, run the §2c drift check (pull any Word edits into the `.md` so
+  the working source matches), then **move** the approved
+  `<work>/resume_candidate.docx` to the run's top level as
+  `<run>/<LASTNAME>_<FIRSTNAME>_<COMPANY>_<DATE>.docx` (e.g.
+  `Reyes_Matthew_Anthropic_2026-07-06.docx`). Moving, not re-rendering, keeps
+  exactly the file the user approved, Word edits included, and leaves one copy.
+  This is the one file named without a pipeline-internal suffix — it is meant to
+  be handed to a human, not read by another pipeline step, and it is the run's
+  only resume deliverable.
 
 ## 8. Refusal conditions
 - No fabrication. Every added claim traces to the resume or a cited WHD anchor.

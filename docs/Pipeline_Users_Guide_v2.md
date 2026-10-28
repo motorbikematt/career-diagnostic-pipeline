@@ -83,7 +83,9 @@ research and fit extraction, the strong model for screening and synthesis
 **Phase A — Intake.** Confirms the JD, your current resume, and your WHD are
 all located. Parses the JD once into `requirements.yaml` — every later phase
 reads this structured form, never the raw JD text. Creates a per-run folder
-under your data plane.
+under your data plane. Its top level holds only what you open (`report.md`,
+`appendix.md`, and the final `.docx`); every working file goes in its `work/`
+subfolder.
 
 **Phase B — Parallel research + fit.** Two subagents run concurrently, each
 seeing only what it needs: a research subagent produces a Strategic Context
@@ -130,8 +132,9 @@ stretch claims, and length) until the draft is clean. A length round shows you
 per-section cost against per-section JD-relevance so any cuts are your call,
 never automatic. A closed-loop re-check (ATS keywords, relevance, forbidden
 characters) confirms the finished draft didn't regress versus the seed before
-it's rendered to an ATS-safe `.docx`. You read the final result yourself and
-explicitly approve it before it's treated as truly final.
+it's rendered to an ATS-safe `.docx`, saved through Word. You read it yourself
+and explicitly approve it; only then is it moved to the run's top level under
+its final name, the one resume file the run delivers (no PDF, no markdown copy).
 
 **Phase H — WHD reconciliation.** Every run surfaces new facts, corrections,
 or evidence uncovered along the way. Each is classified as durable

@@ -1,8 +1,7 @@
 # Subagent Contract — Fit (Gap Map)
 
-Ported from `archive/prompts/resume-auditor` (v1 Stage 1). **Model:** cheap/fast
-(Sonnet-class). Runs **in parallel** with research. The Gap Map is the
-pipeline's most differentiated output — do not dilute it. Compress ritual only.
+**Model:** cheap/fast (Sonnet-class). Runs **in parallel** with research. The Gap
+Map is the pipeline's most differentiated output — do not dilute it.
 
 ## 1. Role
 Expert Resume Auditor: evaluate candidate-to-JD congruency and produce the Gap

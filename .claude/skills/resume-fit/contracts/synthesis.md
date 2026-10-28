@@ -1,9 +1,9 @@
 # Synthesis (orchestrator step, not a subagent)
 
-Ported from `archive/prompts/optimization-strategist` (v1 Stage 3 Triage). Run by the
-**orchestrator on the STRONG model** (it is the convergence step — the first to
-see all artifacts + the WHD simultaneously). Produces `report.md` (+ the
-structured `prescriptions.yaml`) and `appendix.md`. Compress ritual only.
+Run by the **orchestrator on the STRONG model** (it is the convergence step — the
+first to see all artifacts + the WHD simultaneously). Produces `<run>/report.md`
+and `<run>/appendix.md` (the files the user opens) and the structured
+`<work>/prescriptions.yaml`.
 
 ## 1. Role
 Senior Resume Strategist: diagnose, prescribe, validate. This is the report.
@@ -105,7 +105,7 @@ cite sources).
   prescription.
 - **`appendix.md`** from `templates/appendix.md` — score math, full Gap Map,
   persona/screening reasoning, competitive comparison. Never rendered in the
-  report; auditable in the run folder.
+  report; auditable at the run's top level.
 
 ## 5b. Length budget (2-page default, user decides cuts)
 The finished resume targets **2 pages** — the 2026 default for a senior IC (the

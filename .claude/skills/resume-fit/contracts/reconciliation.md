@@ -52,10 +52,13 @@ corrections, evidence surfaced for Partials, information-gap answers), the
   `old` for a correction.
 - After the user disposes each patch, apply the approved+durable ones:
   ```bash
-  python .claude/skills/resume-fit/helpers/whd_patch.py <data-plane>/pipeline/whd/<WHD>.md <run>/patches.yaml
+  python .claude/skills/resume-fit/helpers/whd_patch.py <data-plane>/pipeline/whd/<WHD>.md <work>/patches.yaml
   ```
-  This appends content to the anchored sections and writes date-stamped changelog
-  entries naming the run. Rejected / application-specific patches are never written.
+  This backs up the WHD to `pipeline/whd/backups/`, appends content to the
+  anchored sections and writes date-stamped changelog entries naming the run.
+  Rejected / application-specific patches are never written. `patches.yaml`
+  stays in the run's `work/` folder as the record of what this run changed;
+  never copy the WHD into the run.
 
 ## 5. Refusal conditions
 - Never apply a patch the user has not approved.

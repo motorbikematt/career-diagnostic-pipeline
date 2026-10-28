@@ -11,8 +11,7 @@ description: >-
 
 # resume-fit
 
-Collapses a five-prompt, two-model, copy-paste pipeline into one skill. Given a
-job description, it produces one concise report and — when warranted — a
+Given a job description, produce one concise report and, when warranted, a
 submission-ready `.docx`, improving the user's Work History Document (WHD) as a
 side effect of each run.
 
@@ -31,50 +30,44 @@ side effect of each run.
 
 ## First-run setup (data-plane config)
 
-The data-plane path is resolved by `helpers/config.py`, in order:
-1. `$RESUME_FIT_DATA_PLANE`
-2. `$XDG_CONFIG_HOME/resume-fit/config.yaml` (or `~/.config/resume-fit/config.yaml`)
-
-On first run, if neither is set, ask the user where their data plane lives (a
-private folder, e.g. `.../resume-pipeline-data`) and persist it:
-
+`helpers/config.py` resolves the data plane from `$RESUME_FIT_DATA_PLANE`, then
+`$XDG_CONFIG_HOME/resume-fit/config.yaml` (or `~/.config/resume-fit/config.yaml`).
+If neither is set, ask the user where their private data folder lives and persist it:
 ```bash
 python .claude/skills/resume-fit/helpers/config.py set "/path/to/data-plane"
 ```
+The data plane must contain exactly one `pipeline/whd/<the WHD>.md`. A legacy WHD
+without anchors must be migrated once (`whd_migrate.py <old> <new>`, then
+`--check <old> <new>`; it never overwrites). The WHD needs a unique canary token
+for the screening leak check (`canary.py init <WHD>`; safe to re-run).
 
-The data plane must contain `pipeline/whd/<the WHD>.md`. A new user with no WHD
-goes through onboarding first (see Build status → not yet built).
+## Run folder and output discipline
 
-A **legacy WHD without anchors** (e.g. an older Word export) must be migrated
-once, or no tool can address its sections. The migration adds stable slug
-anchors, orders roles newest-first, fixes export artifacts, and proves no
-wording changed (it writes a new file and never overwrites):
-```bash
-python .claude/skills/resume-fit/helpers/whd_migrate.py <old-whd.md> <new-whd.md>
-python .claude/skills/resume-fit/helpers/whd_migrate.py --check <old-whd.md> <new-whd.md>
-```
-Keep exactly one WHD in `pipeline/whd/`; archive the old one after review.
+`runfolder.py` creates `<data-plane>/pipeline/runs/<company>-<role>-<date>/`
+(`<run>`) with a `work/` subfolder (`<work>`). Below, every pipeline file is in
+`<work>`. The top of `<run>` holds only what the user opens:
 
-The WHD needs a unique canary token for the screening leak check. Generate it
-once (safe to re-run; an existing real token is kept):
+- `report.md` and `appendix.md` (Phase E), and
+- after sign-off, the final `<LASTNAME>_<FIRSTNAME>_<COMPANY>_<DATE>.docx` (Phase G).
 
-```bash
-python .claude/skills/resume-fit/helpers/canary.py init <data-plane>/pipeline/whd/<WHD>.md
-```
+The final `.docx` is the only resume deliverable. `resume_candidate.md` is the
+working source the docx is rendered from, never a deliverable. **Never write a
+PDF.** Helper results go to stdout: do not redirect lint or measurement output
+into the run, and do not save scratch copies, snapshots or variants of the
+resume there (use a temp folder). `whd_patch.py` backs up the WHD itself, into
+`pipeline/whd/backups/`; never copy the WHD into a run.
 
-`canary.py` refuses to scan while the template placeholder is still in place.
-
-## Architecture (plan section 2)
+## Architecture
 
 ```
-Phase A  INTAKE (orchestrator)         -> requirements.yaml, run folder   [BUILT]
-Phase B  PARALLEL research + fit        -> scd.yaml, gapmap.yaml           [BUILT]
-Phase C  GATE 1 Gap Brief (3 options)   -> Python tally + trip rules       [BUILT]
-Phase D  SCREENING (WHD-blind)          -> screen.yaml                     [BUILT]
-Phase E  SYNTHESIS                       -> report.md + appendix.md         [BUILT]
-Phase F  GATE 2 user decision                                              [BUILT]
-Phase G  FINISHING LOOP                  -> resume_candidate.docx (then final)  [BUILT]
-Phase H  WHD RECONCILIATION              -> WHD patched                     [BUILT]
+Phase A  INTAKE (orchestrator)         -> requirements.yaml, run folder
+Phase B  PARALLEL research + fit        -> scd.yaml, gapmap.yaml
+Phase C  GATE 1 Gap Brief (3 options)   -> Python tally + trip rules
+Phase D  SCREENING (WHD-blind)          -> screen.yaml
+Phase E  SYNTHESIS                       -> report.md + appendix.md
+Phase F  GATE 2 user decision
+Phase G  FINISHING LOOP                  -> the final .docx
+Phase H  WHD RECONCILIATION              -> WHD patched
 ```
 
 ### Model routing (orchestrator parameter, not a per-stage ritual)
@@ -89,7 +82,7 @@ gate; overflow to a punch list. Routine gaps wait for their designated phase.
 
 ---
 
-## Phase A — Intake (BUILT)
+## Phase A — Intake
 
 1. **Validate inputs.** Confirm: a JD is present (file, pasted text, or URL);
    the current resume is located; the WHD is located in the data plane. If the
@@ -107,14 +100,13 @@ gate; overflow to a punch list. Routine gaps wait for their designated phase.
 3. **Create the run folder:**
    ```bash
    python .claude/skills/resume-fit/helpers/runfolder.py "<Company>" "<Role>"
-   # -> <data-plane>/pipeline/runs/<company>-<role>-<date>/
    ```
-   Write `requirements.yaml` into it. The helper also snapshots
+   Write `requirements.yaml` into `<work>`. The helper also snapshots
    `<data-plane>/pipeline/whd/preferences.yaml` (the candidate's deal-breaker
-   rules; template: `templates/preferences-template.yaml`) into the run as
-   `preferences.snapshot.yaml`.
+   rules; template: `templates/preferences-template.yaml`) into
+   `<work>/preferences.snapshot.yaml`.
 4. **Location assessment** (skip for a remote role): judge the geography and
-   write `<run>/location.yaml` (`schemas/location.schema.yaml`):
+   write `<work>/location.yaml` (`schemas/location.schema.yaml`):
    `drive_minutes_from_home` (from the preferences `home`), `nearest_metro` (an
    exact name from the preferences `relocation.metros`, or null),
    `metro_minutes` (drive from that metro's core), `borderline` (true for a
@@ -123,8 +115,8 @@ gate; overflow to a punch list. Routine gaps wait for their designated phase.
    applies them from the preferences file.
 5. **Validate before proceeding** (structural drift fails loudly here):
    ```bash
-   python .claude/skills/resume-fit/helpers/validate.py <run>/requirements.yaml requirements
-   python .claude/skills/resume-fit/helpers/validate.py <run>/location.yaml location   # non-remote roles only
+   python .claude/skills/resume-fit/helpers/validate.py <work>/requirements.yaml requirements
+   python .claude/skills/resume-fit/helpers/validate.py <work>/location.yaml location   # non-remote roles only
    ```
 6. **Hard-no reminder** (one line, never blocks):
    ```bash
@@ -135,21 +127,21 @@ gate; overflow to a punch list. Routine gaps wait for their designated phase.
    or skip?" See **Hard-no review mode** below. Keep the `stale` list for
    synthesis.
 
-## Phase B — Parallel research + fit (BUILT)
+## Phase B — Parallel research + fit
 
 Dispatch two subagents concurrently on the **cheap/fast model**. Each receives a
 minimal manifest — the fit subagent never sees the SCD; the research subagent
 never sees the resume or WHD.
 
 - **Research subagent** — contract: `contracts/research.md`. Manifest:
-  `requirements.yaml` (company/role) + web search. Writes `scd.yaml`.
+  `requirements.yaml` (company/role) + web search. Writes `<work>/scd.yaml`.
 - **Fit subagent** — contract: `contracts/fit.md`. Manifest: `requirements.yaml`
-  + the resume + the WHD. Writes `gapmap.yaml`.
+  + the resume + the WHD. Writes `<work>/gapmap.yaml`.
 
 Validate both on return (fail loudly, not silently downstream):
 ```bash
-python .claude/skills/resume-fit/helpers/validate.py <run>/scd.yaml scd
-python .claude/skills/resume-fit/helpers/validate.py <run>/gapmap.yaml gapmap
+python .claude/skills/resume-fit/helpers/validate.py <work>/scd.yaml scd
+python .claude/skills/resume-fit/helpers/validate.py <work>/gapmap.yaml gapmap
 ```
 
 **Exception-driven interrogation (fire only on FUNDAMENTAL mismatches):**
@@ -167,7 +159,7 @@ The WHD only knows what the user remembered to write down; a requirement can
 jog a memory, or show that something already in the WHD answers it once
 reframed. List the rows to review:
 ```bash
-python .claude/skills/resume-fit/helpers/gap_review.py <run>/gapmap.yaml <run>/requirements.yaml
+python .claude/skills/resume-fit/helpers/gap_review.py <work>/gapmap.yaml <work>/requirements.yaml
 ```
 It returns EVERY None (recoverable or not) and every non-recoverable Partial,
 hard requirements first. Ask in batched AskUserQuestion rounds (hard first),
@@ -190,12 +182,12 @@ leaves the Gate 1 tally. Change `classification` only when the user shows the
 fit step misread evidence that is ON THE RESUME. Synthesis's honesty check can
 still label any upgrade a Stretch. Re-validate the gapmap, then run Gate 1.
 
-## Phase C — Gate 1 Gap Brief (BUILT)
+## Phase C — Gate 1 Gap Brief
 
 A zero-token Python step tallies unrecoverable gaps, checks location, and
 evaluates categorical trip rules (never a score cutoff):
 ```bash
-python .claude/skills/resume-fit/helpers/gate1.py <run>/gapmap.yaml --requirements <run>/requirements.yaml --location <run>/location.yaml --preferences <run>/preferences.snapshot.yaml --out <run>/gate1.yaml
+python .claude/skills/resume-fit/helpers/gate1.py <work>/gapmap.yaml --requirements <work>/requirements.yaml --location <work>/location.yaml --preferences <work>/preferences.snapshot.yaml --out <work>/gate1.yaml
 ```
 (Omit `--location` for a remote role.) The tally counts each hard None that is
 not recoverable as 1 and each hard Partial that is not recoverable as 0.5; the
@@ -204,17 +196,14 @@ open-question, trip, or not-evaluated (no preferences file). A location **trip**
 trips Gate 1 on its own. A location **open-question** never trips, but
 synthesis must carry it into the report's Open Questions (it reads
 `gate1.yaml`). If `tripped` is true, present the **Gap Brief** as ONE
-structured question with exactly three options (fixed format: plan section 2,
-Phase C). For a location trip, "contest" means "I would make an exception for
-this role":
+structured question with exactly three options. For a location trip, "contest"
+means "I would make an exception for this role":
 
-- **(a) Stop** — archive the Gap Brief to the run folder and end the run.
+- **(a) Stop** — end the run (`gate1.yaml` is the record).
 - **(b) Proceed anyway** — gaps acknowledged; record them in the report's Open
   Questions so the decision is visible.
-- **(c) Contest a gap** ("I have evidence for X") — route immediately into the
-  Phase H micro-interview: capture the evidence, patch the WHD, then update that
-  row the Phase B.5 way (set `whd_evidence` + `recoverable: true`; never change
-  the resume-only `classification` for WHD evidence), and recompute the tally
+- **(c) Contest a gap** ("I have evidence for X") — capture the evidence, patch
+  the WHD, then update that row the Phase B.5 way, and recompute the tally
   before proceeding.
 
 For each unrecoverable gap, state what filling it would actually require
@@ -223,221 +212,83 @@ one-line magnitude verdict. The numeric score appears only as a diagnostic line
 — the reasoning is the gate. An override is never a shrug: it is either an
 accepted risk (b) or new evidence on the record (c).
 
-## Phase D — Screening (BUILT, WHD-blind by construction)
+## Phase D — Screening (WHD-blind by construction)
 
 Build the screening subagent's input from an explicit manifest that OMITS the
 WHD, and pass a screening-safe gapmap summary:
 ```bash
-python .claude/skills/resume-fit/helpers/gapmap_summary.py <run>/gapmap.yaml --out <run>/gapmap.summary.yaml
+python .claude/skills/resume-fit/helpers/gapmap_summary.py <work>/gapmap.yaml --out <work>/gapmap.summary.yaml
 ```
 Always use `--out`, never a shell `>` redirect (on Windows the redirect can write
 a non-UTF-8 file). The summary forwards only the resume-only
 `seeker_archetype_resume`; it fails if the gapmap lacks that field.
 Dispatch the screening subagent (contract: `contracts/screening.md`) on the
 **strong model**, with **no file-read tools** — inputs are: resume,
-`requirements.yaml`, `gapmap.summary.yaml`, `scd.yaml`. It writes `screen.yaml`.
+`requirements.yaml`, `gapmap.summary.yaml`, `scd.yaml`. It writes `<work>/screen.yaml`.
 
 Then validate and run the **canary scan** (fails the run on a blindness leak):
 ```bash
-python .claude/skills/resume-fit/helpers/validate.py <run>/screen.yaml screen
-python .claude/skills/resume-fit/helpers/canary.py <run>/screen.yaml <data-plane>/pipeline/whd/<WHD>.md
+python .claude/skills/resume-fit/helpers/validate.py <work>/screen.yaml screen
+python .claude/skills/resume-fit/helpers/canary.py <work>/screen.yaml <data-plane>/pipeline/whd/<WHD>.md
 ```
 
-## Phase E — Synthesis (BUILT)
+Enforcement layers, in order of authority: (1) the dispatch manifest omits the
+WHD; (2) the subagent has no file-read tools; (3) the canary token in the WHD
+front-matter fails the run if it appears in `screen.yaml`; (4) the prompt
+instruction, framing only, never relied on.
+
+## Phase E — Synthesis
 
 The convergence step: the orchestrator, on the **strong model**, reads all
-artifacts + the WHD and produces the report. Spec + verbatim Stage 3 invariants:
-`contracts/synthesis.md`. Steps:
+artifacts + the WHD. Spec and verbatim invariants: `contracts/synthesis.md`.
 
-1. Produce `prescriptions.yaml` (validated against `schemas/prescriptions.schema.yaml`),
-   then enforce the mandatory rule — every Recoverable Gap has a covering Add
-   prescription with a WHD source. The same check enforces the summary and banner
-   policy (decision D1): exactly one `summary` prescription on every run, and a
-   `banner` prescription carrying the JD title verbatim (an owner exception to
-   no-fabrication, banner only; a credentialed title needs a WHD source):
+1. Write `<work>/prescriptions.yaml`, then enforce coverage, the one-summary rule
+   and the banner rules (decision D1):
    ```bash
-   python .claude/skills/resume-fit/helpers/prescriptions.py <run>/prescriptions.yaml <run>/gapmap.yaml <run>/requirements.yaml
+   python .claude/skills/resume-fit/helpers/prescriptions.py <work>/prescriptions.yaml <work>/gapmap.yaml <work>/requirements.yaml
    ```
 2. Assemble the headline numbers deterministically (do not hand-transcribe):
    ```bash
    python .claude/skills/resume-fit/helpers/numbers_strip.py <run>
    ```
-3. Write `report.md` from `templates/report.md` — verdict-first, ~600–900 words.
-   The two triggers are quoted **verbatim** from `screen.yaml`. Write everything
-   auditable-but-not-headline (score math, full Gap Map, persona reasoning,
-   competitive comparison) to `appendix.md` from `templates/appendix.md`.
-4. **Relevance coverage (before length):** run the inverse meter to flag resume
-   claims with zero linkage to THIS JD (per-JD, value-blind):
-   ```bash
-   python .claude/skills/resume-fit/helpers/relevance.py <resume.md> <run>/requirements.yaml <run>/gapmap.yaml
-   ```
-   The model splits the `none`-linkage set into dead-weight vs differentiator vs
-   structural (`contracts/synthesis.md` §5c); the user ratifies before any
-   Compress/Cut. Prune for value here, before the Phase G length round. Conditional
-   — if nothing flags `none`, this asks nothing.
-5. **Density check (before writing full prose):** run the readability check so
-   synthesis can favor tighter phrasing from the start instead of brute-force
-   cuts later (`contracts/synthesis.md` §5d):
-   ```bash
-   python .claude/skills/resume-fit/helpers/whitespace_check.py <resume.md> --margin 0.6
-   ```
-   Per-page fullness is approximate (verify the real docx by eye) but the raw
-   word/char counts are independently checkable. This is a layout/readability
-   signal, NOT a bullet-length-uniformity nudge — uniform length is itself an
-   AI-writing tell, so never normalize bullets toward this resume's own median.
-   Then run the density lint on the seed resume, so prescriptions favor fewer,
-   shorter claims over additions (`contracts/synthesis.md` §5d):
-   ```bash
-   python .claude/skills/resume-fit/helpers/density_lint.py <resume.md>
-   ```
-   It flags long bullets, bullets carrying more than two numbers, roles over
-   their recency budget, long role intros, summary numbers repeated in bullets,
-   and word counts over budget in the scan zone (top two-thirds of page one) and
-   overall. Ceilings only, never targets; advisory, never an auto-cut.
+3. Before prescribing additions, run the relevance meter and the density checks
+   on the seed resume (synthesis §5c, §5d) so prescriptions favor fewer, tighter
+   claims. Conditional: if nothing flags, they ask nothing.
+4. Write `<run>/report.md` from `templates/report.md` (verdict-first,
+   ~600–900 words, the two triggers quoted verbatim from `screen.yaml`) and
+   `<run>/appendix.md` from `templates/appendix.md`.
 
 **Exception-driven interrogation (synthesis):** if the honesty check finds a
 load-bearing stretch — a claim that, if withdrawn, flips the Worth-It verdict —
 confront it with the user in one question round BEFORE writing the report.
 
-## Phase F — Gate 2 (BUILT)
+## Phase F — Gate 2
 
 Present `report.md`, then `AskUserQuestion`:
 - **Proceed to draft** — enter the finishing loop (Phase G).
-- **Stop** — archive the run; done.
+- **Stop** — end the run; done.
 - **Resolve information gaps first** — answer the report's Open Questions, patch
   the WHD where durable (Phase H), and re-synthesize the affected sections.
 
-## Phase G — Finishing loop (BUILT)
+## Phase G — Finishing loop
 
-Only after Gate 2 "proceed to draft". Contract + verbatim ghost-editor invariants:
-`contracts/finishing.md`. The tagged draft is a **worklist, never the deliverable**.
+Only after Gate 2 "proceed to draft". Follow `contracts/finishing.md`, which
+holds every step, command and invariant. In outline: the summary round (§4b),
+the silent tagged draft `<work>/resume_draft.md` (§4, never the deliverable),
+the interview rounds until `tags.py` reports clean (§5, §6), the length round,
+content first and layout last (§5), one closed-loop re-eval written to
+`<work>/reeval.md` (§6b), the render of `<work>/resume_candidate.docx` checked in
+Word (§6), the drift check before any edit pass (§2c), and sign-off, which moves
+the approved docx to the run's top level under its final name (§7).
 
-0. **Summary round** (`contracts/finishing.md` 4b): draft two or three summary
-   options from approved bullets or cited WHD anchors, each claim tagged with its
-   anchor, into `<run>/summary_options.yaml`; the user picks or writes their own
-   (stored verbatim). Then check:
-   ```bash
-   python .claude/skills/resume-fit/helpers/summary_lint.py --options <run>/summary_options.yaml --whd <data-plane>/pipeline/whd/<WHD>.md
-   ```
-1. Generate the silent tagged draft (`resume_draft.md`) applying only the
-   `prescriptions.yaml` edits, in the candidate's voice (WHD `voice-sample`).
-   Target 2 pages; apply any Compress/Cut prescriptions as you draft. Keep every
-   section newest-first, then confirm (`contracts/finishing.md` §2b):
-   ```bash
-   python .claude/skills/resume-fit/helpers/chrono_check.py <run>/resume_draft.md
-   ```
-2. Run the finishing loop: batched AskUserQuestion rounds (Supply / Keyword /
-   Voice / Stretch / **Length**), highest-stakes first, ~3 per type.
-3. Gate on the tag exit-check every pass:
-   ```bash
-   python .claude/skills/resume-fit/helpers/tags.py <run>/resume_draft.md
-   ```
-   Loop until it reports `clean` (zero blocking tags). If the user stalls, save
-   with a NOT SUBMITTABLE banner — never render a tagged draft.
-4. Length round — check the page budget (advisory, 2-page default):
-   ```bash
-   python .claude/skills/resume-fit/helpers/length_budget.py <run>/resume_draft.md --max-pages 2
-   ```
-   **Content first, layout last** (decision 2026-10-23). The layout levers fit
-   more words on a page, which makes a dense resume denser, so they come after
-   content. Order:
-   (a) Run the density lint and resolve each flag with the user (cut, compress
-   or keep; never auto-cut). Words removed here stay in the WHD.
-   ```bash
-   python .claude/skills/resume-fit/helpers/density_lint.py <run>/resume_draft.md
-   ```
-   (b) If still over budget, the cost/value survey below.
-   (c) Only once the density lint is clean and the remaining overflow is within
-   about 0.1 page (the estimator's error), offer the layout levers, each a render
-   option, then re-measure: narrow margins `--margin 0.5`, then body text
-   `--body-pt 10.5` (floor 10; headings never shrink: header-only shrinks were
-   measured to save under one line). Pass the same `--margin`/`--body-pt` to
-   `length_budget.py` and `density_lint.py`. If the user takes a lever while
-   density flags remain open, record that choice and the open flags in
-   `<run>/length_override.md`.
-   Cost/value survey: show the user the per-section **cost** (from this helper) beside
-   the per-section **value** (JD-linkage from `gapmap.yaml`/`screen.yaml`) and let
-   them decide cuts — protect JD-relevant/recent-in-demand work, cut cheap inches
-   first (oldest unlinked roles, tail sections). Never auto-truncate. Survey EVERY
-   section: record keep / compress / cut for each heading in the helper's
-   `review_checklist` into `<run>/length_review.yaml`, and re-run with
-   `--review <run>/length_review.yaml` until `review.complete` is true before
-   cutting or overriding. Prefer
-   compression over cutting: `python .claude/skills/resume-fit/helpers/compress_candidates.py
-   <run>/resume_draft.md` finds 3+ item lists mechanically; the model proposes an
-   accurate count+category phrase and the user ratifies before it's applied. If
-   the user chooses to exceed 2 pages, record the reason in
-   `<run>/length_override.md`. Re-run until it reports `fits` OR an override
-   reason is recorded. The estimate is within about 0.1 page of Word, too
-   coarse for a 2-vs-3 page call: **Word decides** (step 6).
-5. Closed-loop re-eval (ONE pass, before promoting the draft) — validate the clean
-   tagged draft on the same axes as the seed (`contracts/finishing.md` §6b):
-   ```bash
-   python .claude/skills/resume-fit/helpers/ats.py <run>/requirements.yaml <run>/resume_draft.md
-   python .claude/skills/resume-fit/helpers/relevance.py <run>/resume_draft.md <run>/requirements.yaml <run>/gapmap.yaml
-   python .claude/skills/resume-fit/helpers/ats_chars.py <run>/resume_draft.md
-   python .claude/skills/resume-fit/helpers/chrono_check.py <run>/resume_draft.md
-   python .claude/skills/resume-fit/helpers/summary_lint.py <run>/resume_draft.md
-   python .claude/skills/resume-fit/helpers/density_lint.py <run>/resume_draft.md
-   ```
-   Report any open density flags in `reeval.md` (advisory, never blocking).
-   Confirm ATS coverage didn't regress vs seed, no NEW `none`-linkage claim was
-   introduced, the voice check passed, `ats_chars.py` reports **clean** (fixed
-   rule — dashes, curly quotes and arrows are house style; emoji and decorative
-   symbols are hygiene; never tolerated, not just a regression check), and `chrono_check.py` reports `ordered`, and `summary_lint.py` reports clean (a summary exists, no first person, no objective wording). Write `reeval.md`. No recursion: any issue
-   surfaces as one yes/no, not a new trim loop.
-6. On clean + length-resolved + re-eval clean, write `resume_candidate.md` and
-   render an ATS-safe docx (single column, no tables; default 0.6in margins and
-   11pt body, or the levers the user chose in the length round), then confirm
-   the real page count in Word:
-   ```bash
-   python .claude/skills/resume-fit/helpers/render_docx.py <run>/resume_candidate.md <run>/resume_candidate.docx [--margin 0.5] [--body-pt 10.5]
-   python .claude/skills/resume-fit/helpers/word_pages.py <run>/resume_candidate.docx --max-pages 2
-   ```
-   `render_docx.py` also saves the file through Word (clean metadata, Word's own
-   app properties); its exit 3 means Word is unavailable and the .docx was not
-   Word-saved: say so. Over budget in Word reopens the length round (never an
-   unannounced override). `word_pages.py` exit 3 means Word is unavailable: say
-   so and ask the user to confirm the page count when they open the file.
-   Deliverables: `resume_candidate.docx` + `resume_candidate.md`. **Not yet
-   "final"** — see Phase G §7 in `contracts/finishing.md`: the user reads it
-   aloud and explicitly approves before a true final is named. The input resume
-   is never renamed regardless of what the user originally called it. On
-   approval, the true final deliverable is rendered as
-   `<LASTNAME>_<FIRSTNAME>_<COMPANY>_<DATE>.docx` — the one filename in the
-   pipeline meant for a human, not another pipeline step.
-7. **The user may edit the `.docx` directly.** Before any further edit pass and
-   before the final render, check for drift (`contracts/finishing.md` §2c):
-   ```bash
-   python .claude/skills/resume-fit/helpers/docx_drift.py <run>/resume_candidate.md <run>/resume_candidate.docx
-   ```
-   On DRIFT, rebuild with `--pull <run>/resume_candidate.pulled.md`, show the user
-   the diff, and on confirmation make it the new `resume_candidate.md`.
+## Phase H — WHD reconciliation
 
-## Phase H — WHD reconciliation (BUILT)
-
-Interactive; makes each run improve the standing WHD. Contract:
-`contracts/reconciliation.md`.
-
-1. Accumulate a patch queue during synthesis + finishing (new facts, corrections,
-   evidence for Partials, information-gap answers).
-2. Classify each: WHD-worthy (durable) vs. application-specific. Only durable
-   items become proposed patches.
-3. Micro-interview each Stretch / Hard No: "Do you have real evidence for X?" —
-   yes → capture as evidence (may upgrade Stretch→Genuine next run); no → write a
-   `hard-no: X (confirmed <date>)` marker so future runs don't re-litigate it.
-4. Write `patches.yaml` (validated against `schemas/patches.schema.yaml`), present
-   each as a diff (AskUserQuestion per patch or batch-approve), then apply only
-   the approved + durable ones:
-   ```bash
-   python .claude/skills/resume-fit/helpers/whd_patch.py <data-plane>/pipeline/whd/<WHD>.md <run>/patches.yaml
-   ```
-   Appends to anchored sections + writes changelog entries. A `correction`
-   patch instead REPLACES its `old` text (which must occur exactly once in the
-   target section) with `content`, logging old and new in the changelog; the
-   helper reports other sections that still hold the old text, so propose
-   corrections there too. The Voice Sample and changelog are never patch
-   targets; the user ratifies every patch.
+Follow `contracts/reconciliation.md`: accumulate the patch queue during synthesis
+and finishing, keep only durable items, micro-interview each Stretch / Hard No,
+write `<work>/patches.yaml`, let the user dispose each patch, then apply:
+```bash
+python .claude/skills/resume-fit/helpers/whd_patch.py <data-plane>/pipeline/whd/<WHD>.md <work>/patches.yaml
+```
 
 ## Hard-no review mode
 
@@ -461,76 +312,20 @@ Also run this review as part of a full WHD rebuild after a major life change.
 
 ## Deterministic helpers (never spend a token)
 
-All are pure Python, invoked via bash, unit-tested (`tests/`). They own the
-arithmetic and string-matching so the model never does.
+All are pure Python in `helpers/`, invoked via bash and unit-tested (`tests/`).
+They own the arithmetic and string-matching so the model never does. Each one's
+docstring and `-h` give its full rules and options; the phase text above and
+the contracts show where each runs.
 
-| Helper | Purpose | CLI |
-|---|---|---|
-| `config.py` | Resolve/persist the data-plane path | `config.py [set <path>]` |
-| `runfolder.py` | Create a run folder | `runfolder.py "<Company>" "<Role>"` |
-| `validate.py` | Validate an artifact against a schema | `validate.py <file.yaml> <schema>` |
-| `score.py` | Weighted score from gapmap | `score.py <gapmap.yaml>` |
-| `ats.py` | Exact-match keyword scan (synonym-aware) | `ats.py <requirements.yaml> <resume>` |
-| `gate1.py` | Weighted gap tally (weak Partial = 0.5) + location check + trip rules | `gate1.py <gapmap.yaml> [--requirements R --location L --preferences P] [--out F]` |
-| `location_gate.py` | Location rules: JD facts x model geography x preferences thresholds | (called by `gate1.py`) |
-| `gap_review.py` | Rows for the Phase B.5 gap review (every None + weak Partials) | `gap_review.py <gapmap.yaml> [<requirements.yaml>]` |
-| `hard_nos.py` | List hard-no markers with age; `mark-reviewed` records a full review | `hard_nos.py <whd.md>` / `hard_nos.py mark-reviewed <whd.md>` |
-| `whd_anchors.py` | Resolve a WHD section by anchor id | `whd_anchors.py <whd.md> <anchor>` |
-| `whd_migrate.py` | One-time legacy WHD -> anchored layout, with a wording-preservation proof | `whd_migrate.py [--check] <old.md> <new.md>` |
-| `gapmap_summary.py` | Screening-safe gapmap (strips WHD fields, resume-only archetype) | `gapmap_summary.py <gapmap.yaml> --out <file>` |
-| `canary.py` | Screening-blindness leak scan; `init` writes a unique token | `canary.py <screen.yaml> <whd.md>` / `canary.py init <whd.md>` |
-| `numbers_strip.py` | Deterministic report headline numbers | `numbers_strip.py <run>` |
-| `prescriptions.py` | Enforce every recoverable gap has an Add row; reject "X or Y" targets; exactly one `summary` prescription; banner uses the JD title verbatim, credentialed titles need a WHD source | `prescriptions.py <prescriptions.yaml> <gapmap.yaml> [<requirements.yaml>]` |
-| `summary_lint.py` | Mechanical summary rules: summary exists, no first person, no objective wording; warns on length and no number. With `--options`, also checks each claim is anchored to a real WHD anchor | `summary_lint.py <resume.md>` / `summary_lint.py --options <summary_options.yaml> [--whd <whd.md>]` |
-| `tags.py` | Finishing-loop tag scan + exit check | `tags.py <resume_draft.md>` |
-| `length_budget.py` | Advisory page estimator built from Word-measured layout rules (within ~0.1 page) + per-section cost breakdown + review completeness; flags `borderline`; `--reason` records an override (a third page must name unique evidence) | `length_budget.py <resume.md> --max-pages 2 [--margin M] [--body-pt P] [--review <length_review.yaml>] [--reason <text>]` |
-| `word_pages.py` | Real page count measured in Microsoft Word (read-only, COM via PowerShell); decides "fits". Exit 0 fits, 2 over, 3 Word unavailable | `word_pages.py <resume.docx> --max-pages 2 [--pdf <out.pdf>]` |
-| `chrono_check.py` | Newest-first ordering check per section | `chrono_check.py <resume.md>` |
-| `docx_drift.py` | Detect hand edits in the `.docx` the `.md` lacks; `--pull` rebuilds md | `docx_drift.py <resume.md> <resume.docx> [--pull <out.md>]` |
-| `relevance.py` | Line-level JD-relevance meter (per-JD, value-blind); flags `none`-linkage claims | `relevance.py <resume.md> <requirements.yaml> <gapmap.yaml>` |
-| `ats_chars.py` | Character scan with a category per flag: house-style (dashes, curly quotes, arrows), hygiene (emoji, decorative symbols), search-term (prose "&") | `ats_chars.py <resume.md>` |
-| `structure_lint.py` | Abbreviated titles, standard section headings (core four, `--allow` extras), one date format, legal-identifier advisory. Standalone, not yet in the finishing loop | `structure_lint.py <resume.md> [--allow <heading> ...]` |
-| `contact_check.py` | Fails when email, phone or name appear only in a .docx header, footer or text box. Standalone | `contact_check.py <resume.docx> [--name "<full name>"]` |
-| `filesize_gate.py` | Fails a rendered file over 2 MB (Google cap; Greenhouse parses to 2.5 MB). Standalone | `filesize_gate.py <resume.docx> [--max-mb 2]` |
-| `env_check.py` | Read-only report: `pdftotext`, Word (LibreOffice only when Word is absent), python-docx, pyyaml, data plane. Always exits 0 | `env_check.py` |
-| `compress_candidates.py` | Finds 3+ item lists as compression candidates (pattern only, no category-word suggestion) | `compress_candidates.py <resume.md>` |
-| `density_lint.py` | Advisory scan-density flags: long bullets, more than two numbers per bullet, roles over a recency bullet budget, long role intros, summary numbers repeated in bullets, scan-zone and total word ceilings. Always exits 0 | `density_lint.py <resume.md> [--margin M] [--body-pt P]` |
-| `whitespace_check.py` | Per-page fullness/density check (research-grounded readability, not bullet-uniformity) | `whitespace_check.py <resume.md> [--margin M] [--body-pt P]` |
-| `render_docx.py` | Render clean markdown to an ATS-safe docx (default 0.6in, 11pt; floors 0.5in, 10pt; headings fixed); sets clean core properties (author from the `#` heading), then saves through Word so Word writes the app properties (`--no-word-save` skips; exit 3 if Word is unavailable) | `render_docx.py <resume_candidate.md> <out.docx> [--margin M] [--body-pt P] [--no-word-save]` |
-| `whd_patch.py` | Apply approved WHD patches (append, or `correction` = replace) + changelog | `whd_patch.py <whd.md> <patches.yaml>` |
+| Phase | Helpers |
+|---|---|
+| Setup | `config.py`, `whd_migrate.py`, `canary.py init`, `env_check.py` (read-only readiness report) |
+| A | `runfolder.py`, `validate.py` (schemas: requirements, location, preferences, scd, gapmap, screen, prescriptions, patches, summary_options), `hard_nos.py` |
+| B.5, C | `gap_review.py`, `gate1.py` (uses `location_gate.py`, `score.py`) |
+| D | `gapmap_summary.py`, `canary.py` |
+| E | `prescriptions.py`, `numbers_strip.py`, `relevance.py`, `whitespace_check.py`, `density_lint.py`, `ats.py` |
+| G | `summary_lint.py`, `chrono_check.py`, `tags.py`, `length_budget.py`, `compress_candidates.py`, `ats_chars.py`, `render_docx.py` (renders, cleans metadata, saves through Word), `word_pages.py` (Word page count), `docx_drift.py` |
+| H | `whd_patch.py` (backs up the WHD first), `whd_anchors.py`, `whd_io.py` |
+| Standalone, not in the loop | `structure_lint.py`, `contact_check.py`, `filesize_gate.py` |
 
-Schema names for `validate.py`: `requirements`, `location`, `preferences`, `scd`, `gapmap`, `screen`, `prescriptions`, `patches`, `summary_options`.
-
-## Screening-blindness enforcement (BUILT)
-
-Enforcement layers, in order of authority:
-1. **Dispatch construction** — the screening subagent's input is built from an
-   explicit manifest that omits the WHD.
-2. **Tool restriction** — the screening subagent gets no file-read tools; all
-   inputs arrive inline, so it cannot go find the WHD.
-3. **Canary check** — a unique token in the WHD front-matter (`canary:`); a
-   deterministic post-run scan fails the run if it appears in `screen.yaml`.
-4. **Prompt instruction** — framing only; never relied on for enforcement.
-
-## Build status
-
-- **Built (Phases 1–4):** WHD restructure + template; data-plane config;
-  run-folder convention; artifact schemas; all deterministic helpers with tests;
-  synthetic `examples/` fixture (now a complete end-to-end run incl.
-  prescriptions/report/appendix); Phase A intake; the four contracts
-  (`contracts/` — research, fit, screening, synthesis) ported from the v1 FINAL
-  prompts with verbatim invariants; Phase B parallel dispatch + exception
-  triggers; Phase C Gate 1 three-option interrogation; Phase D screening with
-  full blindness enforcement; Phase E synthesis (prescriptions coverage +
-  deterministic numbers strip + report/appendix templates); Phase F Gate 2.
-- **Also built (Phase 5):** finishing-loop contract (`contracts/finishing.md`)
-  with verbatim ghost-editor invariants; Phase G loop mechanics; `tags.py` exit
-  gate; `render_docx.py` ATS-safe render.
-- **Also built (Phase 6):** reconciliation contract (`contracts/reconciliation.md`);
-  Phase H loop; `patches.yaml` schema; `whd_patch.py` (propose/dispose apply +
-  changelog; Voice Sample never edited).
-- **All eight phases (A–H) are built.** Remaining: Phase 7 validation replay and
-  the public-release backlog (onboarding mode for new users, README rewrite,
-  strip incidental personal references from docs) — see `../TODO.md`.
-
-See `../TODO.md` and the v2 plan of work for the full sequence.
+Open work and decisions: `../TODO.md`.
