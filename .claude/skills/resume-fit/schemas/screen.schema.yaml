@@ -11,6 +11,11 @@ properties:
   # Gate 2 — hiring manager, deep read (its output IS the two triggers):
   first_friction_trigger: {type: str}    # where doubt emerges (verbatim, leads the report)
   first_escalation_trigger: {type: str}  # the metric/brand/scope that compels a call (verbatim)
+  # The exact words on the resume that the escalation trigger rests on, copied
+  # word for word. Optional in the schema so older runs still validate; the
+  # screening contract makes it required for new runs, and `canary.py --resume`
+  # fails a run whose quote is not on the resume (TODO 42).
+  escalation_quote: {type: str}
   elimination_logic: {type: str}
   hm_acceptance_risk: {type: str}        # low | moderate | high
   escalation_likelihood: {type: str}     # strong | competitive | fragile | unfavorable

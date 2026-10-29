@@ -138,6 +138,66 @@ def test_cli_is_advisory_and_survives_cp1252(tmp_path):
     assert json.loads(out[:out.rindex("}") + 1])["flags"]
 
 
+# --- Escalation quote position (TODO 42) --------------------------------------
+
+QUOTE = "Cut voice latency 80% across all low-end devices"
+
+
+def _bullets(n, word="filler"):
+    return "\n".join(f"- {words(30, word)}" for _ in range(n))
+
+
+def test_quote_in_the_scan_zone_is_clean():
+    md = resume(f"### Co - PM (2021-present)\n\n- {QUOTE}\n{_bullets(3)}\n")
+    res = dl.check(md, screen={"escalation_quote": QUOTE})
+    loc = res["stats"]["escalation"]
+    assert loc["match"] == "exact" and loc["in_scan_zone"] is True
+    assert not {"escalation-below-scan-zone", "escalation-missing"} & set(rules(res))
+
+
+def test_quote_below_the_scan_zone_flags():
+    md = resume(f"### Co - PM (2021-present)\n\n{_bullets(30)}\n- {QUOTE}\n")
+    res = dl.check(md, screen={"escalation_quote": QUOTE})
+    assert res["stats"]["escalation"]["in_scan_zone"] is False
+    assert "escalation-below-scan-zone" in rules(res)
+
+
+def test_quote_matches_across_markdown_emphasis():
+    md = resume("### Co - PM (2021-present)\n\n- **Cut voice latency 80%** across all low-end devices\n")
+    assert dl.check(md, screen={"escalation_quote": QUOTE})["stats"]["escalation"]["match"] == "exact"
+
+
+def test_reworded_draft_falls_back_to_the_figures():
+    md = resume("### Co - PM (2021-present)\n\n- Reduced voice latency by 80% on budget phones\n")
+    loc = dl.check(md, screen={"escalation_quote": QUOTE})["stats"]["escalation"]
+    assert loc["match"] == "figures" and loc["in_scan_zone"] is True
+
+
+def test_quote_with_no_figures_has_no_fallback():
+    md = resume("### Co - PM (2021-present)\n\n- Ran product discovery with partners\n")
+    res = dl.check(md, screen={"escalation_quote": "Led the discovery effort"})
+    assert "escalation-missing" in rules(res)
+
+
+def test_missing_quote_or_empty_screen_flags_missing():
+    md = resume("### Co - PM (2021-present)\n\n- short\n")
+    assert "escalation-missing" in rules(dl.check(md, screen={}))
+    assert "escalation-missing" in rules(dl.check(md, screen={"escalation_quote": QUOTE}))
+
+
+def test_no_screen_means_no_escalation_check():
+    res = dl.check(resume("### Co - PM (2021-present)\n\n- short\n"))
+    assert "escalation" not in res["stats"]
+
+
+def test_example_fixture_quote_sits_in_the_scan_zone(resume_text):
+    import yaml
+    screen = yaml.safe_load((RUN / "screen.yaml").read_text(encoding="utf-8"))
+    res = dl.check(resume_text, screen=screen)
+    assert res["stats"]["escalation"]["in_scan_zone"] is True
+    assert res["flags"] == []
+
+
 @pytest.mark.skipif(not data_plane_runs().exists(), reason="data plane not configured")
 def test_real_runs_parse_roles():
     for f in sorted(data_plane_runs().glob("*/resume_candidate.md")):

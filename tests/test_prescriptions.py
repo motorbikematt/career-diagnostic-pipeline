@@ -140,6 +140,134 @@ def test_credentialed_title_may_omit_the_banner():
     assert prescriptions.banner_issues({"prescriptions": [SUMMARY]}, req) == []
 
 
+# --- Role bullet budget: Add paired with Cut (TODO 42) -----------------------
+
+def _resume(*role_sizes):
+    """A seed resume with one Experience role per size, newest first."""
+    parts = ["# Name\n\n## Summary\n\nPM with 8 years.\n\n## Experience\n"]
+    for i, n in enumerate(role_sizes):
+        parts.append(f"### Co{i} — Product Manager ({2024 - 3 * i}–{2027 - 3 * i})\n")
+        parts += [f"- bullet {j}\n" for j in range(n)]
+        parts.append("\n")
+    return "".join(parts)
+
+
+def _p(typ, role=None, **extra):
+    p = {"type": typ, "target": f"a bullet in {role}" if role else "somewhere",
+         "why": "x", **extra}
+    if role:
+        p["role"] = role
+    return p
+
+
+R0 = "Co0 — Product Manager (2024–2027)"
+R1 = "Co1 — Product Manager (2021–2024)"
+R2 = "Co2 — Product Manager (2018–2021)"
+
+
+def test_budget_needs_the_resume():
+    assert prescriptions.role_budget_issues({"prescriptions": [_p("add", R0)]}, None)["issues"] == []
+
+
+def test_add_within_budget_passes():
+    res = prescriptions.role_budget_issues({"prescriptions": [_p("add", R0)]}, _resume(4, 3, 2))
+    assert res["issues"] == []
+    assert res["roles"][0] == {"entry": R0, "bullets": 4, "net": 1, "projected": 5, "budget": 5}
+
+
+def test_add_past_budget_fails():
+    res = prescriptions.role_budget_issues({"prescriptions": [_p("add", R0)]}, _resume(5, 3, 2))
+    assert len(res["issues"]) == 1 and R0 in res["issues"][0]
+
+
+def test_budget_falls_with_recency():
+    # Third role: budget is 2, so a third bullet fails even though role one could take it.
+    res = prescriptions.role_budget_issues({"prescriptions": [_p("add", R2)]}, _resume(5, 4, 2))
+    assert len(res["issues"]) == 1 and R2 in res["issues"][0]
+
+
+def test_cut_in_the_same_role_offsets_an_add():
+    pres = {"prescriptions": [_p("add", R0), _p("cut", R0)]}
+    assert prescriptions.role_budget_issues(pres, _resume(5, 3, 2))["issues"] == []
+
+
+def test_remove_offsets_and_bullets_count_scales():
+    pres = {"prescriptions": [_p("add", R0, bullets=2), _p("remove", R0, bullets=2)]}
+    assert prescriptions.role_budget_issues(pres, _resume(5, 3, 2))["issues"] == []
+    short = {"prescriptions": [_p("add", R0, bullets=2), _p("cut", R0)]}
+    assert prescriptions.role_budget_issues(short, _resume(5, 3, 2))["issues"]
+
+
+def test_compress_does_not_offset_an_add():
+    pres = {"prescriptions": [_p("add", R0), _p("compress", R0)]}
+    assert prescriptions.role_budget_issues(pres, _resume(5, 3, 2))["issues"]
+
+
+def test_cut_in_another_role_does_not_offset():
+    pres = {"prescriptions": [_p("add", R0), _p("cut", R1)]}
+    assert prescriptions.role_budget_issues(pres, _resume(5, 3, 2))["issues"]
+
+
+def test_approved_reason_waives_the_budget():
+    pres = {"prescriptions": [_p("add", R0, over_budget_reason="closes the one hard gap")]}
+    assert prescriptions.role_budget_issues(pres, _resume(5, 3, 2))["issues"] == []
+
+
+def test_role_already_over_budget_is_not_flagged_without_growth():
+    pres = {"prescriptions": [_p("reframe", R0)]}
+    assert prescriptions.role_budget_issues(pres, _resume(7, 3, 2))["issues"] == []
+    paired = {"prescriptions": [_p("add", R0), _p("cut", R0)]}
+    assert prescriptions.role_budget_issues(paired, _resume(7, 3, 2))["issues"] == []
+    grows = {"prescriptions": [_p("add", R0)]}
+    assert prescriptions.role_budget_issues(grows, _resume(7, 3, 2))["issues"]
+
+
+def test_unknown_role_is_a_note_not_a_failure():
+    pres = {"prescriptions": [_p("add", "Some Other Co — Founder (2012–2014)")]}
+    res = prescriptions.role_budget_issues(pres, _resume(5, 3, 2))
+    assert res["issues"] == [] and "not an Experience entry" in res["notes"][0]
+
+
+def test_add_naming_a_company_without_a_role_is_a_note():
+    pres = {"prescriptions": [{"type": "add", "target": "A metric under Co0", "why": "x"}]}
+    res = prescriptions.role_budget_issues(pres, _resume(5, 3, 2))
+    assert res["issues"] == [] and "no `role`" in res["notes"][0]
+
+
+def test_role_matches_by_unique_substring():
+    pres = {"prescriptions": [_p("add", "Co0")]}
+    assert prescriptions.role_budget_issues(pres, _resume(5, 3, 2))["issues"]
+
+
+def test_check_coverage_ok_reflects_the_budget():
+    pres = {"prescriptions": [SUMMARY, _p("add", R0)]}
+    result = prescriptions.check_coverage(pres, {"requirements": []}, None, _resume(5, 3, 2))
+    assert result["ok"] is False and result["budget_issues"]
+    assert prescriptions.check_coverage(pres, {"requirements": []})["ok"] is True  # no resume given
+
+
+def test_fixture_passes_its_budget():
+    from conftest import RUN
+    result = prescriptions.check_files(RUN / "prescriptions.yaml", RUN / "gapmap.yaml",
+                                       RUN / "requirements.yaml", RUN / "resume.md")
+    assert result["ok"] is True, result
+    assert result["budget_issues"] == []
+
+
+def test_cli_keeps_positional_arguments_and_adds_resume(tmp_path):
+    import subprocess
+    import sys
+
+    from conftest import REPO, RUN
+    helper = REPO / ".claude" / "skills" / "resume-fit" / "helpers" / "prescriptions.py"
+    base = [sys.executable, str(helper), str(RUN / "prescriptions.yaml"),
+            str(RUN / "gapmap.yaml"), str(RUN / "requirements.yaml")]
+    assert subprocess.run(base, capture_output=True, cwd=helper.parent).returncode == 0
+    full = subprocess.run([*base, "--resume", str(RUN / "resume.md")], capture_output=True,
+                          cwd=helper.parent)
+    assert full.returncode == 0, full.stderr
+
+
 @pytest.mark.parametrize("title,expected", [
     ("Staff Software Engineer", True),
     ("Registered Nurse", True),

@@ -52,6 +52,27 @@ immediate-discard-risk), `first_friction_trigger`, `first_escalation_trigger`
 competitive | fragile | unfavorable). Also: `recruiter_persona`,
 `elimination_logic`, `hm_acceptance_risk` (low | moderate | high).
 
+## 4b. Escalation quote (v2 addition, TODO 42)
+Also write `escalation_quote`: the exact words on the resume that the escalation
+trigger rests on, copied word for word (markdown emphasis, bullet markers,
+extra spaces and curly versus straight quotes do not matter; case and
+punctuation do). Rules:
+- The quote comes from the resume you were given and from nowhere else. Do not
+  add, round or infer a figure: a number that is not on the resume is a
+  blindness violation, because the recruiter cannot see it.
+- Write `first_escalation_trigger` from that quote. It may explain why the line
+  compels a call, but it cites no figure or fact that is not in the quote.
+- If nothing on the resume compels a call, write the quote you would point to
+  anyway and say in `elimination_logic` that it is weak.
+
+Checked mechanically after the run:
+`python .claude/skills/resume-fit/helpers/canary.py <run>/screen.yaml <whd.md> --resume <resume.md>`
+fails when the quote is missing or is not on the resume, and warns when the
+trigger cites a figure that is not on the resume. The synthesis step then
+checks where the quote sits on the page
+(`density_lint.py <resume.md> --screen <run>/screen.yaml`): the metric that earns
+a call belongs in the top two-thirds of page one.
+
 ## 5. Refusal conditions
 - If given or asked to fetch the WHD → refuse and flag a blindness violation.
 - No resume edits, ever. Diagnostic only.

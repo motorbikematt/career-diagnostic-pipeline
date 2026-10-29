@@ -24,6 +24,13 @@ FLAGS (advisory: always exit 0; the user decides every cut)
                     SCAN_ZONE_FRACTION of page one
   total-words       the whole resume over MAX_TOTAL_WORDS words
 
+With `--screen <screen.yaml>` it also locates the screen's `escalation_quote`
+(the words that earn a call) on the estimated page:
+  escalation-below-scan-zone  the quote starts below the scan zone
+  escalation-missing          the screen has no quote, or it is not on this resume
+A draft may have reworded the line the seed resume carried, so when the exact
+words are gone it falls back to the line holding the quote's figures.
+
 Bullets under a Skills or Education heading are lists, not claims, so the
 bullet rules skip them. VALUE-BLIND: it reports cost, never what to cut, and
 never rewrites the resume.
@@ -37,6 +44,7 @@ from pathlib import Path
 import chrono_check
 import length_budget
 import summary_lint
+import verbatim
 
 # Owner-set 2026-10-23 from six past runs (expect retuning). Past-run ranges:
 # bullets 15-101 words (median ~35), scan zone 298-379 words, total 998-1,254.
@@ -139,8 +147,36 @@ def _budget(rank: int) -> int:
     return ROLE_BULLET_BUDGET[min(rank, len(ROLE_BULLET_BUDGET) - 1)]
 
 
+def locate_quote(md_text: str, quote: str, margin_in: float = length_budget.DEFAULT_MARGIN_IN,
+                 body_pt: float = length_budget.BODY_PT) -> dict:
+    """Where the quote starts on the estimated page: inches from the top margin.
+
+    Exact words first (see verbatim.py); else the first line that holds every
+    significant figure in the quote, for a draft that reworded the line.
+    """
+    scan_limit = length_budget.usable_page_height_in(margin_in) * SCAN_ZONE_FRACTION
+    out = {"match": None, "top_in": None, "scan_zone_ends_in": round(scan_limit, 2),
+           "in_scan_zone": False}
+    elements = length_budget.elements(md_text, margin_in, body_pt)
+    figures = {_norm(n) for n in numbers(quote) if _significant(n)}
+    for mode in ("exact", "figures"):
+        if mode == "figures" and not figures:
+            break
+        top = 0.0
+        for e in elements:
+            if mode == "exact":
+                hit = verbatim.in_text(quote, e["text"])
+            else:
+                hit = figures <= {_norm(n) for n in numbers(e["text"])}
+            if hit:
+                out.update(match=mode, top_in=round(top, 2), in_scan_zone=top < scan_limit)
+                return out
+            top += e["height_in"]
+    return out
+
+
 def check(md_text: str, margin_in: float = length_budget.DEFAULT_MARGIN_IN,
-          body_pt: float = length_budget.BODY_PT) -> dict:
+          body_pt: float = length_budget.BODY_PT, screen: dict | None = None) -> dict:
     parsed = _parse(md_text)
     flags = []
 
@@ -200,12 +236,33 @@ def check(md_text: str, margin_in: float = length_budget.DEFAULT_MARGIN_IN,
         "bullet_words_max": max(lengths) if lengths else 0,
         "roles": roles_out,
     }
+
+    if screen is not None:
+        quote = (screen.get("escalation_quote") or "").strip()
+        loc = locate_quote(md_text, quote, margin_in, body_pt) if quote else None
+        stats["escalation"] = loc
+        if not quote:
+            flags.append({"rule": "escalation-missing", "line": None, "role": None,
+                          "detail": "the screen has no escalation_quote, so the key metric's "
+                                    "position cannot be checked"})
+        elif loc["match"] is None:
+            flags.append({"rule": "escalation-missing", "line": None, "role": None,
+                          "detail": f"the screen's escalation quote is not on this resume: {quote!r}"})
+        elif not loc["in_scan_zone"]:
+            flags.append({"rule": "escalation-below-scan-zone", "line": None, "role": None,
+                          "detail": f"the line that earns a call starts {loc['top_in']} in down "
+                                    f"the page; the scan zone ends at {loc['scan_zone_ends_in']} in "
+                                    f"(match: {loc['match']})"})
     return {"clean": not flags, "flags": flags, "stats": stats}
 
 
 def check_file(path, margin_in: float = length_budget.DEFAULT_MARGIN_IN,
-               body_pt: float = length_budget.BODY_PT) -> dict:
-    return check(Path(path).read_text(encoding="utf-8"), margin_in, body_pt)
+               body_pt: float = length_budget.BODY_PT, screen_path=None) -> dict:
+    screen = None
+    if screen_path:
+        import yaml
+        screen = yaml.safe_load(Path(screen_path).read_text(encoding="utf-8")) or {}
+    return check(Path(path).read_text(encoding="utf-8"), margin_in, body_pt, screen)
 
 
 if __name__ == "__main__":
@@ -221,8 +278,9 @@ if __name__ == "__main__":
                     help="page margin in inches, as passed to render_docx.py")
     ap.add_argument("--body-pt", type=float, default=length_budget.BODY_PT,
                     help="body text size, as passed to render_docx.py")
+    ap.add_argument("--screen", help="screen.yaml: also locate its escalation_quote on the page")
     args = ap.parse_args()
-    result = check_file(args.resume, args.margin, args.body_pt)
+    result = check_file(args.resume, args.margin, args.body_pt, args.screen)
     print(json.dumps(result, indent=2, ensure_ascii=False))
     if result["flags"]:
         print(f"DENSITY LINT: {len(result['flags'])} advisory flag(s)")

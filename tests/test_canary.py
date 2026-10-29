@@ -74,3 +74,76 @@ def test_init_adds_missing_token(tmp_path):
 
 def test_tokens_are_unique():
     assert canary.new_token() != canary.new_token()
+
+
+# --- Escalation quote (TODO 42) ----------------------------------------------
+
+import yaml
+
+RESUME = "- Managed a smart-camera hardware product from prototype to production\n"
+
+
+def _screen(**over):
+    base = {"first_escalation_trigger": "The lifecycle scope compels a call.",
+            "escalation_quote": "Managed a smart-camera hardware product from prototype to production"}
+    base.update(over)
+    return base
+
+
+def test_quote_on_the_resume_passes():
+    res = canary.check_quote(_screen(), RESUME)
+    assert res == {"ok": True, "failures": [], "warnings": []}
+
+
+def test_missing_quote_fails():
+    res = canary.check_quote(_screen(escalation_quote=""), RESUME)
+    assert res["ok"] is False and "missing" in res["failures"][0]
+
+
+def test_quote_not_on_resume_fails():
+    res = canary.check_quote(_screen(escalation_quote="Shipped 50k units in year one"), RESUME)
+    assert res["ok"] is False and "not on the resume" in res["failures"][0]
+
+
+def test_trigger_figure_not_on_resume_warns_but_does_not_fail():
+    res = canary.check_quote(
+        _screen(first_escalation_trigger="Shipped prototype-to-production (50k units)."), RESUME)
+    assert res["ok"] is True
+    assert any("50k" in w for w in res["warnings"])
+
+
+def test_trigger_figure_on_resume_is_fine():
+    resume = RESUME + "- Cut latency 80% in a quarter\n"
+    res = canary.check_quote(_screen(first_escalation_trigger="Cut latency 80%."), resume)
+    assert res["warnings"] == []
+
+
+def test_example_fixture_quote_is_on_its_resume(resume_text):
+    screen = yaml.safe_load((RUN / "screen.yaml").read_text(encoding="utf-8"))
+    assert canary.check_quote(screen, resume_text) == {"ok": True, "failures": [], "warnings": []}
+
+
+def test_example_screen_cites_nothing_the_resume_lacks(resume_text):
+    # The fixture once quoted "50k units", a figure only the WHD holds.
+    screen = yaml.safe_load((RUN / "screen.yaml").read_text(encoding="utf-8"))
+    assert "50k" not in screen["first_escalation_trigger"]
+    assert "50k" not in resume_text
+
+
+def test_cli_resume_flag_fails_on_a_bad_quote(tmp_path):
+    import subprocess
+    import sys
+
+    from conftest import REPO
+    screen = tmp_path / "screen.yaml"
+    screen.write_text(yaml.safe_dump(_screen(escalation_quote="Never on the page")), encoding="utf-8")
+    resume = tmp_path / "resume.md"
+    resume.write_text(RESUME, encoding="utf-8")
+    helper = REPO / ".claude" / "skills" / "resume-fit" / "helpers" / "canary.py"
+    p = subprocess.run([sys.executable, str(helper), str(screen), str(WHD), "--resume", str(resume)],
+                       capture_output=True, text=True, cwd=helper.parent)
+    assert p.returncode == 1
+    assert "BLINDNESS VIOLATION" in p.stdout
+    ok = subprocess.run([sys.executable, str(helper), str(screen), str(WHD)],
+                        capture_output=True, text=True, cwd=helper.parent)
+    assert ok.returncode == 0  # no --resume: the existing canary scan is unchanged

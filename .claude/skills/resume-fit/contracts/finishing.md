@@ -206,9 +206,13 @@ re-enter any loop.
 6. **Summary:** `python .claude/skills/resume-fit/helpers/summary_lint.py <resume_draft.md>`.
    Must report clean: a Summary section exists, no first person, no objective
    wording (§4b). Its `long` and `no-number` warnings are reported, never blocking.
-7. **Density:** `python .claude/skills/resume-fit/helpers/density_lint.py <resume_draft.md>`.
+7. **Density:** `python .claude/skills/resume-fit/helpers/density_lint.py <resume_draft.md> --screen <work>/screen.yaml`.
    Advisory only. List any open flags in `reeval.md` and note whether the
    tailoring added flags the seed resume did not have; never a new trim cycle.
+   With `--screen` it also reports where the line that earns a call now sits: an
+   `escalation-below-scan-zone` or `escalation-missing` flag means tailoring moved
+   or reworded the metric the screen said compels a call. Report it as a single
+   yes/no ("keep as-is or restore it to the top?").
 
 Write a short `<work>/reeval.md`: the axis verdicts + any
 regression. **No recursion** — if it flags a regression, surface it to the user as a

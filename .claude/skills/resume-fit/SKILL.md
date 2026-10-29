@@ -229,8 +229,12 @@ Dispatch the screening subagent (contract: `contracts/screening.md`) on the
 Then validate and run the **canary scan** (fails the run on a blindness leak):
 ```bash
 python .claude/skills/resume-fit/helpers/validate.py <work>/screen.yaml screen
-python .claude/skills/resume-fit/helpers/canary.py <work>/screen.yaml <data-plane>/pipeline/whd/<WHD>.md
+python .claude/skills/resume-fit/helpers/canary.py <work>/screen.yaml <data-plane>/pipeline/whd/<WHD>.md --resume <resume.md>
 ```
+`--resume` also fails the run when the screen's `escalation_quote` is missing or is
+not on the resume word for word (`contracts/screening.md` 4b): a quote the recruiter
+could not have read is a blindness violation the canary token cannot catch. A figure
+in the trigger that is not on the resume is a warning.
 
 Enforcement layers, in order of authority: (1) the dispatch manifest omits the
 WHD; (2) the subagent has no file-read tools; (3) the canary token in the WHD
@@ -245,15 +249,21 @@ artifacts + the WHD. Spec and verbatim invariants: `contracts/synthesis.md`.
 1. Write `<work>/prescriptions.yaml`, then enforce coverage, the one-summary rule
    and the banner rules (decision D1):
    ```bash
-   python .claude/skills/resume-fit/helpers/prescriptions.py <work>/prescriptions.yaml <work>/gapmap.yaml <work>/requirements.yaml
+   python .claude/skills/resume-fit/helpers/prescriptions.py <work>/prescriptions.yaml <work>/gapmap.yaml <work>/requirements.yaml --resume <resume.md>
    ```
+   `--resume` adds the role budget check: every `add`, `cut` and `remove` names its
+   `role` (the resume's role heading), and an Add that grows a role past its recency
+   bullet budget (5, 4, then 2) must be paired with a Cut or Remove in that role, or
+   carry an approved `over_budget_reason`.
 2. Assemble the headline numbers deterministically (do not hand-transcribe):
    ```bash
    python .claude/skills/resume-fit/helpers/numbers_strip.py <run>
    ```
 3. Before prescribing additions, run the relevance meter and the density checks
    on the seed resume (synthesis §5c, §5d) so prescriptions favor fewer, tighter
-   claims. Conditional: if nothing flags, they ask nothing.
+   claims. Conditional: if nothing flags, they ask nothing. Run the density lint
+   with `--screen <work>/screen.yaml`: if the line that earns a call starts below
+   the top two-thirds of page one, prescribe a Reorder that lifts it.
 4. Write `<run>/report.md` from `templates/report.md` (verdict-first,
    ~600–900 words, the two triggers quoted verbatim from `screen.yaml`) and
    `<run>/appendix.md` from `templates/appendix.md`.
@@ -322,7 +332,7 @@ the contracts show where each runs.
 | Setup | `config.py`, `whd_migrate.py`, `canary.py init`, `env_check.py` (read-only readiness report) |
 | A | `runfolder.py`, `validate.py` (schemas: requirements, location, preferences, scd, gapmap, screen, prescriptions, patches, summary_options), `hard_nos.py` |
 | B.5, C | `gap_review.py`, `gate1.py` (uses `location_gate.py`, `score.py`) |
-| D | `gapmap_summary.py`, `canary.py` |
+| D | `gapmap_summary.py`, `canary.py` (with `verbatim.py` for the escalation quote) |
 | E | `prescriptions.py`, `numbers_strip.py`, `relevance.py`, `whitespace_check.py`, `density_lint.py`, `ats.py` |
 | G | `summary_lint.py`, `chrono_check.py`, `tags.py`, `length_budget.py`, `compress_candidates.py`, `ats_chars.py`, `render_docx.py` (renders, cleans metadata, saves through Word), `word_pages.py` (Word page count), `docx_drift.py` |
 | H | `whd_patch.py` (backs up the WHD first), `whd_anchors.py`, `whd_io.py` |

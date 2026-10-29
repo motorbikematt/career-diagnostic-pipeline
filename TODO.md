@@ -80,6 +80,7 @@ the master-resume work). Tests: 189 passed, now 220.
   No ATS page penalty was found; two pages are preferred for experienced roles [S71, S78].
   *Fix:* keep the two-page default; at three pages require a stated reason tied to unique evidence; check that the strongest metric sits in the top third of page one.
   **Progress 2026-10-03:** `length_budget.py --reason TEXT` records an override; the result flags a real third page (above 2.5 estimated pages) and the CLI says the reason must name unique, relevant evidence. Still open: the top-third strongest-metric check.
+  **Progress 2026-10-29:** the screen's escalation line (the metric that earns a call) is now located on the estimated page and flagged when it starts below the top two-thirds of page one (`density_lint.py --screen`, TODO 42). That is the screen's choice of strongest metric, not a separate judgment. It checks the two-thirds scan zone rather than the top third this item names; decide whether the top third still matters before closing.
 
 ### D. Needs your decision first
 
@@ -166,9 +167,11 @@ Source: the CAFE worksheet and Get Selected bullet grader review, and the 2026-1
 
 - [ ] **42. Resumes are dense and nothing measures scan cost.**
   **Done 2026-10-23 (build 1):** `helpers/density_lint.py` (advisory, always exits 0) with tests; run in Phase E on the seed resume, in the Phase G length round and in the 6b re-eval. Thresholds are owner-set and calibrated on six past runs, expected to be retuned: bullets 40 words, 2 numbers per bullet, role budget 5/4/2, role intro 40 words, scan zone 300 words, total 1,000 words. The length round is now content first, layout last: margin and font levers come only after the density lint is clean and the overflow is within about 0.1 page.
+  **Done 2026-10-29 (build 2):**
+  - *Escalation quote.* `screen.schema.yaml` gains an optional `escalation_quote`; `contracts/screening.md` 4b requires it for new runs (the exact resume words the trigger rests on, no figure the resume lacks). `canary.py --resume <resume.md>` fails a run whose quote is missing or not on the resume word for word, and warns when the trigger cites a figure the resume lacks. `density_lint.py --screen` locates the quote on the estimated page and flags `escalation-below-scan-zone` or `escalation-missing`, falling back to the quote's figures when a draft reworded the line. Matching is in `verbatim.py` (markdown, whitespace and curly quotes ignored; case, punctuation and dashes must match). Found while building it: the committed example run's `screen.yaml` and `report.md` cited "50k units", a figure only the example WHD holds, so the fixture was itself a blindness leak; fixed.
+  - *Add paired with Cut.* `prescriptions.py --resume <resume.md>` projects bullets per Experience role (resume bullets, plus adds, minus cuts and removes; a compress does not offset) against the density lint's recency budget (5, 4, then 2) and fails an Add that grows a role past it, unless a cut or remove offsets it in the same role or the Add carries an approved `over_budget_reason`. New optional fields `role`, `bullets`, `over_budget_reason` in `prescriptions.schema.yaml`. Unknown roles and an Add that names a company with no `role` are notes, not failures. A role already over budget is not flagged unless an Add makes it grow.
+  - *Not built:* a word budget (prescriptions never draft wording, so only bullet counts are checked here; the lint's word ceilings still apply to the draft). Runs made before 2026-10-29 have no `escalation_quote`, so `canary.py --resume` fails on them by design.
   *Still open:*
-  - Screening gives the escalation trigger as a paraphrase, so no check can confirm the key metric sits in the scan zone. Add a verbatim `escalation_quote` to `screen.schema.yaml` and check its location (touches the screening contract; keep blindness enforcement intact).
-  - The pairing of Add with Cut in a flagged role is a contract instruction only; `prescriptions.py` does not enforce a net word budget.
   - Evidence interviews (Phase B.5 new-evidence, Phase G Supply, Phase H) ask one open question. Use a structured cause, action, result-with-baseline, impact sequence, and record where each measure came from (exact, candidate estimate, unknown); never let the model supply a figure.
   - 40 of 101 past bullets carry no number at all; that is #22, not density.
 

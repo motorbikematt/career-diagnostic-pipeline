@@ -70,16 +70,55 @@ def check(screen_path, whd_path) -> dict:
     return {"leaked": scan_text(text, canary), "canary": canary, "screen": str(screen_path)}
 
 
+def check_quote(screen: dict, resume_text: str) -> dict:
+    """Is the screen's escalation quote on the resume it was shown? (TODO 42)
+
+    FAILURES: the quote is missing, or it is not on the resume word for word.
+    Either way the recruiter could not have read what the trigger rests on.
+    WARNING: the trigger cites a figure (two or more digits, or a unit) that is
+    not on the resume, which is how a WHD-only number leaks into a screen.
+    A warning because a figure may be derived from dates on the page.
+    """
+    import density_lint
+    import verbatim
+
+    failures, warnings = [], []
+    quote = (screen.get("escalation_quote") or "").strip()
+    if not quote:
+        failures.append("escalation_quote is missing: the screen must quote the resume "
+                        "word for word (contracts/screening.md 4b)")
+    elif not verbatim.in_text(quote, resume_text):
+        failures.append(f"escalation_quote is not on the resume word for word: {quote!r}")
+    resume_figures = {density_lint._norm(n) for n in density_lint.numbers(resume_text)}
+    off_resume = sorted({n for n in density_lint.numbers(screen.get("first_escalation_trigger") or "")
+                         if density_lint._significant(n)
+                         and density_lint._norm(n) not in resume_figures})
+    if off_resume:
+        warnings.append("first_escalation_trigger cites a figure not on the resume: "
+                        + ", ".join(off_resume))
+    return {"ok": not failures, "failures": failures, "warnings": warnings}
+
+
 if __name__ == "__main__":
+    import argparse
     import sys
 
-    if sys.argv[1] == "init":
+    import yaml
+
+    if len(sys.argv) > 1 and sys.argv[1] == "init":
         result = init_canary(sys.argv[2], force="--force" in sys.argv[3:])
         state = "generated" if result["changed"] else "kept existing"
         print(f"{state} canary in {sys.argv[2]}")
         sys.exit(0)
 
-    result = check(sys.argv[1], sys.argv[2])
+    ap = argparse.ArgumentParser(description="Screening-blindness checks on screen.yaml.")
+    ap.add_argument("screen", help="screen.yaml")
+    ap.add_argument("whd", help="the WHD markdown (source of the canary token)")
+    ap.add_argument("--resume", help="the resume markdown the screen was shown; also "
+                                     "checks the escalation quote is on it")
+    args = ap.parse_args()
+
+    result = check(args.screen, args.whd)
     if result["leaked"]:
         print(
             f"CANARY LEAK: WHD token found in {result['screen']} "
@@ -87,3 +126,14 @@ if __name__ == "__main__":
         )
         sys.exit(1)
     print(f"OK: no canary leak in {result['screen']}")
+
+    if args.resume:
+        screen = yaml.safe_load(Path(args.screen).read_text(encoding="utf-8")) or {}
+        quote = check_quote(screen, Path(args.resume).read_text(encoding="utf-8"))
+        for msg in quote["warnings"]:
+            print(f"WARNING: {msg}")
+        for msg in quote["failures"]:
+            print(f"BLINDNESS VIOLATION: {msg}")
+        if not quote["ok"]:
+            sys.exit(1)
+        print(f"OK: escalation quote is on the resume ({args.resume})")

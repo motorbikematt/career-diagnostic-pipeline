@@ -205,9 +205,22 @@ repeated in a bullet, and more than 300 words in the top two-thirds of page one 
 1,000 in total. The thresholds are owner-set project rules calibrated on six past
 runs, not documented recruiter limits; they are ceilings, never targets. When it
 flags, prefer Compress and Cut prescriptions that remove a second metric or merge
-an intro into the scope line over Add prescriptions that grow a flagged role. An
-Add that the gap rules require still stands; place it where it does not breach a
-role budget, or pair it with a Cut in the same role.
+an intro into the scope line over Add prescriptions that grow a flagged role.
+
+**Add paired with Cut (enforced, 2026-10-29).** Every `add`, `cut` and `remove`
+prescription names its `role`: the Experience entry as the resume's role heading
+reads. An Add that grows a role past its recency bullet budget (5, 4, then 2) must
+be paired with a Cut or Remove in the same role (`bullets: N` when it spans more
+than one), or carry an `over_budget_reason` the owner approved; a compress does not
+offset an Add, because it keeps the bullet. An Add that the gap rules require still
+stands: the mandatory-Add rule is unchanged, only where it lands is checked.
+`prescriptions.py --resume <resume.md>` fails otherwise. A role already over budget
+is not flagged unless an Add makes it grow.
+
+**Escalation line (2026-10-29).** Run the lint with `--screen <work>/screen.yaml`.
+The screen's `escalation_quote` is the line a hiring manager would call on; if it
+sits below the top two-thirds of page one, prescribe a Reorder that lifts it, and if
+it carries no measure, an Add from the WHD that supplies one.
 
 ## 5. Exception-driven interrogation trigger (before writing the report)
 If the Honesty Check finds a **load-bearing stretch** — a claim that, if

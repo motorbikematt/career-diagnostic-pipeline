@@ -222,6 +222,8 @@ Tier: W2 is practitioner guidance adopted as official by owner decision (`linked
 | D4 | Ceilings only, never targets or floors | Project rule | Uniform bullet length is an AI-writing tell (`contracts/synthesis.md` section 5d) |
 | D5 | Content first, layout last. Narrow margins and smaller type fit more words on a page, so they follow content cuts and close only a small remaining gap | Project rule | Decision 2026-10-23; the levers were measured in Word on 2026-10-09 and still apply |
 | D6 | Advisory, never an auto-cut. The user decides every cut, and cut material stays in the WHD | Project rule | Existing length-round and no-fabrication invariants |
+| D7 | The line that earns a call belongs in the scan zone, and the screen must quote it from the resume word for word. A figure the recruiter cannot see is a blindness violation | Project rule, for the scan-zone position from [W2] | Screening blindness (`contracts/screening.md` 4b); the escalation trigger is the screen's own choice of strongest metric. The 2026-10-23 example fixture cited a WHD-only figure, which this check would have caught |
+| D8 | An Add that grows a role past its recency bullet budget is paired with a Cut in that role, or carries an approved reason | Project rule | D2 and D3 above; the mandatory-Add rule is unchanged. Bullet counts only: prescriptions never draft wording, so word ceilings stay with the draft's lint |
 
 ### 9.3 Calibration (2026-10-23)
 

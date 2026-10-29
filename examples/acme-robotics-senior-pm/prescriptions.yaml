@@ -23,13 +23,15 @@ prescriptions:
     source: circuit-dynamics
   - type: add
     target: "Surface the 50k-units prototype-to-production metric in the top third"
+    role: "Circuit Dynamics — Product Manager (2018–2021)"
     why: >
-      This scope and metric is the first escalation trigger; make it impossible
-      to miss on the deep read.
+      The prototype-to-production line is the first escalation trigger but carries
+      no measure; the WHD's 50k-units figure gives it one the deep read can weigh.
     closes: [first_escalation_trigger]
     source: circuit-dynamics.p1
   - type: reframe
     target: "On-device computer vision bullet"
+    role: "Circuit Dynamics — Product Manager (2018–2021)"
     why: >
       Signals a consumer-camera feature; reframe as edge-inference/perception
       work adjacent to robotics perception.

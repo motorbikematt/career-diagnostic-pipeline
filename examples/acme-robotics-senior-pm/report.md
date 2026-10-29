@@ -13,8 +13,9 @@ SaaS-analytics-first resume to lead with hardware for a robotics reader.
 ## The two triggers
 - **First friction:** Resume reads SaaS-analytics-first; a robotics recruiter
   on a fast scan sees "data-ingestion platform" before any hardware signal.
-- **First escalation:** Shipped a hardware product prototype-to-production
-  (50k units) — a metric and scope that compels a call despite the missing robotics domain.
+- **First escalation:** "Managed a smart-camera hardware product from prototype to
+  production": the scope of taking hardware through its whole lifecycle compels a call
+  despite the missing robotics domain, though the line carries no measure.
 
 ## Prescriptions
 
@@ -23,7 +24,7 @@ SaaS-analytics-first resume to lead with hardware for a robotics reader.
 | Reorder: lead with hardware/platform, not analytics | Fast scan misses hardware; move Circuit Dynamics up | circuit-dynamics |
 | Banner: "Senior Product Manager, Robotics Platform" | Ties the resume to the posting at a glance (JD title verbatim; banner exception) | n/a |
 | Summary: rebuild to who / what / how / proof | Signals SaaS analytics; the proof sentence must tie platform + connected-hardware breadth to robotics | circuit-dynamics |
-| Add: surface 50k-units prototype-to-production in the top third | It is the escalation trigger; make it unmissable | circuit-dynamics.p1 |
+| Add: the 50k-units figure for prototype-to-production, in the top third | The escalation line has no measure; the WHD supplies one | circuit-dynamics.p1 |
 | Reframe: on-device computer vision bullet | Reframe as edge perception adjacent to robotics | circuit-dynamics.p2 |
 
 ## Honesty

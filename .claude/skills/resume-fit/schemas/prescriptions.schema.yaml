@@ -20,6 +20,14 @@ properties:
         jd_title: {type: str}  # banner only: the JD role string, verbatim
         target: {type: str}   # the ONE bullet/line/section to change (the "what"); no "X or Y" alternatives (prescriptions.py rejects them)
         why: {type: str}      # what it currently signals -> what it needs to signal (the "why")
+        # Role budget (TODO 42). `role` names the Experience entry the change lands
+        # in, exactly as the resume's role heading reads. With prescriptions.py
+        # --resume, an add that grows a role past its recency bullet budget
+        # (density_lint.py) fails unless a cut/remove in the same role offsets it or
+        # the add carries an `over_budget_reason` the owner approved.
+        role: {type: str}
+        bullets: {type: number}          # bullets an add/cut/remove adds or removes (default 1)
+        over_budget_reason: {type: str}  # add only: the approved reason it may exceed the budget
         closes: {type: list}  # gap-map ids or screen trigger refs this closes
         source: {type: str}   # WHD anchor id (required for an Add closing a recoverable gap)
         # compress | cut are SUBTRACTIVE (length prescriptions). They exist so the
