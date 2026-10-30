@@ -217,6 +217,15 @@ stands: the mandatory-Add rule is unchanged, only where it lands is checked.
 `prescriptions.py --resume <resume.md>` fails otherwise. A role already over budget
 is not flagged unless an Add makes it grow.
 
+**Measures (2026-10-30).** `python .claude/skills/resume-fit/helpers/bullet_lint.py <resume.md>`
+flags duty openers, vague qualifiers with no number, and activity-only bullets
+(no number and no stated result). It finds absence only and never suggests a
+figure. Let it shape the prescriptions: an Add or Reframe that closes a gap
+carries the measure its cited WHD anchor holds, and where the WHD holds none the
+prescription says so, so the finishing loop asks the candidate instead of the
+draft guessing. The method (how it was done) is not linted; it is asked for in
+the evidence interview.
+
 **Escalation line (2026-10-29).** Run the lint with `--screen <work>/screen.yaml`.
 The screen's `escalation_quote` is the line a hiring manager would call on; if it
 sits below the top two-thirds of page one, prescribe a Reorder that lifts it, and if

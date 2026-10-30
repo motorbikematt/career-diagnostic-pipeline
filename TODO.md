@@ -72,9 +72,11 @@ the master-resume work). Tests: 189 passed, now 220.
   *Fix:* rename the gates "fast scan" and "deep read"; have Gate 1 check current title, employer, dates and location in the top third of page one; add a limitations note on LLM-evaluator bias and keep the approximation framing.
   **Progress 2026-10-03:** gates renamed in the contract, schema comments, appendix template and the committed example outputs (schema keys such as `gate1_verdict` unchanged); limitations note added as `contracts/screening.md` section 6. Still open: the top-third-of-page-one check.
 
-- [ ] **22. Bullets without a measure or method pass unflagged.**
+- [x] **22. Bullets without a measure or method pass unflagged.**
   Google asks for data and recommends "accomplished X as measured by Y, by doing Z" [S78, S80].
   *Fix:* an advisory check that flags bullets lacking a measure (Y) or a method (Z). Absorbs Antigravity item A3.
+  **Done 2026-10-30 for the measure half:** `helpers/bullet_lint.py` (advisory, always exits 0) flags `duty-opener` ("responsible for", "worked on", "helped with" and the like, after any bold label), `no-measure` (no number and no stated result: an activity-only bullet) and `vague-qualifier` ("significantly" with no number), and counts bullets that state a result only in words as information. Each flag carries the role's recency rank; the two newest roles are `priority`. `--review <work>/measure_review.yaml` records the candidate's answers (`no-measure` or `keep`, keyed by the bullet's first 60 normalized characters) so a later round does not ask again; stale keys are reported. A thin Measure round in `contracts/finishing.md` asks about priority flags (batches of about three, the candidate's own words inserted, never a supplied figure); the lint also runs on the seed resume in Phase E and as re-eval axis 8. On the seven past runs: 114 bullets, 71 with a number, 11 with a result in words, 32 activity-only (15 in the two newest roles), 0 duty openers, 0 vague qualifiers.
+  **The method half (Z) is not linted, by decision:** only 26 of 114 bullets use "by", "via", "using" or "through", and good bullets put the method in the action verb, so a word rule would flag about three bullets in four. Asking for the method moves to the evidence interview (TODO 42). Limits: a digit is a weak proxy for a measure ("Led 3 meetings" passes), and the outcome-wording list is loose on purpose. Not built: a check that the WHD holds a number the bullet did not use (needs the bullet library to map bullets to anchors) and "from X to Y" baseline detection.
 
 - [ ] **23. `length_budget.py` treats page three like any overflow.**
   No ATS page penalty was found; two pages are preferred for experienced roles [S71, S78].
@@ -173,7 +175,7 @@ Source: the CAFE worksheet and Get Selected bullet grader review, and the 2026-1
   - *Not built:* a word budget (prescriptions never draft wording, so only bullet counts are checked here; the lint's word ceilings still apply to the draft). Runs made before 2026-10-29 have no `escalation_quote`, so `canary.py --resume` fails on them by design.
   *Still open:*
   - Evidence interviews (Phase B.5 new-evidence, Phase G Supply, Phase H) ask one open question. Use a structured cause, action, result-with-baseline, impact sequence, and record where each measure came from (exact, candidate estimate, unknown); never let the model supply a figure.
-  - 40 of 101 past bullets carry no number at all; that is #22, not density.
+  - The 38% of past bullets with no number is #22 (done 2026-10-30), not density. The method question ("what steps and tools") has no lint and lives in this interview.
 
 ### Reviewed and closed: Gemini Antigravity proposals (2026-10-03)
 These three items were appended by the Gemini Antigravity run (commit 3f9f0f7).

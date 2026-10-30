@@ -263,7 +263,10 @@ artifacts + the WHD. Spec and verbatim invariants: `contracts/synthesis.md`.
    on the seed resume (synthesis §5c, §5d) so prescriptions favor fewer, tighter
    claims. Conditional: if nothing flags, they ask nothing. Run the density lint
    with `--screen <work>/screen.yaml`: if the line that earns a call starts below
-   the top two-thirds of page one, prescribe a Reorder that lifts it.
+   the top two-thirds of page one, prescribe a Reorder that lifts it. Also run
+   `bullet_lint.py <resume.md>`: an Add or Reframe that closes a gap should carry
+   the measure its WHD source holds, and each activity-only bullet in the two
+   newest roles is a question for the Phase G Measure round, never an edit.
 4. Write `<run>/report.md` from `templates/report.md` (verdict-first,
    ~600–900 words, the two triggers quoted verbatim from `screen.yaml`) and
    `<run>/appendix.md` from `templates/appendix.md`.
@@ -333,8 +336,8 @@ the contracts show where each runs.
 | A | `runfolder.py`, `validate.py` (schemas: requirements, location, preferences, scd, gapmap, screen, prescriptions, patches, summary_options), `hard_nos.py` |
 | B.5, C | `gap_review.py`, `gate1.py` (uses `location_gate.py`, `score.py`) |
 | D | `gapmap_summary.py`, `canary.py` (with `verbatim.py` for the escalation quote) |
-| E | `prescriptions.py`, `numbers_strip.py`, `relevance.py`, `whitespace_check.py`, `density_lint.py`, `ats.py` |
-| G | `summary_lint.py`, `chrono_check.py`, `tags.py`, `length_budget.py`, `compress_candidates.py`, `ats_chars.py`, `render_docx.py` (renders, cleans metadata, saves through Word), `word_pages.py` (Word page count), `docx_drift.py` |
+| E | `prescriptions.py`, `numbers_strip.py`, `relevance.py`, `whitespace_check.py`, `density_lint.py`, `bullet_lint.py`, `ats.py` |
+| G | `bullet_lint.py` (Measure round, `measure_review.yaml`), `summary_lint.py`, `chrono_check.py`, `tags.py`, `length_budget.py`, `compress_candidates.py`, `ats_chars.py`, `render_docx.py` (renders, cleans metadata, saves through Word), `word_pages.py` (Word page count), `docx_drift.py` |
 | H | `whd_patch.py` (backs up the WHD first), `whd_anchors.py`, `whd_io.py` |
 | Standalone, not in the loop | `structure_lint.py`, `contact_check.py`, `filesize_gate.py` |
 

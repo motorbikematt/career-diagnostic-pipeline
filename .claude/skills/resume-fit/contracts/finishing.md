@@ -106,6 +106,17 @@ AskUserQuestion, batched by tag type:
 - **Supply rounds** — each `[CANDIDATE TO SUPPLY]`: what's needed and why, one
   question. Insert the user's own words near-verbatim (light tense/format
   conformance only) — this sidesteps most voice drift.
+- **Measure round** (TODO 22): run `bullet_lint.py <draft.md> --review <work>/measure_review.yaml`.
+  For each `no-measure` flag marked `priority` (the two newest roles), batched
+  about three at a time, ask: "Is there a number or a named result for this
+  bullet?" Offer the WHD anchor's own Outcome line when the bullet traces to one.
+  If the candidate gives one, insert their words near-verbatim (the Supply
+  rule above; never supply, round or infer a figure). If they say none exists,
+  write `"<key>": no-measure` to `measure_review.yaml` so no later round asks
+  again; `keep` leaves the bullet as written. Older-role flags are reported in
+  `reeval.md`, not asked. A `duty-opener` flag is a rewrite offer in the
+  candidate's voice (the Voice rule above), never an auto-edit. This is a thin
+  round; the structured interview and provenance tagging are TODO 42.
 - **Keyword rounds** — each `[NOT INTEGRATED]`: offer 2-3 candidate-voice
   integration options plus "skip — leave it out."
 - **Voice rounds** — each `VOICE NOTE` / low-confidence `[CHANGED]`: show original
@@ -213,6 +224,11 @@ re-enter any loop.
    `escalation-below-scan-zone` or `escalation-missing` flag means tailoring moved
    or reworded the metric the screen said compels a call. Report it as a single
    yes/no ("keep as-is or restore it to the top?").
+8. **Measures:** `python .claude/skills/resume-fit/helpers/bullet_lint.py <resume_draft.md> --review <work>/measure_review.yaml`.
+   Advisory only. Report the count of activity-only bullets (no number, no stated
+   result) and whether tailoring added any the seed resume did not have; a flag
+   the candidate already answered in the Measure round stays silent. Never a new
+   trim cycle.
 
 Write a short `<work>/reeval.md`: the axis verdicts + any
 regression. **No recursion** — if it flags a regression, surface it to the user as a
