@@ -1,5 +1,7 @@
 import zipfile
 
+import pytest
+
 import render_docx
 from docx import Document
 
@@ -133,3 +135,27 @@ def test_rerender_over_an_in_sync_docx_is_allowed(tmp_path):
     out = tmp_path / "r.docx"
     render_docx.render(md, out)
     render_docx.render(md, out, margin_in=0.5)  # same text: no refusal
+
+
+def test_cli_reports_a_locked_docx_and_exits_nonzero(tmp_path, monkeypatch, capsys):
+    import runpy
+    import sys
+
+    import docx.document
+
+    md = tmp_path / "resume.md"
+    md.write_text("# Jane\n\n- A bullet.\n", encoding="utf-8")
+    out = tmp_path / "resume.docx"
+
+    def locked(self, path_or_stream):
+        raise PermissionError(13, "Permission denied", str(path_or_stream))
+
+    monkeypatch.setattr(docx.document.Document, "save", locked)
+    monkeypatch.setattr(sys, "argv", ["render_docx.py", str(md), str(out), "--no-word-save"])
+    with pytest.raises(SystemExit) as exc:
+        runpy.run_path(render_docx.__file__, run_name="__main__")
+    assert exc.value.code not in (0, None)
+    msg = capsys.readouterr().out.strip()
+    assert len(msg.splitlines()) == 1
+    assert "locked" in msg and "Word" in msg and "Close" in msg
+    assert not out.exists()

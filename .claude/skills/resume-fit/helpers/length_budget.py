@@ -31,6 +31,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+import tags
+
 # --- Page geometry (US Letter) -------------------------------------------------
 PAGE_WIDTH_IN = 8.5
 PAGE_HEIGHT_IN = 11.0
@@ -111,6 +113,7 @@ def elements(md_text: str, margin_in: float = DEFAULT_MARGIN_IN,
              body_pt: float = BODY_PT) -> list:
     """Per-element layout: kind, visible text, rendered lines, height (inches).
 
+    Lines tagged [REMOVED] are skipped and [CHANGED] is stripped (tags.live_text).
     Height = wrapped lines * line height + the gap above the element (none for
     the first element, which sits at the top margin). Shared with
     whitespace_check.py so both helpers measure the same layout.
@@ -118,7 +121,7 @@ def elements(md_text: str, margin_in: float = DEFAULT_MARGIN_IN,
     text_width = PAGE_WIDTH_IN - 2 * margin_in
     bullet_width = text_width - BULLET_INDENT_IN
     out = []
-    for raw in md_text.splitlines():
+    for raw in tags.live_text(md_text).splitlines():
         c = _classify(raw, body_pt)
         if c is None:
             continue

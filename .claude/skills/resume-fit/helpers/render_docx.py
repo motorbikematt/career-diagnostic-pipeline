@@ -221,6 +221,12 @@ if __name__ == "__main__":
     except DocxDriftError as e:
         print(f"REFUSED: {e}")
         raise SystemExit(2)
+    except PermissionError as e:
+        # Windows holds an open .docx locked. Never write elsewhere: the user
+        # would edit a stale copy.
+        print(f"LOCKED: cannot write {e.filename or args.out}; the file is locked "
+              "(likely open in Word). Close it and run again.")
+        raise SystemExit(4)
     print(out)
     if not args.no_word_save:
         report = word_resave(out)

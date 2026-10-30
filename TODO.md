@@ -177,6 +177,10 @@ Source: the CAFE worksheet and Get Selected bullet grader review, and the 2026-1
   - Evidence interviews (Phase B.5 new-evidence, Phase G Supply, Phase H) ask one open question. Use a structured cause, action, result-with-baseline, impact sequence, and record where each measure came from (exact, candidate estimate, unknown); never let the model supply a figure.
   - The 38% of past bullets with no number is #22 (done 2026-10-30), not density. The method question ("what steps and tools") has no lint and lives in this interview.
 
+- [ ] **43. WHD-blindness layer 2 can degrade to instruction-only.**
+  Found in the 2026-10-30 STR Principal Product Lead run: the desktop harness may have no agent type without file-read tools, so the screening subagent cannot be provably denied the WHD by construction (`contracts/screening.md` section 3, enforcement layers). Documented there; until fixed, the orchestrator passes every input inline and relies on the canary scan and the verbatim-quote checks.
+  *Fix:* add a dedicated no-tools screening agent definition (for example `.claude/agents/screening.md` with an empty `tools:` list), have the orchestrator dispatch it for the screening phase. Verify in the harness that the agent truly has no Read, Grep or Glob before relying on it.
+
 ### Reviewed and closed: Gemini Antigravity proposals (2026-10-03)
 These three items were appended by the Gemini Antigravity run (commit 3f9f0f7).
 Dispositions follow the evidence review in `docs/research/ats-evidence-2026.md`.

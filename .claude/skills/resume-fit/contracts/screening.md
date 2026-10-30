@@ -45,6 +45,22 @@ file-read tools**; every input arrives inline, so it cannot go find the WHD even
 if instructed to. A canary token in the WHD front-matter is scanned in
 `screen.yaml` after the run; if it appears, the run fails.
 
+**Enforcement layers and their degradation (desktop harness, 2026-10-30).**
+WHD-blindness rests on three layers: (1) the orchestrator never passes the WHD;
+(2) the subagent has no file-read tools, so it cannot fetch the WHD on its own;
+(3) the canary scan and the verbatim-quote checks (`canary.py`,
+`canary.py --resume`) catch a leak after the fact. Layer 2 needs an agent type
+defined without file-read tools. The desktop harness may offer none: every
+available agent type may carry Read, Grep or Glob. When no tool-less type
+exists, layer 2 degrades to instruction-only (the contract tells the agent not
+to look; nothing prevents it). The orchestrator must then (a) pass every input
+inline, including the resume, `requirements.yaml`, the gapmap summary and
+`scd.yaml`, and never as paths; (b) not name the WHD's location anywhere in the
+dispatch; and (c) treat layer 3 as the enforcement, running the canary scan and
+the verbatim-quote check on every `screen.yaml` and failing the run on a hit.
+A dedicated
+no-tools agent definition would restore layer 2 (TODO #43).
+
 ## 4. Output schema — write `screen.yaml` (validated against `schemas/screen.schema.yaml`)
 Required: `gate1_verdict` (clear-archetype-match | requires-interpretation |
 immediate-discard-risk), `first_friction_trigger`, `first_escalation_trigger`

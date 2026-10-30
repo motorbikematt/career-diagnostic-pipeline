@@ -203,3 +203,15 @@ def test_real_runs_parse_roles():
     for f in sorted(data_plane_runs().glob("*/resume_candidate.md")):
         res = dl.check_file(f)
         assert res["stats"]["roles"], f"no Experience roles found in {f.parent.name}"
+
+
+def test_removed_lines_and_changed_tags_are_not_content():
+    exp = ("### Co — PM (2021–present)\n\n"
+           f"- [CHANGED] {words(30)}\n"
+           f"- [REMOVED] {words(60)}\n")
+    res = dl.check(resume(exp))
+    assert res["stats"]["bullets"] == 1
+    assert res["stats"]["bullet_words_max"] == 30
+    assert "bullet-long" not in rules(res)
+    clean = dl.check(resume(f"### Co — PM (2021–present)\n\n- {words(30)}\n"))
+    assert res["stats"]["total_words"] == clean["stats"]["total_words"]
