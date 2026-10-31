@@ -27,3 +27,12 @@ def test_changed_alone_is_clean():
     # [CHANGED]/[REMOVED] are review markers, not blockers.
     result = tags.scan("- [CHANGED] a line\n- [REMOVED] old line (reason)\n")
     assert result["clean"] is True
+
+
+def test_live_text_drops_removed_lines_and_strips_info_tags():
+    draft = ("- [CHANGED] Kept bullet.\n"
+             "- [REMOVED] Dead bullet (too long)\n"
+             "- Plain [CHANGED: reworded] tail\n"
+             "- [NOT INTEGRATED] stays for the exit check\n")
+    lines = tags.live_text(draft).splitlines()
+    assert lines == ["- Kept bullet.", "", "- Plain tail", "- [NOT INTEGRATED] stays for the exit check"]

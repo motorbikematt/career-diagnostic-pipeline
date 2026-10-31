@@ -186,3 +186,27 @@ def test_real_runs_parse_and_count():
         s = res["stats"]
         assert s["with_number"] + s["qualitative_only"] + s["activity_only"] + s["acknowledged"] \
             <= s["bullets"]
+
+
+def test_missing_review_file_is_empty(tmp_path):
+    # The first Measure round starts without a measure_review.yaml.
+    assert bl.load_review(tmp_path / "measure_review.yaml") == {}
+
+
+def test_cli_with_a_missing_review_file_does_not_crash(tmp_path):
+    md = tmp_path / "resume.md"
+    md.write_text(resume("Coordinated firmware, optics, and tooling for the team"), encoding="utf-8")
+    proc = subprocess.run([sys.executable, str(HELPERS / "bullet_lint.py"), str(md),
+                           "--review", str(tmp_path / "measure_review.yaml")],
+                          capture_output=True, text=True)
+    assert proc.returncode == 0, proc.stderr
+
+
+def test_removed_bullets_are_skipped_and_changed_tags_do_not_alter_keys():
+    plain = resume("Coordinated firmware, optics, and tooling for the team")
+    tagged = resume("[CHANGED] Coordinated firmware, optics, and tooling for the team",
+                    "[REMOVED] Responsible for the roadmap")
+    assert [f["key"] for f in bl.check(tagged)["flags"]] == [f["key"] for f in bl.check(plain)["flags"]]
+    assert bl.check(tagged)["stats"]["bullets"] == 1
+    key = bl.check(plain)["flags"][0]["key"]
+    assert bl.check(tagged, {key: "keep"})["flags"] == []

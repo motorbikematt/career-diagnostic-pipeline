@@ -218,3 +218,9 @@ def test_third_page_flag_only_above_two_and_a_half_pages():
 def test_fitting_resume_never_records_override():
     r = length_budget.check(SHORT, reason="irrelevant")
     assert r["override_recorded"] is False
+
+
+def test_removed_lines_and_changed_tags_do_not_count_toward_height():
+    base = "# Jane\n\n## Experience\n\n- " + "kept bullet " * 5 + "\n"
+    tagged = base.replace("- kept", "- [CHANGED] kept") + "- [REMOVED] " + "dead line " * 40 + "\n"
+    assert length_budget.estimate(tagged) == length_budget.estimate(base)

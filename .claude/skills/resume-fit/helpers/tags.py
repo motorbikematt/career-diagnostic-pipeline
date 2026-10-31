@@ -19,6 +19,21 @@ INFO = ["CHANGED", "REMOVED"]
 ALL = BLOCKING + INFO
 
 
+_REMOVED = re.compile(r"\[REMOVED\b")
+_INFO_TAG = re.compile(r"\[(?:" + "|".join(map(re.escape, INFO)) + r")\b[^\]]*\][ \t]?")
+
+
+def live_text(text: str) -> str:
+    """The draft as the rendered resume will read: the measuring helpers' input.
+
+    A line tagged [REMOVED] is dead and becomes an empty line (so line numbers
+    still match the file); the informational tags are stripped from the rest.
+    Blocking tags are left alone: the exit check owns them.
+    """
+    return "\n".join("" if _REMOVED.search(line) else _INFO_TAG.sub("", line)
+                     for line in text.splitlines())
+
+
 def scan(text: str) -> dict:
     counts = {}
     for tag in ALL:

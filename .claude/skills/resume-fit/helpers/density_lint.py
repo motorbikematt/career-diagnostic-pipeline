@@ -31,6 +31,9 @@ With `--screen <screen.yaml>` it also locates the screen's `escalation_quote`
 A draft may have reworded the line the seed resume carried, so when the exact
 words are gone it falls back to the line holding the quote's figures.
 
+Finishing-loop tags are not content: [REMOVED] lines are skipped and [CHANGED]
+is stripped before measuring (tags.live_text).
+
 Bullets under a Skills or Education heading are lists, not claims, so the
 bullet rules skip them. VALUE-BLIND: it reports cost, never what to cut, and
 never rewrites the resume.
@@ -44,6 +47,7 @@ from pathlib import Path
 import chrono_check
 import length_budget
 import summary_lint
+import tags
 import verbatim
 
 # Owner-set 2026-10-23 from six past runs (expect retuning). Past-run ranges:
@@ -96,6 +100,7 @@ def _significant(num: str) -> bool:
 
 def _parse(md_text: str) -> dict:
     """Bullets (with section and role) and Experience roles, in document order."""
+    md_text = tags.live_text(md_text)
     entry_lines = {e["line"]: e["entry"] for e in chrono_check._entries(md_text)}
     bullets, roles = [], []
     section, role = "(top)", None
@@ -177,6 +182,7 @@ def locate_quote(md_text: str, quote: str, margin_in: float = length_budget.DEFA
 
 def check(md_text: str, margin_in: float = length_budget.DEFAULT_MARGIN_IN,
           body_pt: float = length_budget.BODY_PT, screen: dict | None = None) -> dict:
+    md_text = tags.live_text(md_text)
     parsed = _parse(md_text)
     flags = []
 

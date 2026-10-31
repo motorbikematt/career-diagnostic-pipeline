@@ -37,6 +37,8 @@ later round does not ask again. Each flag prints a `key`; map it to a decision:
 or `{decision: ..., note: ...}`. A key matches any bullet whose normalized text
 starts with it (at least KEY_MIN_CHARS characters). Keys that match no bullet are
 reported as `stale_review_keys`: harmless, usually a bullet that gained a measure.
+[CHANGED] and [REMOVED] tags are stripped before keying and [REMOVED] lines are
+skipped, so a key survives the finishing loop's tags (tags.live_text).
 VALUE-BLIND beyond that: it never rewrites the resume.
 """
 from __future__ import annotations
@@ -102,10 +104,13 @@ def classify(raw_text: str) -> dict:
 
 
 def load_review(path) -> dict:
-    """{normalized key: decision}. Fails loudly on an unknown decision."""
+    """{normalized key: decision}. A missing file is empty; an unknown decision fails loudly."""
     import yaml
 
-    data = yaml.safe_load(Path(path).read_text(encoding="utf-8")) or {}
+    path = Path(path)
+    if not path.exists():       # the first Measure round starts without a review file
+        return {}
+    data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
     out = {}
     for key, val in data.items():
         decision = val.get("decision") if isinstance(val, dict) else val
